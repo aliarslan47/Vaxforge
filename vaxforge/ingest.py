@@ -11,6 +11,7 @@ Gerçek araçlar (SPAdes, Prodigal) takıldığında bu fallback devre dışı k
 from __future__ import annotations
 
 import gzip
+import re
 from pathlib import Path
 
 from Bio import SeqIO
@@ -20,6 +21,25 @@ from .detect import Detection
 from .models import ProteinRecord
 
 MIN_ORF_AA = 40
+
+# NCBI CDS/protein FASTA başlığındaki alanlar: [gene=..] [locus_tag=..] [location=..]
+_LOCUS_RE = {
+    "gene": re.compile(r"\[gene=([^\]]+)\]"),
+    "locus_tag": re.compile(r"\[locus_tag=([^\]]+)\]"),
+    "protein": re.compile(r"\[protein=([^\]]+)\]"),
+    "protein_id": re.compile(r"\[protein_id=([^\]]+)\]"),
+    "location": re.compile(r"\[location=([^\]]+)\]"),
+}
+
+
+def _parse_locus(desc: str) -> dict:
+    """CDS başlığından gen/lokus/konum bilgisini çıkarır (varsa)."""
+    out = {}
+    for key, rx in _LOCUS_RE.items():
+        m = rx.search(desc or "")
+        if m:
+            out[key] = m.group(1).strip()
+    return out
 
 
 def _open(path: Path):
@@ -34,12 +54,47 @@ def _fmt(det: Detection) -> str:
 
 def load_proteins(path: str | Path, det: Detection) -> list[ProteinRecord]:
     path = Path(path)
+    if det.molecule == "genbank":
+        return _read_genbank(path)
     if det.molecule == "proteome":
         return _read_proteins(path, det)
     if det.molecule == "cds":
         return _translate_cds(path, det)
     # genome / reads -> ORF bulma
     return _find_orfs(path, det)
+
+
+def _read_genbank(path) -> list[ProteinRecord]:
+    """GenBank CDS'lerini protein olarak alır; gen/lokus/konum doğrudan gelir."""
+    out = []
+    with _open(path) as fh:
+        for rec in SeqIO.parse(fh, "genbank"):
+            idx = 0
+            for f in rec.features:
+                if f.type != "CDS":
+                    continue
+                q = f.qualifiers
+                prot = (q.get("translation", [None])[0])
+                if not prot:
+                    try:
+                        prot = str(f.extract(rec.seq).translate(to_stop=True))
+                    except Exception:
+                        continue
+                if not prot or len(prot) < 20:
+                    continue
+                idx += 1
+                locus = q.get("locus_tag", [None])[0]
+                pid = q.get("protein_id", [None])[0] or locus or f"{rec.id}_cds{idx}"
+                pr = ProteinRecord(id=pid, seq=prot, source="genbank")
+                pr.annotations.update({
+                    "gene": q.get("gene", [None])[0],
+                    "locus_tag": locus,
+                    "protein_id": q.get("protein_id", [None])[0],
+                    "location": str(f.location),
+                    "desc": q.get("product", [""])[0],
+                })
+                out.append(pr)
+    return out
 
 
 def _read_proteins(path, det) -> list[ProteinRecord]:
@@ -50,6 +105,7 @@ def _read_proteins(path, det) -> list[ProteinRecord]:
             if len(seq) >= 20:
                 pr = ProteinRecord(id=rec.id, seq=seq, source="proteome")
                 pr.annotations["desc"] = rec.description
+                pr.annotations.update(_parse_locus(rec.description))
                 out.append(pr)
     return out
 
@@ -66,6 +122,7 @@ def _translate_cds(path, det) -> list[ProteinRecord]:
             if len(prot) >= 20:
                 pr = ProteinRecord(id=rec.id, seq=prot, source="translate")
                 pr.annotations["desc"] = rec.description
+                pr.annotations.update(_parse_locus(rec.description))
                 out.append(pr)
     return out
 

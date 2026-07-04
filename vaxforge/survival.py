@@ -50,12 +50,11 @@ def run(peptides: list[Peptide], tools: dict[str, ResolvedTool]) -> tuple[list[P
     alg_res = allergen.predict(seqs) if alg_avail else {}
     tox_res = toxinpred.predict(seqs) if tox_avail else {}
 
-    survivors = []
-    n_allergen = n_toxic = 0
-    for p in peptides:
-        if not p.passed:
-            continue
-        # -- alerjenite
+    n_start = len(active)
+
+    # --- Aşama 1: ALERJENİTE elemesi ---------------------------------------
+    after_allergen, n_allergen = [], 0
+    for p in active:
         if alg_avail and p.seq in alg_res:
             is_allergen = alg_res[p.seq]["allergen"]
             p.metrics["allergen"] = is_allergen
@@ -63,37 +62,41 @@ def run(peptides: list[Peptide], tools: dict[str, ResolvedTool]) -> tuple[list[P
             p.methods["allergen"] = "GERÇEK (FAO/WHO 6-mer, UniProt allergen DB)"
         else:
             ap = _allergen_prob(p.seq)
-            p.metrics["allergen"] = ap >= 0.6
+            is_allergen = ap >= 0.6
+            p.metrics["allergen"] = is_allergen
             p.metrics["allergen_prob"] = ap
             p.methods["allergen"] = "heuristik proxy (AllerTOP yok)"
-            is_allergen = ap >= 0.6
-        # -- toksisite
+        if require_non_allergen and is_allergen:
+            p.passed = False
+            p.notes.append("alerjen (elendi)")
+            n_allergen += 1
+        else:
+            after_allergen.append(p)
+
+    # --- Aşama 2: TOKSİSİTE elemesi ----------------------------------------
+    survivors, n_toxic = [], 0
+    for p in after_allergen:
         if tox_avail and p.seq in tox_res:
             toxic = tox_res[p.seq]["toxic"]
             p.metrics["toxicity"] = tox_res[p.seq]["ml_score"]
             p.methods["toxicity"] = "GERÇEK (ToxinPred2, RF)"
         else:
             tx = _tox_score(p.seq)
+            toxic = tx > max_tox
             p.metrics["toxicity"] = tx
             p.methods["toxicity"] = "heuristik proxy (ToxinPred yok)"
-            toxic = tx > max_tox
-
-        if require_non_allergen and is_allergen:
-            p.passed = False
-            p.notes.append("alerjen (elendi)")
-            n_allergen += 1
         if toxic:
             p.passed = False
             p.notes.append("toksik (elendi)")
             n_toxic += 1
-
-        p.metrics.setdefault("conservation", None)
-        p.methods["conservation"] = "ÇALIŞTIRILMADI (suş verisi yok)"
-
-        if p.passed:
+        else:
             survivors.append(p)
-    summary = {"girdi": len(peptides), "hayatta": len(survivors),
-               "alerjen_elenen": n_allergen, "toksik_elenen": n_toxic,
-               "alerjenite": "GERÇEK (FAO/WHO)" if alg_avail else "proxy",
-               "toksisite": "GERÇEK (ToxinPred2)" if tox_avail else "proxy"}
+
+    summary = {
+        "girdi_peptit": n_start,
+        "alerjenite_sonrasi": len(after_allergen), "alerjen_elenen": n_allergen,
+        "toksisite_sonrasi": len(survivors), "toksik_elenen": n_toxic,
+        "alerjenite": "GERÇEK (FAO/WHO)" if alg_avail else "proxy",
+        "toksisite": "GERÇEK (ToxinPred2)" if tox_avail else "proxy",
+    }
     return survivors, summary

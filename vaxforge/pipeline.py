@@ -45,13 +45,17 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
         "thresholds": flatten_for_report(resolved),
         "plan": plan_table(steps),
         "citations": citations.for_report(),
+        "n_raw": det.num_seqs,          # dosyadaki ham dizi/CDS sayısı
+        "molecule": det.molecule,
     }
 
-    # 1) Ingest (prep dahil)
-    yield _ev("ingest", "running", "Proteom hazırlanıyor…")
+    # 1) Ingest (prep dahil): CDS -> protein çevirisi / ORF vb.
+    unit = "CDS" if det.molecule == "cds" else ("okuma" if det.molecule == "reads" else "dizi")
+    yield _ev("ingest", "running", f"Girdi: {det.num_seqs} {unit}. Proteom hazırlanıyor…")
     proteins = ingest.load_proteins(path, det)
     meta["n_input"] = len(proteins)
-    yield _ev("ingest", "done", f"{len(proteins)} aday protein elde edildi", {"n": len(proteins)})
+    yield _ev("ingest", "done",
+              f"{det.num_seqs} {unit} → {len(proteins)} protein elde edildi", {"n": len(proteins)})
     if not proteins:
         yield _ev("__error__", "error", "Hiç protein elde edilemedi.")
         return
@@ -83,14 +87,25 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
     real_ii = any("GERÇEK" in p.methods.get("mhc_score", "") for p in peptides if p.kind == "MHC-II")
     tag = " · " + " ".join(["MHC-I=GERÇEK" if real_i else "MHC-I=proxy",
                             "MHC-II=GERÇEK" if real_ii else "MHC-II=proxy"])
+    nB = sum(1 for p in peptides if p.kind == "B")
+    nI = sum(1 for p in peptides if p.kind == "MHC-I")
+    nII = sum(1 for p in peptides if p.kind == "MHC-II")
     yield _ev("mhc_panel", "done",
-              f"{len(peptides)} epitop (B + MHC-I + MHC-II) · {len(hosts)} konak" + tag,
+              f"Sliding-window ile {len(peptides)} epitop üretildi "
+              f"(B={nB}, MHC-I={nI}, MHC-II={nII}) · {len(hosts)} konak" + tag,
               {"n": len(peptides), "hosts": [h.name for h in hosts]})
 
-    # 5) Survival
-    yield _ev("survival", "running", "Sağ kalım elemesi (alerjenite/toksisite)…")
+    # 5) Survival — KADEMELİ eleme (sayı adım adım azalır)
+    yield _ev("survival", "running", f"{len(peptides)} peptit sağ kalım elemesine giriyor…")
     peptides, ssum = survival.run(peptides, resolved)
-    yield _ev("survival", "done", f"{len(peptides)} peptit hayatta kaldı", ssum)
+    meta["n_after_allergen"] = ssum["alerjenite_sonrasi"]
+    meta["n_after_toxicity"] = ssum["toksisite_sonrasi"]
+    yield _ev("survival_allergen", "done",
+              f"Alerjenite ({ssum['alerjenite']}): {ssum['girdi_peptit']} → "
+              f"{ssum['alerjenite_sonrasi']} peptit ({ssum['alerjen_elenen']} alerjen elendi)", ssum)
+    yield _ev("survival_toxicity", "done",
+              f"Toksisite ({ssum['toksisite']}): {ssum['alerjenite_sonrasi']} → "
+              f"{ssum['toksisite_sonrasi']} peptit ({ssum['toksik_elenen']} toksik elendi)", ssum)
 
     # 6) Deferred ağır adımlar
     for hid, title in [("structure", "Peptit-MHC yapısı (AlphaFold)"),

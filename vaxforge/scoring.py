@@ -25,8 +25,6 @@ def _components(p: Peptide) -> dict[str, float]:
         comp["mhc_ii_binding"] = float(m.get("mhc_score", 0))
     if p.kind == "B":
         comp["antigenicity"] = max(comp.get("antigenicity", 0), float(m.get("bcell_score", 0)))
-    if m.get("conservation") is not None:
-        comp["conservation"] = float(m["conservation"])
     if m.get("coverage_frac") is not None:
         comp["organism_coverage"] = float(m["coverage_frac"])
     if m.get("plddt") is not None:

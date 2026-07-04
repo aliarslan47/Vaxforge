@@ -75,10 +75,10 @@ _SAMPLES = {
 _up_col, _s_col = st.columns([2, 1])
 with _up_col:
     uploaded = st.file_uploader(
-        "Dosyanızı sürükleyip bırakın — FASTA / FASTQ (.gz destekli)",
-        type=["fasta", "fa", "faa", "fna", "fastq", "fq", "gz"],
-        help="Protein ya da nükleotid FASTA, veya ham okuma FASTQ. "
-             "Sistem tipini (protein/nükleotid, genom/CDS/okuma) otomatik tanır.",
+        "Dosyanızı sürükleyip bırakın — FASTA / FASTQ / GenBank (.gz destekli)",
+        type=["fasta", "fa", "faa", "fna", "fastq", "fq", "gz", "gb", "gbk", "genbank", "gbff"],
+        help="Protein/nükleotid FASTA, ham okuma FASTQ, veya anotasyonlu GenBank (.gb/.gbk). "
+             "GenBank'ta CDS'ler çeviri + gen + lokus ile doğrudan alınır. Tip otomatik tanınır.",
     )
 with _s_col:
     st.caption("ya da örnek dosyayla dene:")
@@ -179,8 +179,19 @@ for step_id, tools in by_step.items():
 
 # --- Çalıştır ---------------------------------------------------------------
 st.subheader("4) Çalıştır")
-st.caption("Harici araçlar takılı olmadığından bilimsel adımlar saf-Python "
-           "**heuristik/proxy** yöntemlerle koşar; skorlar gerçek araç çıktısı değildir.")
+_tool_status = []
+for _mod, _lbl in [("discovery", "DIAMOND+VFDB"), ("deeploc", "DeepLoc"),
+                   ("tmhmm_local", "TMHMM"), ("signalp", "SignalP"),
+                   ("iapred", "IApred"), ("bepipred", "BepiPred"),
+                   ("netmhc_local", "NetMHCpan"), ("toxinpred", "ToxinPred2")]:
+    try:
+        _m = __import__(f"vaxforge.{_mod}", fromlist=["available"])
+        _tool_status.append(f"{'✅' if _m.available() else '⚠️'} {_lbl}")
+    except Exception:
+        _tool_status.append(f"⚠️ {_lbl}")
+st.caption("Gerçek araç durumu: " + " · ".join(_tool_status)
+           + "  \n(⚠️ = araç yok, o adım için dürüst-etiketli yedek yöntem kullanılır. "
+             "Gerçek bir koşu birkaç dakika sürer — DeepLoc/NetMHCpan CPU'da yavaştır.)")
 
 if st.button("▶ Pipeline'ı başlat", type="primary"):
     # arayüzden düzenlenen sayısal/bool eşikleri override olarak topla
@@ -221,16 +232,79 @@ if st.button("▶ Pipeline'ı başlat", type="primary"):
         peptides = result["peptides"]
         construct = result["construct"]
         paths = result["paths"]
+        rmeta = result["meta"]
+
+        # --- Eleme akışı: kaç girdi → her adımda kaç kaldı ------------------
+        st.subheader("📊 Eleme akışı (kaç girdi → kaç kaldı)")
+        mol = rmeta.get("molecule", "dizi")
+        unit = "CDS" if mol == "cds" else ("okuma" if mol == "reads" else "protein")
+        n_pep_pass = sum(1 for p in peptides if p.passed)
+        flow = [
+            (f"1· Girdi ({unit})", rmeta.get("n_raw", "?"), "dosyadaki ham dizi sayısı"),
+            ("2· Proteine çevrildi", rmeta.get("n_input", "?"), "CDS→çeviri / ORF; ≥20 aa"),
+            ("3· Keşif sonrası (VFDB)", rmeta.get("n_discovery", "?"), "DIAMOND ile virülans DB eşleşmesi"),
+            ("4· Huni sonrası (protein)", rmeta.get("n_funnel", "?"), "DeepLoc+TMHMM+SignalP+IApred+insan homoloji"),
+            ("5· Üretilen epitop", rmeta.get("n_epitope", "?"), "SLIDING-WINDOW: B + MHC-I + MHC-II"),
+            ("6· Alerjenite sonrası", rmeta.get("n_after_allergen", "?"), "FAO/WHO 6-mer — alerjenler elendi"),
+            ("7· Toksisite sonrası", rmeta.get("n_after_toxicity", "?"), "ToxinPred2 — toksikler elendi"),
+            ("8· Sıralanan aday", len(peptides), "adaylık puanına göre sıralandı"),
+        ]
+        fdf = pd.DataFrame([{"Adım": s, "Kalan": n, "Açıklama": d} for s, n, d in flow])
+        cflow, cbar = st.columns([1, 1])
+        cflow.dataframe(fdf, use_container_width=True, hide_index=True)
+        # huni grafiği
+        try:
+            import matplotlib.pyplot as _plt
+            steps_lbl = [s for s, n, d in flow if isinstance(n, int)]
+            steps_val = [n for s, n, d in flow if isinstance(n, int)]
+            fig, ax = _plt.subplots(figsize=(4.6, 3))
+            ax.barh(range(len(steps_val)), steps_val, color="#0b6b4f")
+            ax.set_yticks(range(len(steps_val))); ax.set_yticklabels(steps_lbl, fontsize=8)
+            ax.invert_yaxis()
+            for i, v in enumerate(steps_val):
+                ax.text(v, i, f" {v}", va="center", fontsize=8)
+            ax.set_xlabel("kalan sayı"); fig.tight_layout()
+            cbar.pyplot(fig)
+        except Exception:
+            pass
+        st.caption("Not: epitop adımında sliding-window ile her proteinden çok sayıda "
+                   "peptit üretilir; sonraki adımlar bunları eler.")
 
         st.subheader("Sonuç — en iyi aday peptitler")
         rows = [{"sıra": i + 1, "peptit": p.seq, "tip": p.kind, "skor": p.candidacy,
+                 "CDS / kaynak protein": p.parent,
+                 "gen": p.metrics.get("gene") or "—",
+                 "lokus_tag": p.metrics.get("locus_tag") or "—",
+                 "konum": p.metrics.get("location") or "—",
                  "konak sunumu": ", ".join(p.metrics.get("hosts_presented", []) or []) or "—",
                  "en iyi allel": p.metrics.get("best_allele", "—"),
-                 "yöntem": p.methods.get("mhc_score", "—"),
-                 "alerjen": p.metrics.get("allergen"), "toksik": p.metrics.get("toxicity"),
-                 "kaynak": p.parent}
+                 "alerjen": p.metrics.get("allergen"), "toksik": p.metrics.get("toxicity")}
                 for i, p in enumerate(peptides[:20])]
         st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+
+        # --- Her aday için yapılan TÜM analizler --------------------------
+        st.subheader("🔬 Her aday için yapılan analizler")
+        st.caption("Her peptidin geçtiği analizler ve bunları üreten gerçek araç.")
+        for i, p in enumerate(peptides[:10], 1):
+            with st.expander(f"{i}. {p.seq} — {p.kind} — adaylık {p.candidacy}"):
+                a = [("Antijenite — kaynak protein (IApred)", p.metrics.get("parent_antigenicity"))]
+                if p.kind in ("MHC-I", "MHC-II"):
+                    tool = "NetMHCpan" if p.kind == "MHC-I" else "NetMHCIIpan"
+                    a += [(f"{p.kind} bağlanma %rank ({tool})", p.metrics.get("pseudo_rank")),
+                          ("En iyi allel", p.metrics.get("best_allele")),
+                          ("Sunan konak(lar)", ", ".join(p.metrics.get("hosts_presented", []) or []) or "—"),
+                          ("Konak/allel kapsamı", p.metrics.get("host_coverage"))]
+                if p.kind == "B":
+                    a += [("B-hücre skoru (BepiPred-1.0)", p.metrics.get("bepipred")),
+                          ("Kolaskar-Tongaonkar antijenite", p.metrics.get("kolaskar")),
+                          ("Parker hidrofilisite", p.metrics.get("parker"))]
+                a += [("Alerjenite (FAO/WHO 6-mer)", "ALERJEN" if p.metrics.get("allergen") else "temiz"),
+                      ("Toksisite skoru (ToxinPred2)", p.metrics.get("toxicity")),
+                      ("Kaynak CDS / protein", p.parent)]
+                if p.metrics.get("gene"):
+                    a += [("Gen / lokus / konum",
+                           f"{p.metrics.get('gene')} / {p.metrics.get('locus_tag')} / {p.metrics.get('location')}")]
+                st.table(pd.DataFrame(a, columns=["Analiz (araç)", "Sonuç"]))
 
         st.subheader("mRNA konstrüktü")
         cm = construct.metrics

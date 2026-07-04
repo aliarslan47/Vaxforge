@@ -91,6 +91,10 @@ def detect(path: str | Path) -> Detection:
             det.confident = False
             return det
 
+        if first.startswith("LOCUS"):
+            handle.seek(0)
+            _scan_genbank(handle, det)
+            return det
         if first.startswith("@"):
             det.fmt = "fastq"
         elif first.startswith(">"):
@@ -123,6 +127,34 @@ def detect(path: str | Path) -> Detection:
 
     _infer_molecule(det)
     return det
+
+
+def _scan_genbank(handle, det: Detection) -> None:
+    """GenBank: kayıt (kromozom/kontig) ve CDS özniteliklerini sayar."""
+    from Bio import SeqIO
+    det.fmt = "genbank"
+    det.seq_type = "nucleotide"
+    det.molecule = "genbank"
+    n_rec = 0
+    cds_lens = []
+    try:
+        for rec in SeqIO.parse(handle, "genbank"):
+            n_rec += 1
+            for f in rec.features:
+                if f.type == "CDS":
+                    tr = f.qualifiers.get("translation", [None])[0]
+                    cds_lens.append(len(tr) if tr else max(1, len(f.location) // 3))
+    except Exception as e:
+        det.confident = False
+        det.notes.append(f"GenBank ayrıştırma sorunu: {e}")
+    det.num_seqs = len(cds_lens)          # CDS sayısı (kullanıcı bunu görmek istiyor)
+    if cds_lens:
+        det.total_len = sum(cds_lens)
+        det.avg_len = det.total_len / len(cds_lens)
+        det.max_len = max(cds_lens)
+        det.min_len = min(cds_lens)
+    det.notes.append(f"{n_rec} GenBank kaydı (kromozom/kontig), {len(cds_lens)} CDS bulundu — "
+                     "CDS çevirileri doğrudan kullanılacak (gen/lokus/konum ile).")
 
 
 def _scan_fasta(handle) -> tuple[list[int], dict]:

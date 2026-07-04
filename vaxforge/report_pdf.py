@@ -108,15 +108,15 @@ def build(outdir: Path, peptides, construct, meta: dict) -> Path:
         el.append(Image(str(chart), width=15 * cm, height=6.6 * cm))
 
     # -- En iyi adaylar
-    el.append(Paragraph("2. En iyi aday peptitler", h2))
-    rows = [["#", "Peptit", "Tip", "Skor", "Konak sunumu", "En iyi allel", "Alerjen", "Toksik"]]
+    el.append(Paragraph("2. En iyi aday peptitler (CDS kaynağı + lokus ile)", h2))
+    rows = [["#", "Peptit", "Tip", "Skor", "CDS / kaynak", "Gen", "Lokus", "Allel"]]
     for i, p in enumerate(peptides[:15], 1):
         rows.append([i, p.seq, p.kind, f"{p.candidacy:.3f}",
-                     ", ".join(p.metrics.get("hosts_presented", []) or []) or "—",
-                     str(p.metrics.get("best_allele", "—")),
-                     "evet" if p.metrics.get("allergen") else "hayır",
-                     str(p.metrics.get("toxicity", "—"))])
-    el.append(tbl(rows, widths=[0.8*cm, 3.2*cm, 1.4*cm, 1.3*cm, 3*cm, 2.6*cm, 1.4*cm, 1.4*cm]))
+                     str(p.parent)[:22],
+                     str(p.metrics.get("gene") or "—"),
+                     str(p.metrics.get("locus_tag") or "—"),
+                     str(p.metrics.get("best_allele", "—"))])
+    el.append(tbl(rows, widths=[0.7*cm, 3*cm, 1.3*cm, 1.2*cm, 3.6*cm, 1.7*cm, 1.9*cm, 2.2*cm]))
 
     # -- mRNA konstrüktü
     el.append(Paragraph("3. Çok-epitoplu mRNA konstrüktü", h2))

@@ -133,5 +133,9 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
         parent_ag = pr.annotations.get("antigenicity")
         for p in made:
             p.metrics["parent_antigenicity"] = parent_ag
+            p.metrics["gene"] = pr.annotations.get("gene")
+            p.metrics["locus_tag"] = pr.annotations.get("locus_tag")
+            p.metrics["location"] = pr.annotations.get("location")
+            p.metrics["protein_id"] = pr.annotations.get("protein_id")
         peptides += made
     return peptides

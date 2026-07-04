@@ -28,7 +28,9 @@ def _candidates_df(peptides: list[Peptide]) -> pd.DataFrame:
     rows = []
     for i, p in enumerate(peptides, 1):
         rows.append({
-            "rank": i, "peptide": p.seq, "kind": p.kind, "parent": p.parent,
+            "rank": i, "peptide": p.seq, "kind": p.kind,
+            "cds_source": p.parent, "gene": p.metrics.get("gene"),
+            "locus_tag": p.metrics.get("locus_tag"), "location": p.metrics.get("location"),
             "candidacy": p.candidacy,
             "mhc_score": p.metrics.get("mhc_score"),
             "best_rank": p.metrics.get("pseudo_rank"),
@@ -60,7 +62,10 @@ def write_package(outdir: Path, peptides: list[Peptide], construct: Construct,
     p_fa = outdir / "top_peptides.fasta"
     with p_fa.open("w") as fh:
         for i, p in enumerate(peptides[:20], 1):
-            fh.write(f">cand{i}|{p.kind}|score={p.candidacy}|{p.parent}\n{p.seq}\n")
+            g = p.metrics.get("gene") or ""
+            lt = p.metrics.get("locus_tag") or ""
+            fh.write(f">cand{i}|{p.kind}|score={p.candidacy}|cds={p.parent}"
+                     f"{('|gene='+g) if g else ''}{('|locus='+lt) if lt else ''}\n{p.seq}\n")
     paths["fasta"] = p_fa
 
     # GenBank mRNA

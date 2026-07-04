@@ -182,12 +182,12 @@ tools:
 # indirger. Ağırlıklar toplamı 1.0 olacak şekilde normalize edilir.
 # =============================================================================
 candidacy_score:
-  description: "En güçlü peptit adaylarını sıralayan birleşik skor."
+  description: "En güçlü peptit adaylarını sıralayan birleşik skor. Yalnızca GERÇEK sonuç üreten analizler dahildir."
   weights:
-    antigenicity:        0.20   # VaxiJen
-    mhc_i_binding:       0.20   # MHC-I %rank (çok-organizmalı)
-    mhc_ii_binding:      0.15   # MHC-II %rank
-    conservation:        0.15   # suşlar arası
-    organism_coverage:   0.15   # kaç türde sunuluyor
-    structural_quality:  0.10   # pLDDT / docking
-    immunogenicity:      0.05   # IEDB immunogenicity
+    antigenicity:        0.30   # IApred (kaynak protein)
+    mhc_i_binding:       0.30   # MHC-I %rank (NetMHCpan)
+    mhc_ii_binding:      0.20   # MHC-II %rank (NetMHCIIpan)
+    organism_coverage:   0.20   # kaç konak allelinde/konakta sunuluyor
+  # KALDIRILDI (sonuç üretmiyordu): conservation (suş verisi yok),
+  # structural_quality (AlphaFold GPU'suz deferred), immunogenicity (araç yok).
+  # GPU/AlphaFold veya suş verisi eklenince geri açılabilir.
