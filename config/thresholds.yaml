@@ -1,0 +1,193 @@
+# =============================================================================
+# VaxForge — Merkezi Eşik / Cut-off Yapılandırması
+# -----------------------------------------------------------------------------
+# İLKE: Pipeline'daki HİÇBİR araç kod içinde gömülü sabit (magic number)
+# kullanmaz. Her eşik burada tanımlıdır: varsayılan + açıklama + geçerli aralık +
+# organizmaya özel değerler. Doğru eşik organizmaya göre değişir; bu yüzden her
+# aracın 'defaults' bölümünde bakteri / virüs / parazit için ayrı değer vardır.
+#
+# hard_filter: true  -> eşiği geçemeyen aday TAMAMEN elenir (sert filtre)
+# hard_filter: false -> eşik yalnızca skorlamaya/sıralamaya girer (yumuşak)
+# =============================================================================
+
+meta:
+  version: 1
+  name: "VaxForge threshold config"
+  profiles: [bacteria, virus, parasite]
+  default_profile: bacteria
+
+tools:
+
+  # --- 2) Keşif: küratörlü virülans DB'lerine benzerlik taraması --------------
+  discovery_vfdb:
+    step: discovery
+    engine: "diamond/blastp -> VFDB, Victors, BV-BRC"
+    description: "Proteomu küratörlü virülans faktörü DB'lerine tarama eşikleri."
+    hard_filter: true
+    params:
+      evalue:       { default: {bacteria: 1.0e-5, virus: 1.0e-5, parasite: 1.0e-4}, range: [1.0e-30, 1.0e-2], desc: "Maksimum e-value" }
+      min_identity: { default: {bacteria: 30, virus: 25, parasite: 30}, range: [10, 100], unit: "%", desc: "Minimum dizi kimliği" }
+      min_coverage: { default: {bacteria: 50, virus: 40, parasite: 50}, range: [10, 100], unit: "%", desc: "Minimum hizalama kapsamı" }
+
+  # --- 3) Antijen eleme hunisi -----------------------------------------------
+  localization:
+    step: antigen_funnel
+    engine: "PSORTb / DeepLoc"
+    description: "Hücre-altı lokalizasyon; erişilebilir (yüzey/salgı) proteinler tercih. Sitoplazmik elenir."
+    hard_filter: true
+    params:
+      allowed:
+        default:
+          bacteria: [extracellular, outer_membrane, cell_wall, periplasm]
+          virus:    [surface, envelope, membrane]
+          parasite: [extracellular, plasma_membrane, secreted, gpi_anchored]
+        desc: "Kabul edilen lokalizasyonlar (dışındakiler elenir)"
+
+  signal_peptide:
+    step: antigen_funnel
+    engine: "SignalP / DeepSig"
+    description: "Sinyal peptidi varlığı olasılığı; salgı/yüzey yolunu doğrular."
+    hard_filter: false
+    params:
+      min_probability: { default: {bacteria: 0.5, virus: 0.5, parasite: 0.5}, range: [0.0, 1.0], desc: "Minimum sinyal peptidi olasılığı" }
+
+  transmembrane:
+    step: antigen_funnel
+    engine: "DeepTMHMM"
+    description: "Transmembran heliks sayısı; rekombinant üretilebilirlik için düşük tutulur."
+    hard_filter: true
+    params:
+      max_helices: { default: {bacteria: 1, virus: 1, parasite: 1}, range: [0, 5], desc: "İzin verilen maksimum TM heliks sayısı" }
+
+  human_homology:
+    step: antigen_funnel
+    engine: "blastp -> Homo sapiens proteomu"
+    description: "Otoimmünite güvenliği: insana yeterince benzeyen aday elenir. ZORUNLU sert filtre."
+    hard_filter: true
+    params:
+      evalue:       { default: {bacteria: 1.0e-4, virus: 1.0e-4, parasite: 1.0e-4}, range: [1.0e-20, 1.0e-1], desc: "İnsan hit'i için maksimum e-value" }
+      min_identity: { default: {bacteria: 35, virus: 35, parasite: 35}, range: [20, 100], unit: "%", desc: "Bu kimliğin ÜSTÜ insan benzeri sayılır -> elenir" }
+
+  antigenicity_vaxijen:
+    step: antigen_funnel
+    engine: "VaxiJen (organizmaya özel model)"
+    description: "Tahmini antijenite skoru; VaxiJen modeli organizmaya göre seçilir."
+    hard_filter: false
+    params:
+      threshold: { default: {bacteria: 0.4, virus: 0.4, parasite: 0.5}, range: [0.0, 1.0], desc: "Antijenik sayılma eşiği" }
+      model:     { default: {bacteria: bacteria, virus: virus, parasite: parasite}, desc: "Kullanılacak VaxiJen modeli" }
+
+  conservation:
+    step: antigen_funnel
+    engine: "suşlar arası MSA"
+    description: "Suşlar arası korunmuşluk; geniş koruma için yüksek istenir."
+    hard_filter: false
+    params:
+      min_percent: { default: {bacteria: 80, virus: 70, parasite: 80}, range: [0, 100], unit: "%", desc: "Minimum korunmuşluk" }
+
+  adhesin:
+    step: antigen_funnel
+    engine: "SPAAN / Vaxign"
+    description: "Adezin olma olasılığı; yapışma proteinleri iyi hedeftir."
+    hard_filter: false
+    params:
+      min_probability: { default: {bacteria: 0.51, virus: 0.51, parasite: 0.51}, range: [0.0, 1.0], desc: "Minimum adezin olasılığı" }
+
+  # --- 4) Epitop tahmini ------------------------------------------------------
+  bcell_epitope:
+    step: epitope
+    engine: "BepiPred-3.0"
+    description: "Lineer B-hücre epitobu tahmini (sliding-window)."
+    hard_filter: false
+    params:
+      min_score:  { default: {bacteria: 0.5, virus: 0.5, parasite: 0.5}, range: [0.0, 1.0], desc: "Minimum epitop skoru" }
+      min_length: { default: {bacteria: 8, virus: 8, parasite: 8}, range: [6, 30], unit: "aa", desc: "Minimum epitop uzunluğu" }
+
+  mhc_class_i:
+    step: epitope
+    engine: "MHCflurry / NetMHCpan (çok-organizmalı panel)"
+    description: "MHC-I bağlanma (T-hücre CTL). %rank ile güçlü/zayıf bağlayıcı ayrımı."
+    hard_filter: false
+    params:
+      peptide_lengths: { default: {bacteria: [8,9,10,11], virus: [8,9,10,11], parasite: [8,9,10,11]}, desc: "Taranacak peptit uzunlukları" }
+      rank_strong:     { default: {bacteria: 0.5, virus: 0.5, parasite: 0.5}, range: [0.0, 5.0], unit: "%rank", desc: "Güçlü bağlayıcı eşiği" }
+      rank_weak:       { default: {bacteria: 2.0, virus: 2.0, parasite: 2.0}, range: [0.0, 10.0], unit: "%rank", desc: "Zayıf bağlayıcı eşiği" }
+
+  mhc_class_ii:
+    step: epitope
+    engine: "NetMHCIIpan (çok-organizmalı panel)"
+    description: "MHC-II bağlanma (T-hücre HTL)."
+    hard_filter: false
+    params:
+      peptide_length: { default: {bacteria: 15, virus: 15, parasite: 15}, range: [11, 25], unit: "aa", desc: "Peptit uzunluğu (core 9)" }
+      rank_strong:    { default: {bacteria: 2.0, virus: 2.0, parasite: 2.0}, range: [0.0, 10.0], unit: "%rank", desc: "Güçlü bağlayıcı eşiği" }
+      rank_weak:      { default: {bacteria: 10.0, virus: 10.0, parasite: 10.0}, range: [0.0, 20.0], unit: "%rank", desc: "Zayıf bağlayıcı eşiği" }
+
+  # --- 5) Sağ kalım elemesi ---------------------------------------------------
+  allergenicity:
+    step: survival
+    engine: "AllerTOP / AllergenFP"
+    description: "Alerjen tahmini; alerjen adaylar elenir. Sert filtre."
+    hard_filter: true
+    params:
+      require_non_allergen: { default: {bacteria: true, virus: true, parasite: true}, desc: "Sadece non-alerjenler geçer" }
+
+  toxicity:
+    step: survival
+    engine: "ToxinPred"
+    description: "Toksisite tahmini; toksik peptitler elenir. Sert filtre."
+    hard_filter: true
+    params:
+      max_toxicity_score: { default: {bacteria: 0.0, virus: 0.0, parasite: 0.0}, range: [-2.0, 2.0], desc: "Bu skorun ÜSTÜ toksik -> elenir (SVM skoru)" }
+
+  population_coverage:
+    step: survival
+    engine: "IEDB Population Coverage"
+    description: "Seçilen epitop setinin popülasyon/tür kapsamı."
+    hard_filter: false
+    params:
+      min_percent: { default: {bacteria: 90, virus: 90, parasite: 85}, range: [0, 100], unit: "%", desc: "Minimum kapsam" }
+
+  # --- 6) Yapı + docking/MD ---------------------------------------------------
+  structure_plddt:
+    step: structure
+    engine: "AlphaFold (peptit-MHC kompleksi)"
+    description: "Yapı güven skoru; düşük pLDDT güvenilmez model demektir."
+    hard_filter: false
+    params:
+      min_plddt: { default: {bacteria: 70, virus: 70, parasite: 70}, range: [0, 100], desc: "Minimum ortalama pLDDT" }
+
+  docking_md:
+    step: structure
+    engine: "HADDOCK/AutoDock + GROMACS MD"
+    description: "Peptit-MHC bağlanma serbest enerjisi / kararlılık (ağır, GPU)."
+    hard_filter: false
+    params:
+      max_binding_energy: { default: {bacteria: -6.0, virus: -6.0, parasite: -6.0}, range: [-15.0, 0.0], unit: "kcal/mol", desc: "Bu değerin ALTI iyi bağlanma" }
+
+  # --- 7) mRNA konstrüktü -----------------------------------------------------
+  mrna_construct:
+    step: mrna
+    engine: "kodon optimizasyonu + RNAfold + ProtParam"
+    description: "mRNA konstrükt doğrulama eşikleri (insan-kodon optimizasyonu)."
+    hard_filter: false
+    params:
+      gc_min:            { default: {bacteria: 40, virus: 40, parasite: 40}, range: [20, 80], unit: "%", desc: "Minimum GC" }
+      gc_max:            { default: {bacteria: 70, virus: 70, parasite: 70}, range: [20, 80], unit: "%", desc: "Maksimum GC" }
+      min_cai:           { default: {bacteria: 0.8, virus: 0.8, parasite: 0.8}, range: [0.0, 1.0], desc: "Minimum Codon Adaptation Index (insan)" }
+      max_instability:   { default: {bacteria: 40, virus: 40, parasite: 40}, range: [0, 100], desc: "ProtParam kararsızlık indeksi üst sınırı" }
+
+# =============================================================================
+# Adaylık puanı: hayatta kalan her peptidin metriklerini tek ağırlıklı skora
+# indirger. Ağırlıklar toplamı 1.0 olacak şekilde normalize edilir.
+# =============================================================================
+candidacy_score:
+  description: "En güçlü peptit adaylarını sıralayan birleşik skor."
+  weights:
+    antigenicity:        0.20   # VaxiJen
+    mhc_i_binding:       0.20   # MHC-I %rank (çok-organizmalı)
+    mhc_ii_binding:      0.15   # MHC-II %rank
+    conservation:        0.15   # suşlar arası
+    organism_coverage:   0.15   # kaç türde sunuluyor
+    structural_quality:  0.10   # pLDDT / docking
+    immunogenicity:      0.05   # IEDB immunogenicity

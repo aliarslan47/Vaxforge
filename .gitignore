@@ -1,0 +1,25 @@
+# Sanal ortam
+.venv/
+
+# Koşu çıktıları
+outputs/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# İndirilen lisanslı/büyük araçlar, modeller, veritabanları (repoya konmaz)
+# NetMHCpan/NetMHCIIpan/SignalP/TMHMM/BepiPred/DeepLoc/IApred + VFDB/insan/allergen DB
+tools/
+!tools/README.md
+
+# Önbellekler
+*.pkl
+.cache/
+.DS_Store
+
+# Araç geçici çıktıları (SignalP/TMHMM vb. cwd'ye yazabilir)
+Sequence_*
+plot/

@@ -1,0 +1,7 @@
+# VaxForge — hafif omurga bağımlılıkları (GPU'suz, yerel)
+streamlit>=1.58
+biopython>=1.83
+pandas>=2.1
+pyyaml>=6.0
+# Ağır/harici araçlar (diamond, prodigal, AlphaFold, GROMACS ...) konteyner
+# (podman) veya ayrı GPU makinesinde; buraya dahil değildir.

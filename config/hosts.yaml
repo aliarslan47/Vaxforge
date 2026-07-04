@@ -1,0 +1,65 @@
+# =============================================================================
+# Konak (host) → MHC allel kayıtları.
+# -----------------------------------------------------------------------------
+# Aşı hedefi bir konak popülasyonunda işe yarayacaksa, epitopların O KONAĞIN MHC
+# allellerine bağlanması gerekir. Konak SEÇİLEBİLİR; seçilen konağın MHC-I ve
+# MHC-II allelleri taranır. Birden çok konak seçilebilir (tür-kapsamı haritası).
+#
+# Kaynak: insan allelleri IMGT/HLA, insan-dışı allelleri IPD-MHC.
+# UYARI: aşağıdaki listeler TEMSİLİ ALT KÜMELERDİR; tam/güncel liste ilgili
+# veritabanından çekilecek (bkz. sıradaki iş: allel çekme betiği).
+#
+# predictors: her konak+sınıf için hangi gerçek yordayıcının uygun olduğu.
+#   mhcflurry -> yalnız insan MHC-I (kurulu, gerçek, GPU'suz)
+#   netmhcpan / netmhciipan -> çok-tür + MHC-II (lisans/kurulum ister) [henüz yok]
+#   iedb_api  -> IEDB REST (internet ister) [opsiyonel]
+#   proxy     -> saf-Python vekil (gerçek yordayıcı yoksa; dürüst etiketli)
+# =============================================================================
+
+default_hosts: [human]
+
+hosts:
+
+  human:
+    label: "İnsan (Homo sapiens)"
+    source: "IMGT/HLA"
+    mhc_i:  [HLA-A*01:01, HLA-A*02:01, HLA-A*03:01, HLA-A*11:01, HLA-A*24:02,
+             HLA-B*07:02, HLA-B*08:01, HLA-B*15:01, HLA-B*40:01]
+    mhc_ii: [HLA-DRB1*01:01, HLA-DRB1*03:01, HLA-DRB1*04:01, HLA-DRB1*07:01,
+             HLA-DRB1*11:01, HLA-DRB1*15:01]
+    # MHC-I: NetMHCpan (IEDB API, gerçek); IEDB erişilemezse MHCflurry çevrimdışı yedek
+    predictors: {mhc_i: netmhcpan, mhc_ii: netmhciipan}
+
+  # Allel adları IEDB NetMHCpan biçimine göre ampirik doğrulandı (2026-07-04).
+  # Geçersizler çalışma-zamanı valid_alleles() ile elenir; hepsi elenirse proxy.
+  mouse:
+    label: "Fare (Mus musculus, H-2)"
+    source: "IPD-MHC"
+    mhc_i:  [H-2-Kb, H-2-Db, H-2-Kd, H-2-Dd, H-2-Ld]   # H-2-Kb IEDB'de doğrulandı
+    mhc_ii: [H2-IAb, H2-IAd, H2-IEd]                    # H2-IAb, H2-IAd doğrulandı
+    predictors: {mhc_i: netmhcpan, mhc_ii: netmhciipan}
+
+  bovine:
+    label: "Sığır (Bos taurus, BoLA)"
+    source: "IPD-MHC"
+    # DOĞRULANDI (kolon biçimi, yıldız yok):
+    mhc_i:  [BoLA-1:02301, BoLA-3:00101, BoLA-6:01301, BoLA-2:00801,
+             BoLA-4:02401, BoLA-6:04001, BoLA-2:01801, BoLA-1:00901]
+    mhc_ii: [BoLA-DRB3*011:01, BoLA-DRB3*020:01]        # çalışma-zamanı doğrular
+    predictors: {mhc_i: netmhcpan, mhc_ii: netmhciipan}
+
+  pig:
+    label: "Domuz (Sus scrofa, SLA)"
+    source: "IPD-MHC"
+    # DOĞRULANDI (yıldız biçimi, kolon yok):
+    mhc_i:  [SLA-1*0401, SLA-2*0401, SLA-3*0401, SLA-1*0101, SLA-2*0102, SLA-3*0304]
+    mhc_ii: [SLA-DRB1*0401]                              # çalışma-zamanı doğrular
+    predictors: {mhc_i: netmhcpan, mhc_ii: netmhciipan}
+
+  chicken:
+    label: "Tavuk (Gallus gallus, BF) — IEDB NetMHCpan desteklemiyor → proxy"
+    source: "IPD-MHC"
+    # IEDB NetMHCpan tavuk allellerini kabul etmiyor (denendi); bu konak proxy'ye düşer.
+    mhc_i:  [BF2*21:01]
+    mhc_ii: [BLB2*21:01]
+    predictors: {mhc_i: netmhcpan, mhc_ii: netmhciipan}
