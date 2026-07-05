@@ -299,6 +299,8 @@ if st.button("▶ Pipeline'ı başlat", type="primary"):
                     a += [("Antijen işleme skoru (NetCTL kesim+TAP)", p.metrics.get("processing_norm")),
                           ("Proteozomal C-terminal kesim (cle)", p.metrics.get("cleavage")),
                           ("TAP taşıma (log-odds)", p.metrics.get("tap"))]
+                if p.kind == "MHC-I" and p.metrics.get("anchor_note"):
+                    a += [("MHC yarığı anchor/cep motifi (yorum)", p.metrics.get("anchor_note"))]
                 if p.kind == "B":
                     a += [(f"B-hücre skoru ({p.methods.get('bcell_score', 'BepiPred')})",
                            p.metrics.get("bepipred")),

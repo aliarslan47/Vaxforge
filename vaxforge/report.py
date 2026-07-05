@@ -33,6 +33,13 @@ def _candidates_df(peptides: list[Peptide]) -> pd.DataFrame:
             "hosts_presented": ";".join(p.metrics.get("hosts_presented", []) or []),
             "host_coverage": p.metrics.get("host_coverage"),
             "bcell_score": p.metrics.get("bcell_score"),
+            "immunogenicity": p.metrics.get("immunogenicity"),
+            "processing_norm": p.metrics.get("processing_norm"),
+            "anchor_residues": ";".join(f"{k}={v}" for k, v in
+                                        (p.metrics.get("anchor_residues") or {}).items()),
+            "allele_anchor_motif": ";".join(f"{k}∈{{{','.join(v)}}}" for k, v in
+                                            (p.metrics.get("allele_anchor_motif") or {}).items()),
+            "anchor_match": p.metrics.get("anchor_match"),
             "allergen": p.metrics.get("allergen"),
             "toxicity": p.metrics.get("toxicity"),
             "method": p.methods.get("mhc_score"),

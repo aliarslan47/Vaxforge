@@ -11,7 +11,7 @@ NetMHCpan/NetMHCIIpan kurulunca gerçek, yoksa proxy (dürüst etiketli).
 
 from __future__ import annotations
 
-from . import bepipred, bepipred3, immunogenicity, netctl, predictors
+from . import bepipred, bepipred3, immunogenicity, mhc_motif, netctl, predictors
 from .config_loader import ResolvedTool
 from .hosts import Host
 from .models import Peptide, ProteinRecord
@@ -125,6 +125,8 @@ def _mhc(pr: ProteinRecord, hosts: list[Host], mhc_class: str, kind_label: str,
             p.metrics["immunogenicity"] = raw
             p.metrics["immunogenicity_norm"] = immunogenicity.score_norm(raw)
             p.methods["immunogenicity"] = immunogenicity.METHOD
+            # MHC yarığı anchor motifi (SALT YORUMLAMA — sıralamayı etkilemez)
+            mhc_motif.annotate(p, best_allele, "mhc_i")
             # Antijen işleme: peptidin C-terminaline denk gelen 9-mer'in kesim+TAP'ı
             if proc:
                 ct = proc.get(pos[pep] + len(pep) - 1)

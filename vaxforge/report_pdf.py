@@ -118,6 +118,22 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
                      str(p.metrics.get("best_allele", "—"))])
     el.append(tbl(rows, widths=[0.7*cm, 3*cm, 1.3*cm, 1.2*cm, 3.6*cm, 1.7*cm, 1.9*cm, 2.2*cm]))
 
+    # -- MHC anchor/cep motifi (yorum)
+    mhci = [p for p in peptides if p.kind == "MHC-I" and p.metrics.get("anchor_residues")][:10]
+    if mhci:
+        el.append(Paragraph("2b. MHC yarığı anchor/cep motifi (yorum — sıralamayı etkilemez)", h2))
+        el.append(Paragraph("Peptidin anchor kalıntıları (P2, C-terminal PΩ) ve o allelin "
+                            "NetMHCpan taramasından AMPİRİK çıkarılan cep tercihi. Bağlanma uyumu "
+                            "%rank'ta zaten puanlanır; bu tablo yalnız yorum içindir.", small))
+        arows = [["Peptit", "Allel", "Anchorlar", "Allel cep tercihi", "Uyum"]]
+        for p in mhci:
+            anch = ";".join(f"{k}={v}" for k, v in (p.metrics.get("anchor_residues") or {}).items())
+            motif = "  ".join(f"{k}:{','.join(v)}" for k, v in
+                              (p.metrics.get("allele_anchor_motif") or {}).items()) or "—"
+            arows.append([p.seq, str(p.metrics.get("best_allele", "—")), anch, motif,
+                          str(p.metrics.get("anchor_match", "—"))])
+        el.append(tbl(arows, widths=[2.6*cm, 2.8*cm, 2.6*cm, 5.2*cm, 1.2*cm]))
+
     # -- Kullanılan eşikler
     el.append(Paragraph("3. Kullanılan eşikler (tekrarlanabilirlik)", h2))
     trows = [["Adım", "Araç", "Parametre", "Değer", "Tip"]]
