@@ -79,7 +79,7 @@ def write_package(outdir: Path, peptides: list[Peptide],
 
     # HTML panosu
     p_html = outdir / "report.html"
-    p_html.write_text(_html(df, run_meta), encoding="utf-8")
+    p_html.write_text(_html(df, run_meta, peptides), encoding="utf-8")
     paths["html"] = p_html
 
     # PDF (yayın-tarzı) — reportlab varsa
@@ -91,7 +91,32 @@ def write_package(outdir: Path, peptides: list[Peptide],
     return paths
 
 
-def _html(df: pd.DataFrame, meta: dict) -> str:
+def _candidate_blocks(peptides, meta) -> str:
+    """Her aday için (best→worst) tüm araç sonuçları + GEÇTİ/GEÇEMEDİ tablosu."""
+    from . import evaluate
+    thr = evaluate.thr_lookup(meta)
+    blocks = []
+    for i, p in enumerate(peptides, 1):
+        rows = evaluate.candidate_rows(p, thr)
+        trs = ""
+        for r in rows:
+            cls = ("pass" if r["status"] == evaluate.PASS else
+                   "fail" if r["status"] == evaluate.FAIL else "na")
+            hard = " 🔒" if r["hard"] else ""
+            trs += (f'<tr><td>{r["tool"]}{hard}</td><td>{r["value"]}</td>'
+                    f'<td>{r["cutoff"]}</td><td class="{cls}">{r["status"]}</td>'
+                    f'<td class="mono">{r["method"]}</td></tr>')
+        gene = p.metrics.get("gene") or "—"
+        blocks.append(
+            f'<details {"open" if i <= 3 else ""}><summary><b>#{i} {p.seq}</b> '
+            f'— {p.kind} — adaylık <b>{p.candidacy}</b> '
+            f'(kaynak: {p.parent}, gen: {gene})</summary>'
+            f'<table><tr><th>Araç</th><th>Sonuç</th><th>Eşik (referans)</th>'
+            f'<th>Durum</th><th>Yöntem</th></tr>{trs}</table></details>')
+    return "".join(blocks)
+
+
+def _html(df: pd.DataFrame, meta: dict, peptides=None) -> str:
     thr_rows = "".join(
         f"<tr><td>{r['step']}</td><td>{r['tool']}</td><td>{r['param']}</td>"
         f"<td>{r['value']} {r['unit']}</td><td>{'🔒' if r['hard_filter'] else '◦'}</td></tr>"
@@ -143,7 +168,10 @@ table{{border-collapse:collapse;width:100%;font-size:.9rem;margin:.5rem 0}}
 th,td{{border:1px solid #ddd;padding:.35rem .5rem;text-align:left}}
 th{{background:#f4f4f4}}code{{background:#f4f4f4;padding:.1rem .3rem;border-radius:3px}}
 .warn{{background:#fff4e5;border-left:4px solid #b26a00;padding:.6rem;margin:1rem 0}}
-.mono{{font-family:monospace;font-size:.75rem;word-break:break-all}}</style></head><body>
+.mono{{font-family:monospace;font-size:.72rem;color:#555;word-break:break-all}}
+td.pass{{color:#0a7;font-weight:600}}td.fail{{color:#c33;font-weight:600}}td.na{{color:#999}}
+details{{margin:.4rem 0;border:1px solid #e5e5e5;border-radius:5px;padding:.3rem .6rem}}
+summary{{cursor:pointer;font-size:.95rem}}</style></head><body>
 <h1>🧬 VaxForge — Aşı Adayı Raporu</h1>
 <p>Oluşturma: {meta.get('timestamp','')} · Girdi: <code>{meta.get('input','')}</code> ·
 Profil: <code>{meta.get('profile','')}</code></p>
@@ -159,8 +187,13 @@ JSON'da <code>methods</code> altındadır.</div>
 <td>{meta.get('n_funnel','?')}</td><td>{meta.get('n_epitope','?')}</td>
 <td>{meta.get('n_survivors','?')}</td></tr></table>
 
-<h2>En iyi 15 aday peptit</h2>
+<h2>En iyi 15 aday peptit (özet)</h2>
 {df.head(15).to_html(index=False)}
+
+<h2>Aday peptitler — TÜM araç sonuçları (en iyiden en kötüye)</h2>
+<p style="font-size:.82rem">Her aday için çalışan tüm araçların çıktısı ve referans eşiğe göre
+durumu. 🔒 = sert filtre (geçemeyen elenir); eşiksiz satırlar yorum amaçlıdır.</p>
+{_candidate_blocks(peptides or [], meta)}
 
 <h2>Kullanılan eşikler (tekrarlanabilirlik)</h2>
 <table><tr><th>Adım</th><th>Araç</th><th>Parametre</th><th>Değer</th><th>Tip</th></tr>{thr_rows}</table>

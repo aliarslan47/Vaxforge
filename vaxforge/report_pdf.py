@@ -134,6 +134,34 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
                           str(p.metrics.get("anchor_match", "—"))])
         el.append(tbl(arows, widths=[2.6*cm, 2.8*cm, 2.6*cm, 5.2*cm, 1.2*cm]))
 
+    # -- Aday-başına TÜM araç sonuçları + GEÇTİ/GEÇEMEDİ
+    from . import evaluate
+    thr = evaluate.thr_lookup(meta)
+    el.append(Paragraph("2c. Aday peptitler — tüm araç sonuçları (en iyiden en kötüye)", h2))
+    el.append(Paragraph("Her aday için çalışan tüm araçların çıktısı ve referans eşiğe göre "
+                        "durumu. (H)=sert filtre (geçemeyen elenir); eşiksiz satırlar yorum amaçlıdır.", small))
+    for i, p in enumerate(peptides, 1):
+        rows = evaluate.candidate_rows(p, thr)
+        if not rows:
+            continue
+        el.append(Spacer(1, 5))
+        el.append(Paragraph(f"#{i} &nbsp;<b>{p.seq}</b> — {p.kind} — adaylık <b>{p.candidacy}</b> "
+                            f"&nbsp;(kaynak: {p.parent}, gen: {p.metrics.get('gene') or '—'})", body))
+        drows = [["Araç", "Sonuç", "Eşik", "Durum"]]
+        style_extra = []
+        for ri, r in enumerate(rows, 1):
+            status = r["status"].replace("✅ ", "").replace("❌ ", "")
+            tool = r["tool"] + (" (H)" if r["hard"] else "")
+            drows.append([tool, str(r["value"]), str(r["cutoff"]), status])
+            if r["status"] == evaluate.PASS:
+                style_extra.append(("TEXTCOLOR", (3, ri), (3, ri), colors.HexColor("#0a7a4f")))
+            elif r["status"] == evaluate.FAIL:
+                style_extra.append(("TEXTCOLOR", (3, ri), (3, ri), colors.HexColor("#c0392b")))
+        t = tbl(drows, widths=[6.4*cm, 3.8*cm, 3.4*cm, 2.4*cm])
+        for s in style_extra:
+            t.setStyle(TableStyle([s]))
+        el.append(t)
+
     # -- Kullanılan eşikler
     el.append(Paragraph("3. Kullanılan eşikler (tekrarlanabilirlik)", h2))
     trows = [["Adım", "Araç", "Parametre", "Değer", "Tip"]]

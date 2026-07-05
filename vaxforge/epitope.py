@@ -173,5 +173,12 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
             p.metrics["locus_tag"] = pr.annotations.get("locus_tag")
             p.metrics["location"] = pr.annotations.get("location")
             p.metrics["protein_id"] = pr.annotations.get("protein_id")
+            # kaynak proteinin funnel (araç) sonuçlarını adaya taşı (rapor için)
+            for k in ("localization", "tm_helices", "signalp", "human_homology",
+                      "antigenicity_raw", "antigenicity_category",
+                      "method_localization", "method_tm", "method_signalp",
+                      "method_human_homology", "method_antigenicity"):
+                if k in pr.annotations:
+                    p.metrics[k] = pr.annotations[k]
         peptides += made
     return peptides

@@ -146,7 +146,7 @@ tools:
     description: "Toksisite tahmini; toksik peptitler elenir. Sert filtre."
     hard_filter: true
     params:
-      max_toxicity_score: { default: {bacteria: 0.0, virus: 0.0, parasite: 0.0}, range: [-2.0, 2.0], desc: "Bu skorun ÜSTÜ toksik -> elenir (SVM skoru)" }
+      max_toxicity_score: { default: {bacteria: 0.6, virus: 0.6, parasite: 0.6}, range: [0.0, 1.0], desc: "Bu skorun ÜSTÜ toksik -> elenir (ToxinPred2 ML skoru; araç iç kesimi 0.6)" }
 
   population_coverage:
     step: survival

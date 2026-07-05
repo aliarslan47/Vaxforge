@@ -48,7 +48,7 @@ def run(peptides: list[Peptide], tools: dict[str, ResolvedTool]) -> tuple[list[P
     alg_avail = allergen.available()
     tox_avail = toxinpred.available()
     alg_res = allergen.predict(seqs) if alg_avail else {}
-    tox_res = toxinpred.predict(seqs) if tox_avail else {}
+    tox_res = toxinpred.predict(seqs, threshold=max_tox) if tox_avail else {}
 
     n_start = len(active)
 

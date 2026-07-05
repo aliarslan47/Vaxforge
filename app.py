@@ -281,38 +281,21 @@ if st.button("▶ Pipeline'ı başlat", type="primary"):
                 for i, p in enumerate(peptides[:20])]
         st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
 
-        # --- Her aday için yapılan TÜM analizler --------------------------
-        st.subheader("🔬 Her aday için yapılan analizler")
-        st.caption("Her peptidin geçtiği analizler ve bunları üreten gerçek araç.")
-        for i, p in enumerate(peptides[:10], 1):
-            with st.expander(f"{i}. {p.seq} — {p.kind} — adaylık {p.candidacy}"):
-                a = [("Antijenite — kaynak protein (IApred)", p.metrics.get("parent_antigenicity"))]
-                if p.kind in ("MHC-I", "MHC-II"):
-                    tool = "NetMHCpan" if p.kind == "MHC-I" else "NetMHCIIpan"
-                    a += [(f"{p.kind} bağlanma %rank ({tool})", p.metrics.get("pseudo_rank")),
-                          ("En iyi allel", p.metrics.get("best_allele")),
-                          ("Sunan konak(lar)", ", ".join(p.metrics.get("hosts_presented", []) or []) or "—"),
-                          ("Konak/allel kapsamı", p.metrics.get("host_coverage"))]
-                if p.kind == "MHC-I" and p.metrics.get("immunogenicity") is not None:
-                    a += [("CD8+ immünojenite skoru (IEDB Calis 2013)", p.metrics.get("immunogenicity"))]
-                if p.kind == "MHC-I" and p.metrics.get("processing_norm") is not None:
-                    a += [("Antijen işleme skoru (NetCTL kesim+TAP)", p.metrics.get("processing_norm")),
-                          ("Proteozomal C-terminal kesim (cle)", p.metrics.get("cleavage")),
-                          ("TAP taşıma (log-odds)", p.metrics.get("tap"))]
-                if p.kind == "MHC-I" and p.metrics.get("anchor_note"):
-                    a += [("MHC yarığı anchor/cep motifi (yorum)", p.metrics.get("anchor_note"))]
-                if p.kind == "B":
-                    a += [(f"B-hücre skoru ({p.methods.get('bcell_score', 'BepiPred')})",
-                           p.metrics.get("bepipred")),
-                          ("Kolaskar-Tongaonkar antijenite", p.metrics.get("kolaskar")),
-                          ("Parker hidrofilisite", p.metrics.get("parker"))]
-                a += [("Alerjenite (FAO/WHO 6-mer)", "ALERJEN" if p.metrics.get("allergen") else "temiz"),
-                      ("Toksisite skoru (ToxinPred2)", p.metrics.get("toxicity")),
-                      ("Kaynak CDS / protein", p.parent)]
-                if p.metrics.get("gene"):
-                    a += [("Gen / lokus / konum",
-                           f"{p.metrics.get('gene')} / {p.metrics.get('locus_tag')} / {p.metrics.get('location')}")]
-                st.table(pd.DataFrame(a, columns=["Analiz (araç)", "Sonuç"]))
+        # --- Her aday için TÜM araç sonuçları + GEÇTİ/GEÇEMEDİ --------------
+        from vaxforge import evaluate
+        st.subheader("🔬 Her aday için tüm araç sonuçları (en iyiden en kötüye)")
+        st.caption("Her adayda çalışan tüm araçların çıktısı ve referans eşiğe göre durumu. "
+                   "🔒 = sert filtre (geçemeyen elenir); eşiksiz satırlar yorum amaçlıdır.")
+        thr = evaluate.thr_lookup(rmeta)
+        for i, p in enumerate(peptides, 1):
+            with st.expander(f"{i}. {p.seq} — {p.kind} — adaylık {p.candidacy} "
+                             f"(kaynak: {p.parent}, gen: {p.metrics.get('gene') or '—'})",
+                             expanded=(i <= 3)):
+                a = [{"Araç": r["tool"] + (" 🔒" if r["hard"] else ""),
+                      "Sonuç": r["value"], "Eşik (referans)": r["cutoff"],
+                      "Durum": r["status"], "Yöntem": r["method"]}
+                     for r in evaluate.candidate_rows(p, thr)]
+                st.dataframe(pd.DataFrame(a), use_container_width=True, hide_index=True)
 
         # --- Popülasyon kapsamı (IEDB) ------------------------------------
         popcov = rmeta.get("population_coverage")
