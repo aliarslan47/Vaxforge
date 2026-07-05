@@ -3,7 +3,6 @@
 Üretilenler (outputs/<run>/):
   candidates.csv     — sıralı aday peptitler + metrikler
   top_peptides.fasta — en iyi adaylar
-  construct.gb       — mRNA konstrüktü (GenBank)
   run.json           — tüm parametreler/eşikler/özetler (tekrarlanabilirlik)
   report.html        — insan-okur panosu
 PDF sonraki sürümde (reportlab/weasyprint).
@@ -16,11 +15,7 @@ from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
-from Bio import SeqIO
-from Bio.Seq import Seq
-from Bio.SeqRecord import SeqRecord
 
-from .mrna import Construct
 from .models import Peptide
 
 
@@ -46,7 +41,7 @@ def _candidates_df(peptides: list[Peptide]) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def write_package(outdir: Path, peptides: list[Peptide], construct: Construct,
+def write_package(outdir: Path, peptides: list[Peptide],
                   run_meta: dict) -> dict:
     outdir = Path(outdir)
     outdir.mkdir(parents=True, exist_ok=True)
@@ -68,20 +63,8 @@ def write_package(outdir: Path, peptides: list[Peptide], construct: Construct,
                      f"{('|gene='+g) if g else ''}{('|locus='+lt) if lt else ''}\n{p.seq}\n")
     paths["fasta"] = p_fa
 
-    # GenBank mRNA
-    rec = SeqRecord(Seq(construct.mrna), id="VaxForge_mRNA",
-                    description="çok-epitoplu mRNA aşı konstrüktü (in silico)")
-    rec.annotations["molecule_type"] = "mRNA"
-    rec.annotations["topology"] = "linear"
-    p_gb = outdir / "construct.gb"
-    SeqIO.write(rec, p_gb, "genbank")
-    paths["genbank"] = p_gb
-
     # JSON (tam koşum)
     run_meta = dict(run_meta)
-    run_meta["construct"] = {"protein": construct.protein, "mrna": construct.mrna,
-                             "parts": construct.parts, "metrics": construct.metrics,
-                             "methods": construct.methods}
     run_meta["candidates"] = df.to_dict(orient="records")
     p_json = outdir / "run.json"
     p_json.write_text(json.dumps(run_meta, indent=2, ensure_ascii=False, default=str))
@@ -89,19 +72,19 @@ def write_package(outdir: Path, peptides: list[Peptide], construct: Construct,
 
     # HTML panosu
     p_html = outdir / "report.html"
-    p_html.write_text(_html(df, construct, run_meta), encoding="utf-8")
+    p_html.write_text(_html(df, run_meta), encoding="utf-8")
     paths["html"] = p_html
 
     # PDF (yayın-tarzı) — reportlab varsa
     try:
         from . import report_pdf
-        paths["pdf"] = report_pdf.build(outdir, peptides, construct, run_meta)
+        paths["pdf"] = report_pdf.build(outdir, peptides, run_meta)
     except Exception as e:
         (outdir / "pdf_error.txt").write_text(f"PDF üretilemedi: {e}")
     return paths
 
 
-def _html(df: pd.DataFrame, construct: Construct, meta: dict) -> str:
+def _html(df: pd.DataFrame, meta: dict) -> str:
     thr_rows = "".join(
         f"<tr><td>{r['step']}</td><td>{r['tool']}</td><td>{r['param']}</td>"
         f"<td>{r['value']} {r['unit']}</td><td>{'🔒' if r['hard_filter'] else '◦'}</td></tr>"
@@ -117,7 +100,34 @@ def _html(df: pd.DataFrame, construct: Construct, meta: dict) -> str:
         f'{r["doi"]}</a></li>'
         for r in meta.get("citations", [])
     )
-    cm = construct.metrics
+    popcov = meta.get("population_coverage") or {}
+    pop_html = ""
+    if popcov:
+        areas = popcov.get("areas", [])
+        blocks = []
+        for hname, he in popcov.get("hosts", {}).items():
+            if he.get("note"):
+                blocks.append(f'<p><b>{he.get("label", hname)}:</b> '
+                              f'<i>{he["note"]}</i></p>')
+                continue
+            trows = ""
+            for cls, lbl in (("mhc_i", "MHC-I"), ("mhc_ii", "MHC-II")):
+                cov = he.get(cls)
+                if not cov:
+                    continue
+                cells = "".join(f"<td>{cov.get(a, {}).get('coverage', '—')}%</td>"
+                                if a in cov else "<td>—</td>" for a in areas)
+                trows += f"<tr><td>{lbl}</td>{cells}</tr>"
+            if trows:
+                head = "".join(f"<th>{a}</th>" for a in areas)
+                blocks.append(f'<p><b>{he.get("label", hname)}</b></p>'
+                              f'<table><tr><th>Sınıf</th>{head}</tr>{trows}</table>')
+        note = ("" if popcov.get("available")
+                else f'<p><i>{popcov.get("note", "")}</i></p>')
+        pop_html = ("<h2>Popülasyon kapsamı (IEDB HLA frekansları)</h2>"
+                    "<p style='font-size:.85rem'>Bir bireyin en az bir epitop-bağlayan "
+                    "allele sahip olma olasılığı (%). Gerçek frekans verisi yalnız insan "
+                    "HLA için mevcuttur.</p>" + note + "".join(blocks))
     return f"""<!doctype html><html lang="tr"><head><meta charset="utf-8">
 <title>VaxForge Raporu</title><style>
 body{{font-family:system-ui,Arial;margin:2rem;color:#1a1a1a;max-width:1100px}}
@@ -145,20 +155,13 @@ JSON'da <code>methods</code> altındadır.</div>
 <h2>En iyi 15 aday peptit</h2>
 {df.head(15).to_html(index=False)}
 
-<h2>mRNA konstrüktü</h2>
-<p>Yapı: {' + '.join(construct.parts)}</p>
-<table><tr><th>Protein uz.</th><th>mRNA uz.</th><th>GC%</th><th>CAI (insan)</th>
-<th>Kararsızlık</th><th>pI</th><th>CTL/HTL/B</th></tr>
-<tr><td>{cm.get('protein_len')}</td><td>{cm.get('mrna_len')}</td><td>{cm.get('gc_percent')}</td>
-<td>{cm.get('cai_human')}</td><td>{cm.get('instability')}</td><td>{cm.get('pI')}</td>
-<td>{cm.get('n_ctl')}/{cm.get('n_htl')}/{cm.get('n_bcell')}</td></tr></table>
-<p class="mono"><b>mRNA:</b> {construct.mrna}</p>
-
 <h2>Kullanılan eşikler (tekrarlanabilirlik)</h2>
 <table><tr><th>Adım</th><th>Araç</th><th>Parametre</th><th>Değer</th><th>Tip</th></tr>{thr_rows}</table>
 
 <h2>Çalıştırılan plan</h2>
 <table><tr><th>#</th><th>Adım</th><th>Durum</th><th>Not</th></tr>{steps_rows}</table>
+
+{pop_html}
 
 <h2>Kaynaklar / atıflar</h2>
 <ol style="font-size:.8rem">{ref_items}</ol>

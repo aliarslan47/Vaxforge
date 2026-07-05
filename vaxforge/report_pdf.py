@@ -1,8 +1,8 @@
 """Yayın-tarzı PDF rapor (reportlab + matplotlib).
 
 Bilimsel çekirdek artık gerçek araçlarla çalıştığından, sunum/tez için düzgün bir
-PDF üretir: özet, aday grafiği, en iyi peptitler, mRNA konstrüktü, kullanılan
-eşikler, yöntemler/araçlar ve referanslar. Türkçe için DejaVuSans fontu kaydedilir.
+PDF üretir: özet, aday grafiği, en iyi peptitler, kullanılan eşikler,
+yöntemler/araçlar ve referanslar. Türkçe için DejaVuSans fontu kaydedilir.
 """
 
 from __future__ import annotations
@@ -59,7 +59,7 @@ def _chart(peptides, path: Path) -> bool:
     return True
 
 
-def build(outdir: Path, peptides, construct, meta: dict) -> Path:
+def build(outdir: Path, peptides, meta: dict) -> Path:
     outdir = Path(outdir)
     _register_font()
     out = outdir / "report.pdf"
@@ -118,21 +118,8 @@ def build(outdir: Path, peptides, construct, meta: dict) -> Path:
                      str(p.metrics.get("best_allele", "—"))])
     el.append(tbl(rows, widths=[0.7*cm, 3*cm, 1.3*cm, 1.2*cm, 3.6*cm, 1.7*cm, 1.9*cm, 2.2*cm]))
 
-    # -- mRNA konstrüktü
-    el.append(Paragraph("3. Çok-epitoplu mRNA konstrüktü", h2))
-    cm_ = construct.metrics
-    el.append(Paragraph("Yapı: " + " + ".join(construct.parts), body))
-    el.append(Spacer(1, 4))
-    el.append(tbl([["Protein uz.", "mRNA uz.", "GC %", "CAI (insan)", "Kararsızlık", "pI", "CTL/HTL/B"],
-                   [cm_.get("protein_len"), cm_.get("mrna_len"), cm_.get("gc_percent"), cm_.get("cai_human"),
-                    cm_.get("instability"), cm_.get("pI"),
-                    f"{cm_.get('n_ctl')}/{cm_.get('n_htl')}/{cm_.get('n_bcell')}"]]))
-    el.append(Spacer(1, 4))
-    el.append(Paragraph("<b>mRNA dizisi:</b>", body))
-    el.append(Paragraph(construct.mrna, mono))
-
     # -- Kullanılan eşikler
-    el.append(Paragraph("4. Kullanılan eşikler (tekrarlanabilirlik)", h2))
+    el.append(Paragraph("3. Kullanılan eşikler (tekrarlanabilirlik)", h2))
     trows = [["Adım", "Araç", "Parametre", "Değer", "Tip"]]
     for r in meta.get("thresholds", []):
         trows.append([r["step"], r["tool"], r["param"], f"{r['value']} {r['unit']}",
@@ -140,7 +127,7 @@ def build(outdir: Path, peptides, construct, meta: dict) -> Path:
     el.append(tbl(trows, widths=[2.6*cm, 3.4*cm, 3.2*cm, 3.4*cm, 1.6*cm]))
 
     # -- Yöntemler / araçlar (özet tablo)
-    el.append(Paragraph("5. Kullanılan yöntemler ve araçlar", h2))
+    el.append(Paragraph("4. Kullanılan yöntemler ve araçlar", h2))
     refs = meta.get("citations") or citations.for_report()
     mrows = [["Adım", "Araç", "Ref"]] + [[r["step"], r["tool"], f"[{i}]"]
                                           for i, r in enumerate(refs, 1)]
@@ -148,6 +135,30 @@ def build(outdir: Path, peptides, construct, meta: dict) -> Path:
     el.append(Spacer(1, 6))
     el.append(Paragraph("GPU gerektiren yapısal adımlar (AlphaFold peptit-MHC, moleküler dinamik) "
                         "bu koşuda ertelenmiştir (deferred).", small))
+
+    # -- Popülasyon kapsamı (IEDB)
+    popcov = meta.get("population_coverage") or {}
+    if popcov:
+        el.append(Paragraph("5. Popülasyon kapsamı (IEDB HLA frekansları)", h2))
+        el.append(Paragraph("Aday epitop setinin, bir bireyin en az bir epitop-bağlayan "
+                            "allele sahip olma olasılığı (%). Gerçek frekans verisi yalnız "
+                            "insan HLA için mevcuttur.", small))
+        areas = popcov.get("areas", [])
+        for hname, he in popcov.get("hosts", {}).items():
+            el.append(Spacer(1, 4))
+            if he.get("note"):
+                el.append(Paragraph(f"<b>{he.get('label', hname)}:</b> {he['note']}", small))
+                continue
+            prows = [["Sınıf"] + areas]
+            for cls, lbl in (("mhc_i", "MHC-I"), ("mhc_ii", "MHC-II")):
+                cov = he.get(cls)
+                if not cov:
+                    continue
+                prows.append([lbl] + [f"{cov.get(a, {}).get('coverage', '—')}%"
+                                      if a in cov else "—" for a in areas])
+            if len(prows) > 1:
+                el.append(Paragraph(f"<b>{he.get('label', hname)}</b>", body))
+                el.append(tbl(prows))
 
     # -- Referanslar (tam atıflar)
     el.append(Paragraph("6. Referanslar", h2))

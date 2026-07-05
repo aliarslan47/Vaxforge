@@ -132,7 +132,8 @@ def predict(peptides: list[str], alleles: list[str], mhc_class: str,
             except ValueError:
                 continue
             d = agg.setdefault(pep, {"score": 0.0, "rank": 99.0, "best_allele": "",
-                                     "n_alleles": 0, "panel_size": len(alleles)})
+                                     "n_alleles": 0, "panel_size": len(alleles),
+                                     "_bound": set()})
             if score > d["score"]:
                 d["score"] = round(score, 4)
             if rank < d["rank"]:
@@ -140,6 +141,9 @@ def predict(peptides: list[str], alleles: list[str], mhc_class: str,
                 d["best_allele"] = r.get("allele", "")
             if rank <= rank_weak:
                 d["n_alleles"] += 1
+                if r.get("allele"):
+                    d["_bound"].add(r.get("allele"))
     for pep, d in agg.items():
         d["coverage_frac"] = d["n_alleles"] / max(1, d["panel_size"])
+        d["bound_alleles"] = sorted(d.pop("_bound", set()))
     return agg

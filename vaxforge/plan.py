@@ -59,8 +59,6 @@ def _core(det: Detection) -> list[Step]:
              ["HADDOCK", "GROMACS"], gpu=True, deferred=True,
              note="GPU + uzun süre -> ayrı makine/bulut"),
         Step("scoring", "Adaylık puanı + sıralama", ["VaxForge scorer"]),
-        Step("mrna", "Çok-epitoplu mRNA konstrüktü (tam protokol)",
-             ["kodon-opt", "RNAfold", "ProtParam"]),
         Step("report", "Rapor + veri paketi + HTML panosu",
              ["PDF", "CSV/FASTA/GenBank/PDB", "HTML"]),
     ]

@@ -92,6 +92,14 @@ def _fasta(peptides: list[str]) -> str:
     return "".join(f">p{i}\n{p}\n" for i, p in enumerate(peptides))
 
 
+def _akey(a: str) -> str:
+    """Allel adını biçimden bağımsız eşleştirme anahtarına indirger.
+
+    HLA-A*02:01 ve HLA-A02:01 -> 'A0201'; HLA-DRB1*01:01 ve DRB1_0101 -> 'DRB10101'.
+    """
+    return a.upper().replace("HLA-", "").replace("*", "").replace("_", "").replace(":", "")
+
+
 def _norm_allele(a: str, mhc_class: str) -> str:
     """Allel adını yerel araç biçimine çevirir.
 
@@ -117,6 +125,10 @@ def predict(peptides: list[str], alleles: list[str], mhc_class: str,
     for p in peps:
         by_len.setdefault(len(p), []).append(p)
     alleles_n = [_norm_allele(a, mhc_class) for a in alleles]
+    # Çıktıdaki allel adını (araç biçimi) orijinal konak allel adına (IEDB biçimi,
+    # ör. HLA-A*02:01) çevirmek için normalize-anahtar haritası — popülasyon
+    # kapsamı gerçek allel adlarını gerektirir.
+    key2orig = {_akey(a): a for a in alleles}
     agg: dict[str, dict] = {}
     try:
         for L, group in by_len.items():
@@ -136,6 +148,7 @@ def predict(peptides: list[str], alleles: list[str], mhc_class: str,
     for pep, d in agg.items():
         d["coverage_frac"] = d["n_alleles"] / max(1, len(alleles_n))
         d["panel_size"] = len(alleles_n)
+        d["bound_alleles"] = sorted({key2orig.get(k, k) for k in d.pop("_bound_keys", set())})
     return agg
 
 
@@ -173,7 +186,8 @@ def _parse_into(stdout: str, agg: dict, alleles, rank_weak: float, mhc_class: st
         except ValueError:
             continue
         allele = parts[mhc_i] if mhc_i is not None and mhc_i < len(parts) else (alleles[0] if alleles else "?")
-        d = agg.setdefault(pep, {"score": 0.0, "rank": 99.0, "best_allele": "", "n_alleles": 0})
+        d = agg.setdefault(pep, {"score": 0.0, "rank": 99.0, "best_allele": "",
+                                 "n_alleles": 0, "_bound_keys": set()})
         score = max(0.0, 1 - rank / 100)
         if score > d["score"]:
             d["score"] = round(score, 4)
@@ -182,3 +196,4 @@ def _parse_into(stdout: str, agg: dict, alleles, rank_weak: float, mhc_class: st
             d["best_allele"] = allele
         if rank <= rank_weak:
             d["n_alleles"] += 1
+            d["_bound_keys"].add(_akey(allele))

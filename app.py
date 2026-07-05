@@ -230,7 +230,6 @@ if st.button("▶ Pipeline'ı başlat", type="primary"):
 
     if result:
         peptides = result["peptides"]
-        construct = result["construct"]
         paths = result["paths"]
         rmeta = result["meta"]
 
@@ -294,8 +293,15 @@ if st.button("▶ Pipeline'ı başlat", type="primary"):
                           ("En iyi allel", p.metrics.get("best_allele")),
                           ("Sunan konak(lar)", ", ".join(p.metrics.get("hosts_presented", []) or []) or "—"),
                           ("Konak/allel kapsamı", p.metrics.get("host_coverage"))]
+                if p.kind == "MHC-I" and p.metrics.get("immunogenicity") is not None:
+                    a += [("CD8+ immünojenite skoru (IEDB Calis 2013)", p.metrics.get("immunogenicity"))]
+                if p.kind == "MHC-I" and p.metrics.get("processing_norm") is not None:
+                    a += [("Antijen işleme skoru (NetCTL kesim+TAP)", p.metrics.get("processing_norm")),
+                          ("Proteozomal C-terminal kesim (cle)", p.metrics.get("cleavage")),
+                          ("TAP taşıma (log-odds)", p.metrics.get("tap"))]
                 if p.kind == "B":
-                    a += [("B-hücre skoru (BepiPred-1.0)", p.metrics.get("bepipred")),
+                    a += [(f"B-hücre skoru ({p.methods.get('bcell_score', 'BepiPred')})",
+                           p.metrics.get("bepipred")),
                           ("Kolaskar-Tongaonkar antijenite", p.metrics.get("kolaskar")),
                           ("Parker hidrofilisite", p.metrics.get("parker"))]
                 a += [("Alerjenite (FAO/WHO 6-mer)", "ALERJEN" if p.metrics.get("allergen") else "temiz"),
@@ -306,19 +312,37 @@ if st.button("▶ Pipeline'ı başlat", type="primary"):
                            f"{p.metrics.get('gene')} / {p.metrics.get('locus_tag')} / {p.metrics.get('location')}")]
                 st.table(pd.DataFrame(a, columns=["Analiz (araç)", "Sonuç"]))
 
-        st.subheader("mRNA konstrüktü")
-        cm = construct.metrics
-        m1, m2, m3, m4 = st.columns(4)
-        m1.metric("mRNA uzunluk", f"{cm['mrna_len']} nt")
-        m2.metric("GC %", cm["gc_percent"])
-        m3.metric("CAI (insan)", cm["cai_human"])
-        m4.metric("CTL/HTL/B", f"{cm['n_ctl']}/{cm['n_htl']}/{cm['n_bcell']}")
-        st.code(construct.mrna, language="text")
+        # --- Popülasyon kapsamı (IEDB) ------------------------------------
+        popcov = rmeta.get("population_coverage")
+        if popcov:
+            st.subheader("🌍 Popülasyon kapsamı (IEDB HLA frekansları)")
+            if not popcov.get("available"):
+                st.info(popcov.get("note", "IEDB Population Coverage aracı kurulu değil."))
+            else:
+                st.caption("Aday epitop setinin, bir bireyin en az bir epitop-bağlayan "
+                           "allele sahip olma olasılığı (%). Yalnız insan HLA için gerçek "
+                           "frekans verisi vardır.")
+                areas = popcov.get("areas", [])
+                for hname, hentry in popcov.get("hosts", {}).items():
+                    st.markdown(f"**{hentry.get('label', hname)}**")
+                    if hentry.get("note"):
+                        st.caption("ℹ️ " + hentry["note"])
+                        continue
+                    rows = []
+                    for cls, lbl in (("mhc_i", "MHC-I"), ("mhc_ii", "MHC-II")):
+                        cov = hentry.get(cls)
+                        if not cov:
+                            continue
+                        rows.append({"Sınıf": lbl,
+                                     **{a: f"{cov.get(a, {}).get('coverage', '—')}%"
+                                        if a in cov else "—" for a in areas}})
+                    if rows:
+                        st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
 
         st.subheader("İndirilebilir çıktılar")
         cols = st.columns(len(paths))
         labels = {"csv": "Adaylar (CSV)", "fasta": "Peptitler (FASTA)",
-                  "genbank": "mRNA (GenBank)", "json": "Tam koşum (JSON)",
+                  "json": "Tam koşum (JSON)",
                   "html": "Rapor (HTML)", "pdf": "Rapor (PDF)"}
         for col, (kind, path) in zip(cols, paths.items()):
             data = Path(path).read_bytes()

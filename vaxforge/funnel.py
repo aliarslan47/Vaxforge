@@ -81,7 +81,9 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
     seq_pairs = [(pr.id, sanitize(pr.seq)) for pr in proteins]
     tm_available = tmhmm_local.available()
     tm_real = tmhmm_local.predict(seq_pairs) if tm_available else {}
-    loc_available = deeploc.available()
+    # DeepLoc yalnız bakteride sert filtre; diğer profillerde eleme yapmadığı için
+    # (çok sayıda viral ORF'ta çok yavaş) hesaplanmaz.
+    loc_available = deeploc.available() and loc_hard
     loc_real = deeploc.predict(seq_pairs) if loc_available else {}
     sp_available = signalp.available()
     sp_real = signalp.predict(seq_pairs, profile=profile) if sp_available else {}

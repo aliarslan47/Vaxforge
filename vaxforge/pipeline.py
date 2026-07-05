@@ -15,8 +15,8 @@ from __future__ import annotations
 from datetime import datetime
 from pathlib import Path
 
-from . import (citations, discovery, epitope, funnel, ingest, mrna, report,
-               scoring, survival)
+from . import (citations, discovery, epitope, funnel, ingest, population,
+               report, scoring, survival)
 from .config_loader import ThresholdConfig, flatten_for_report
 from .detect import Detection
 from .hosts import HostRegistry
@@ -62,7 +62,7 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
 
     # 2) Discovery
     yield _ev("discovery", "running", "Küratörlü DB / anahtar-kelime taraması…")
-    proteins = discovery.run(proteins, resolved["discovery_vfdb"])
+    proteins = discovery.run(proteins, resolved["discovery_vfdb"], profile=profile)
     meta["n_discovery"] = len(proteins)
     yield _ev("discovery", "done", f"{len(proteins)} virülans/hedef adayı kaldı", {"n": len(proteins)})
     if not proteins:
@@ -121,18 +121,23 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
     yield _ev("scoring", "done", f"{len(peptides)} aday sıralandı",
               {"top": [(p.seq, p.kind, p.candidacy) for p in peptides[:5]]})
 
-    # 7) mRNA konstrükt
-    yield _ev("mrna", "running", "Çok-epitoplu mRNA konstrüktü kuruluyor…")
-    construct = mrna.build(peptides)
-    yield _ev("mrna", "done", f"Konstrükt hazır: {construct.metrics['mrna_len']} nt, "
-              f"GC {construct.metrics['gc_percent']}%", construct.metrics)
+    # 6c) Popülasyon kapsamı (IEDB) — aday setinin konak/bölge kapsamı.
+    yield _ev("population", "running", "Popülasyon kapsamı hesaplanıyor (IEDB HLA frekansları)…")
+    popcov = population.for_candidates(peptides, hosts)
+    meta["population_coverage"] = popcov
+    hcov = popcov.get("hosts", {}).get("human", {})
+    world = (hcov.get("mhc_i") or {}).get("World") if isinstance(hcov.get("mhc_i"), dict) else None
+    msg = (f"İnsan MHC-I dünya kapsamı: {world['coverage']}%" if world
+           else "İnsan HLA verisi yok/insan konak seçilmedi" if popcov.get("available")
+           else "IEDB Population Coverage aracı kurulu değil")
+    yield _ev("population", "done", msg, {"hosts": list(popcov.get("hosts", {}))})
 
-    # 8) Rapor
+    # 7) Rapor
     yield _ev("report", "running", "Rapor ve veri paketi üretiliyor…")
     run_dir = Path(outdir) / f"run_{meta['timestamp'].replace(':', '-')}"
-    paths = report.write_package(run_dir, peptides, construct, meta)
+    paths = report.write_package(run_dir, peptides, meta)
     yield _ev("report", "done", f"Çıktılar: {run_dir}", {k: str(v) for k, v in paths.items()})
 
     yield _ev("__result__", "done", "Tamamlandı", {
-        "peptides": peptides, "construct": construct, "paths": paths, "meta": meta,
+        "peptides": peptides, "paths": paths, "meta": meta,
     })

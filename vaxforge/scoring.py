@@ -21,6 +21,10 @@ def _components(p: Peptide) -> dict[str, float]:
         comp["antigenicity"] = float(parent_ag)
     if p.kind == "MHC-I":
         comp["mhc_i_binding"] = float(m.get("mhc_score", 0))
+        if m.get("immunogenicity_norm") is not None:
+            comp["immunogenicity"] = float(m["immunogenicity_norm"])
+        if m.get("processing_norm") is not None:
+            comp["antigen_processing"] = float(m["processing_norm"])
     if p.kind == "MHC-II":
         comp["mhc_ii_binding"] = float(m.get("mhc_score", 0))
     if p.kind == "B":

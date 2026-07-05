@@ -31,6 +31,14 @@ _KEYWORDS = [
     "iron", "siderophore", "capsul", "effector", "porin", "lipoprotein",
 ]
 
+# Viral yüzey/yapısal protein anahtar-kelimeleri (yalnız açıklama etiketlemek için;
+# virüs profilinde keşif zaten baypas edilir).
+_VIRAL_KEYWORDS = [
+    "envelope", "glycoprotein", "spike", "capsid", "nucleoprotein", "nucleocapsid",
+    "surface", "fusion", "hemagglutinin", "haemagglutinin", "neuraminidase",
+    "matrix", "membrane protein", "polyprotein", "receptor-binding",
+]
+
 
 def diamond_available() -> bool:
     return _DIAMOND.exists() and _VFDB.exists()
@@ -93,7 +101,26 @@ def _mini_ref_identity(seq: str, refs, aligner) -> tuple[float, str]:
     return round(best_pct, 1), best_ref
 
 
-def run(proteins: list[ProteinRecord], tool: ResolvedTool) -> list[ProteinRecord]:
+def run(proteins: list[ProteinRecord], tool: ResolvedTool,
+        profile: str = "bacteria") -> list[ProteinRecord]:
+    # VFDB bakteriyel virülans faktörleri DB'sidir; viral/parazit proteinleri
+    # buraya vurmaz. Bu profillerde keşfi SERT filtre olarak uygulamak her şeyi
+    # eler. Bu yüzden bakteri-dışında keşif baypas edilir: tüm proteinler aday
+    # geçer (funnel + epitop adımları eler), viral anahtar-kelimeler etiketlenir.
+    if profile != "bacteria":
+        for pr in proteins:
+            desc = str(pr.annotations.get("desc", "")).lower()
+            kw = next((k for k in _VIRAL_KEYWORDS + _KEYWORDS if k in desc), None)
+            pr.annotations.update({
+                "vf_identity": 0.0, "vf_ref": "", "vf_keyword": kw or "",
+                "method_discovery": f"ATLANDI ({profile}: VFDB bakteriye özgü) — tüm proteinler aday",
+            })
+            pr.mark("discovery", True,
+                    (f"keşif atlandı ({profile}); anahtar-kelime: {kw}" if kw
+                     else f"keşif atlandı ({profile}); tüm proteinler aday"),
+                    vf_identity=0.0, keyword=kw)
+        return list(proteins)
+
     min_id = float(tool.params["min_identity"].value)
     min_cov = float(tool.params["min_coverage"].value)
     evalue = float(tool.params["evalue"].value)

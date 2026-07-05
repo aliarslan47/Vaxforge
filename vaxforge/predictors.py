@@ -39,6 +39,7 @@ def _proxy(peptides, alleles, rank_weak, missing_tool):
         n_pres = max(1, round(sc * n)) if rank <= rank_weak else 0
         out[pep] = {"score": sc, "rank": rank, "best_allele": alleles[0] if alleles else "?",
                     "n_alleles": n_pres, "panel_size": n, "coverage_frac": n_pres / n,
+                    "bound_alleles": [alleles[0]] if (n_pres and alleles) else [],
                     "method": method}
     return out
 
@@ -53,6 +54,7 @@ def _from_mhcflurry(peptides, alleles, rank_weak, host, mhc_class):
         out[pep] = {"score": d["presentation_score"], "rank": d["best_percentile"],
                     "best_allele": d["best_allele"], "n_alleles": d["n_alleles"],
                     "panel_size": psize, "coverage_frac": d["n_alleles"] / psize,
+                    "bound_alleles": [d["best_allele"]] if d["n_alleles"] else [],
                     "method": f"GERÇEK (MHCflurry, {host.label} MHC-I çevrimdışı)"}
     return out
 

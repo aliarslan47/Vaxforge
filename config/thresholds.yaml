@@ -113,6 +113,14 @@ tools:
       rank_strong:     { default: {bacteria: 0.5, virus: 0.5, parasite: 0.5}, range: [0.0, 5.0], unit: "%rank", desc: "Güçlü bağlayıcı eşiği" }
       rank_weak:       { default: {bacteria: 2.0, virus: 2.0, parasite: 2.0}, range: [0.0, 10.0], unit: "%rank", desc: "Zayıf bağlayıcı eşiği" }
 
+  netctl:
+    step: epitope
+    engine: "NetCTL-1.2 (proteozomal kesim + TAP)"
+    description: "MHC-I sonrası antijen işleme: allel-bağımsız C-terminal kesim (cle) + TAP taşıma. NetCTL'in kendi eski MHC tahmincisi KULLANILMAZ (bağlanmayı NetMHCpan yapar)."
+    hard_filter: false
+    params:
+      min_cleavage: { default: {bacteria: 0.5, virus: 0.5, parasite: 0.5}, range: [0.0, 1.0], desc: "Etkin proteozomal C-terminal kesim eşiği (bilgi amaçlı; sert filtre değil)" }
+
   mhc_class_ii:
     step: epitope
     engine: "NetMHCIIpan (çok-organizmalı panel)"
@@ -184,10 +192,12 @@ tools:
 candidacy_score:
   description: "En güçlü peptit adaylarını sıralayan birleşik skor. Yalnızca GERÇEK sonuç üreten analizler dahildir."
   weights:
-    antigenicity:        0.30   # IApred (kaynak protein)
-    mhc_i_binding:       0.30   # MHC-I %rank (NetMHCpan)
-    mhc_ii_binding:      0.20   # MHC-II %rank (NetMHCIIpan)
-    organism_coverage:   0.20   # kaç konak allelinde/konakta sunuluyor
+    antigenicity:        0.22   # IApred (kaynak protein)
+    mhc_i_binding:       0.22   # MHC-I %rank (NetMHCpan)
+    mhc_ii_binding:      0.18   # MHC-II %rank (NetMHCIIpan)
+    organism_coverage:   0.14   # kaç konak allelinde/konakta sunuluyor
+    immunogenicity:      0.12   # CD8+ T-hücre immünojenite (IEDB Calis 2013, yalnız MHC-I)
+    antigen_processing:  0.12   # proteozomal kesim + TAP (NetCTL-1.2, yalnız MHC-I)
   # KALDIRILDI (sonuç üretmiyordu): conservation (suş verisi yok),
-  # structural_quality (AlphaFold GPU'suz deferred), immunogenicity (araç yok).
+  # structural_quality (AlphaFold GPU'suz deferred).
   # GPU/AlphaFold veya suş verisi eklenince geri açılabilir.

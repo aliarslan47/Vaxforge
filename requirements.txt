@@ -3,5 +3,11 @@ streamlit>=1.58
 biopython>=1.83
 pandas>=2.1
 pyyaml>=6.0
+# B-hücre epitopu: BepiPred-3.0 (tools/bepipred-3.0, bp3 + ESM-2)
+torch>=2.0
+fair-esm>=2.0
+plotly>=5.8
+tenacity>=8.0
+importlib-resources>=5.8
 # Ağır/harici araçlar (diamond, prodigal, AlphaFold, GROMACS ...) konteyner
 # (podman) veya ayrı GPU makinesinde; buraya dahil değildir.

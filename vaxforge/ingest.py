@@ -65,11 +65,17 @@ def load_proteins(path: str | Path, det: Detection) -> list[ProteinRecord]:
 
 
 def _read_genbank(path) -> list[ProteinRecord]:
-    """GenBank CDS'lerini protein olarak alır; gen/lokus/konum doğrudan gelir."""
+    """GenBank CDS'lerini protein olarak alır; gen/lokus/konum doğrudan gelir.
+
+    Kayıtta hiç CDS annotasyonu yoksa (çıplak genom, ör. birçok viral genom
+    kaydı) ham dizide 6-çerçeve ORF taramasına düşülür — böylece annotasyonsuz
+    dosyalar da hata vermeden protein üretir.
+    """
     out = []
     with _open(path) as fh:
         for rec in SeqIO.parse(fh, "genbank"):
             idx = 0
+            cds_found = 0
             for f in rec.features:
                 if f.type != "CDS":
                     continue
@@ -83,6 +89,7 @@ def _read_genbank(path) -> list[ProteinRecord]:
                 if not prot or len(prot) < 20:
                     continue
                 idx += 1
+                cds_found += 1
                 locus = q.get("locus_tag", [None])[0]
                 pid = q.get("protein_id", [None])[0] or locus or f"{rec.id}_cds{idx}"
                 pr = ProteinRecord(id=pid, seq=prot, source="genbank")
@@ -94,6 +101,35 @@ def _read_genbank(path) -> list[ProteinRecord]:
                     "desc": q.get("product", [""])[0],
                 })
                 out.append(pr)
+            # Annotasyonsuz genom: CDS yoksa ham dizide ORF ara
+            if cds_found == 0:
+                try:
+                    nt = str(rec.seq).upper()
+                except Exception:
+                    nt = ""
+                if nt and set(nt) <= set("ACGTNU"):
+                    out.extend(_orfs_from_seq(rec.id, nt.replace("U", "T"), source="orf(genbank)"))
+    return out
+
+
+def _orfs_from_seq(rec_id: str, nt: str, source: str = "orf") -> list[ProteinRecord]:
+    """Bir nükleotid dizisinde 6-çerçeve ORF tahmini (≥ MIN_ORF_AA, M'den başlatır)."""
+    out = []
+    idx = 0
+    for strand, s in ((+1, nt), (-1, str(Seq(nt).reverse_complement()))):
+        for frame in range(3):
+            sub = s[frame:]
+            sub = sub[: len(sub) - (len(sub) % 3)]
+            prot = str(Seq(sub).translate())
+            for orf in prot.split("*"):
+                if len(orf) >= MIN_ORF_AA:
+                    m = orf.find("M")
+                    orf2 = orf[m:] if m >= 0 else orf
+                    if len(orf2) >= MIN_ORF_AA:
+                        idx += 1
+                        out.append(ProteinRecord(
+                            id=f"{rec_id}_orf{idx}({'+' if strand>0 else '-'}{frame})",
+                            seq=orf2, source=source))
     return out
 
 
@@ -131,20 +167,6 @@ def _find_orfs(path, det) -> list[ProteinRecord]:
     out = []
     with _open(path) as fh:
         for rec in SeqIO.parse(fh, _fmt(det)):
-            nt = str(rec.seq).upper()
-            idx = 0
-            for strand, s in ((+1, nt), (-1, str(Seq(nt).reverse_complement()))):
-                for frame in range(3):
-                    sub = s[frame:]
-                    sub = sub[: len(sub) - (len(sub) % 3)]
-                    prot = str(Seq(sub).translate())
-                    for orf in prot.split("*"):
-                        if len(orf) >= MIN_ORF_AA:
-                            m = orf.find("M")
-                            orf2 = orf[m:] if m >= 0 else orf
-                            if len(orf2) >= MIN_ORF_AA:
-                                idx += 1
-                                out.append(ProteinRecord(
-                                    id=f"{rec.id}_orf{idx}({'+' if strand>0 else '-'}{frame})",
-                                    seq=orf2, source="orf"))
+            nt = str(rec.seq).upper().replace("U", "T")
+            out.extend(_orfs_from_seq(rec.id, nt))
     return out

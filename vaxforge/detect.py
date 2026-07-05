@@ -153,8 +153,12 @@ def _scan_genbank(handle, det: Detection) -> None:
         det.avg_len = det.total_len / len(cds_lens)
         det.max_len = max(cds_lens)
         det.min_len = min(cds_lens)
-    det.notes.append(f"{n_rec} GenBank kaydı (kromozom/kontig), {len(cds_lens)} CDS bulundu — "
-                     "CDS çevirileri doğrudan kullanılacak (gen/lokus/konum ile).")
+    if cds_lens:
+        det.notes.append(f"{n_rec} GenBank kaydı (kromozom/kontig), {len(cds_lens)} CDS bulundu — "
+                         "CDS çevirileri doğrudan kullanılacak (gen/lokus/konum ile).")
+    else:
+        det.notes.append(f"{n_rec} GenBank kaydı bulundu ama CDS annotasyonu YOK "
+                         "(çıplak genom) — ham dizide 6-çerçeve ORF taramasıyla protein çıkarılacak.")
 
 
 def _scan_fasta(handle) -> tuple[list[int], dict]:
