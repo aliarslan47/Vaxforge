@@ -15,8 +15,8 @@ from __future__ import annotations
 from datetime import datetime
 from pathlib import Path
 
-from . import (citations, discovery, epitope, funnel, ingest, population,
-               report, scoring, survival)
+from . import (citations, discovery, epitope, funnel, iedb_match, ingest,
+               population, report, scoring, survival)
 from .config_loader import ThresholdConfig, flatten_for_report
 from .detect import Detection
 from .hosts import HostRegistry
@@ -30,7 +30,8 @@ def _ev(phase, status, msg, data=None):
 def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
         host_names: list[str] | None = None,
         overrides: dict | None = None, has_gpu: bool = False,
-        outdir: str | Path = "outputs", host_registry: HostRegistry | None = None):
+        outdir: str | Path = "outputs", host_registry: HostRegistry | None = None,
+        organism_taxon: str | None = None):
     resolved = cfg.resolve(profile, overrides)
     steps = build_plan(det, has_gpu=has_gpu)
     reg = host_registry or HostRegistry.load()
@@ -131,6 +132,21 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
            else "İnsan HLA verisi yok/insan konak seçilmedi" if popcov.get("available")
            else "IEDB Population Coverage aracı kurulu değil")
     yield _ev("population", "done", msg, {"hosts": list(popcov.get("hosts", {}))})
+
+    # 6d) IEDB literatür/bilinen-epitop taraması (SALT YORUM — skoru değiştirmez).
+    # Adaylar deneysel doğrulanmış epitoplarla eşleştirilir; organizma taxon'u
+    # verilirse o setle (recall benchmark dahil), yoksa canlı substring yedeğiyle.
+    yield _ev("iedb", "running", "Aday peptitler IEDB'de (bilinen epitoplar/literatür) taranıyor…")
+    im_summary = iedb_match.annotate_candidates(peptides, taxon_iri=organism_taxon)
+    meta["iedb_match"] = im_summary
+    if im_summary.get("available"):
+        bm = im_summary.get("benchmark") or {}
+        rec = f" · recall={bm['recall']}" if bm.get("recall") is not None else ""
+        msg = (f"{im_summary['n_matched']}/{im_summary['n_candidates']} aday "
+               f"bilinen IEDB epitobuyla eşleşti ({im_summary.get('source','')})" + rec)
+    else:
+        msg = im_summary.get("note", "IEDB taraması yapılamadı")
+    yield _ev("iedb", "done", msg, {"n_matched": im_summary.get("n_matched", 0)})
 
     # 7) Rapor
     yield _ev("report", "running", "Rapor ve veri paketi üretiliyor…")

@@ -56,6 +56,24 @@ with st.sidebar:
         pi = "GERÇEK" if (h.predictor("mhc_i") == "mhcflurry" and mhc_real.available()) else "proxy"
         st.caption(f"• {h.label}: MHC-I {len(h.mhc_i)} allel ({pi}), "
                    f"MHC-II {len(h.mhc_ii)} allel (proxy)")
+    st.divider()
+    st.markdown("**IEDB literatür/bilinen-epitop taraması**")
+    _TAXA = {
+        "— (organizma seçme / genel canlı arama)": "",
+        "SARS-CoV-2 (2697049)": "NCBITaxon:2697049",
+        "M. tuberculosis (1773)": "NCBITaxon:1773",
+        "Influenza A (11320)": "NCBITaxon:11320",
+        "N. meningitidis (487)": "NCBITaxon:487",
+    }
+    _taxon_choice = st.selectbox(
+        "Kaynak organizma (IEDB eşleşmesi)", list(_TAXA),
+        help="Seçilirse o organizmanın IEDB epitop seti çekilir, adaylar onunla "
+             "eşleştirilir ve bilinen-epitop RECALL benchmark'ı hesaplanır. "
+             "Boşsa her aday tüm IEDB'ye karşı canlı taranır (yalnız eşleşme, benchmark yok).",
+    )
+    _taxon_custom = st.text_input("…veya elle NCBITaxon", value="",
+                                  placeholder="NCBITaxon:2697049")
+    organism_taxon = _taxon_custom.strip() or _TAXA[_taxon_choice] or None
     has_gpu = st.toggle(
         "Yerel GPU var", value=False,
         help="Kapalıysa AlphaFold/MD adımları 'deferred' (uzak worker) işaretlenir.",
@@ -212,7 +230,8 @@ if st.button("▶ Pipeline'ı başlat", type="primary"):
     with st.status("Pipeline çalışıyor…", expanded=True) as status:
         for ev in pipeline.run(input_path, det, CFG, profile,
                                host_names=selected_hosts, overrides=overrides,
-                               has_gpu=has_gpu, outdir="outputs", host_registry=HOSTS):
+                               has_gpu=has_gpu, outdir="outputs", host_registry=HOSTS,
+                               organism_taxon=organism_taxon):
             ph, stt, msg = ev["phase"], ev["status"], ev["msg"]
             if ph == "__result__":
                 result = ev["data"]
@@ -323,6 +342,48 @@ if st.button("▶ Pipeline'ı başlat", type="primary"):
                                         if a in cov else "—" for a in areas}})
                     if rows:
                         st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+
+        # --- IEDB literatür/bilinen-epitop taraması + validasyon ----------
+        im = rmeta.get("iedb_match")
+        if im:
+            st.subheader("📖 IEDB literatür / bilinen-epitop taraması")
+            if not im.get("available"):
+                st.info(im.get("note", "IEDB taraması yapılamadı."))
+            else:
+                st.caption(f"Kaynak: `{im.get('source','')}` · eşleşen aday: "
+                           f"**{im.get('n_matched',0)}/{im.get('n_candidates','?')}**. "
+                           "Bir adayın deneysel doğrulanmış epitopla örtüşmesi güçlü pozitif "
+                           "kontrol/literatür sinyalidir. Bu adım adaylık puanını **değiştirmez**.")
+                irows = []
+                for i, p in enumerate(peptides, 1):
+                    ie = p.metrics.get("iedb") or {}
+                    if ie.get("matched") is not True:
+                        continue
+                    pmids = ie.get("pmids") or []
+                    irows.append({
+                        "sıra": i, "peptit": p.seq, "tip": p.kind,
+                        "eşleşme": ie.get("match_type", ""),
+                        "IEDB epitobu": ie.get("epitope_seq", ""),
+                        "organizma": (ie.get("organisms") or ["—"])[0],
+                        "antijen": (ie.get("antigens") or ["—"])[0],
+                        "PMID": ", ".join(pmids[:4]) or (f"IEDB {ie.get('iedb_id')}" if ie.get("iedb_id") else "—"),
+                    })
+                if irows:
+                    st.dataframe(pd.DataFrame(irows), use_container_width=True, hide_index=True)
+                else:
+                    st.write("Hiçbir aday bilinen IEDB epitobuyla eşleşmedi (yeni olabilir).")
+                bm = im.get("benchmark") or {}
+                if bm and bm.get("recall") is not None:
+                    st.markdown("**Validasyon — bilinen epitop recall'ü**")
+                    st.caption("IEDB'deki deneysel doğrulanmış lineer epitoplar 'ground truth'; "
+                               "pipeline tahminleriyle örtüşme üzerinden ölçülür.")
+                    b1, b2, b3 = st.columns(3)
+                    b1.metric("Bilinen epitop (benzersiz)", bm["n_known"])
+                    b2.metric("Yakalanan (recall)", f"{round(bm['recall']*100,1)}%",
+                              f"{bm['n_known_hit']}/{bm['n_known']}")
+                    b3.metric("Bilinene eşleşen aday",
+                              f"{round((bm['precision_like'] or 0)*100,1)}%",
+                              f"{bm['n_pred_matched']}/{bm['n_pred']}")
 
         st.subheader("İndirilebilir çıktılar")
         cols = st.columns(len(paths))

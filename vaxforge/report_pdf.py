@@ -180,10 +180,50 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
     el.append(Paragraph("GPU gerektiren yapısal adımlar (AlphaFold peptit-MHC, moleküler dinamik) "
                         "bu koşuda ertelenmiştir (deferred).", small))
 
+    # -- IEDB literatür/bilinen-epitop taraması + validasyon recall'ü
+    im = meta.get("iedb_match")
+    if im:
+        el.append(Paragraph("5. IEDB literatür / bilinen-epitop taraması", h2))
+        if not im.get("available"):
+            el.append(Paragraph(im.get("note", "IEDB taraması yapılamadı."), small))
+        else:
+            el.append(Paragraph(
+                f"Kaynak: {im.get('source','')}. Eşleşen aday: "
+                f"<b>{im.get('n_matched',0)}/{im.get('n_candidates','?')}</b>. Bir adayın "
+                "deneysel doğrulanmış bir epitopla örtüşmesi güçlü pozitif kontrol sinyalidir. "
+                "Bu adım adaylık puanını değiştirmez (salt yorumlama).", small))
+            mrows = [["#", "Peptit", "Tip", "Eşleşme", "IEDB epitobu", "Organizma", "PMID"]]
+            for i, p in enumerate(peptides, 1):
+                ie = p.metrics.get("iedb") or {}
+                if ie.get("matched") is not True:
+                    continue
+                pmids = ie.get("pmids") or []
+                ref = ", ".join(pmids[:3]) or (f"IEDB {ie.get('iedb_id')}" if ie.get("iedb_id") else "—")
+                mrows.append([i, p.seq, p.kind, ie.get("match_type", ""),
+                              ie.get("epitope_seq", ""),
+                              (ie.get("organisms") or ["—"])[0], ref])
+            if len(mrows) > 1:
+                el.append(Spacer(1, 4))
+                el.append(tbl(mrows, widths=[0.7*cm, 2.8*cm, 1.2*cm, 3.0*cm, 3.0*cm, 3.2*cm, 2.6*cm]))
+            else:
+                el.append(Paragraph("<i>Hiçbir aday bilinen IEDB epitobuyla eşleşmedi.</i>", small))
+            bm = im.get("benchmark") or {}
+            if bm and bm.get("recall") is not None:
+                el.append(Spacer(1, 5))
+                el.append(Paragraph("Validasyon — bilinen epitop recall'ü", body))
+                el.append(Paragraph(
+                    "Bu organizma için IEDB'deki deneysel doğrulanmış lineer epitoplar 'ground "
+                    "truth' alınır; pipeline tahminleriyle örtüşme üzerinden ölçülür.", small))
+                brows = [["Bilinen epitop", "Yakalanan", "Recall", "Tahmin", "Eşleşen aday", "Oran"],
+                         [bm["n_known"], bm["n_known_hit"], f"{round(bm['recall']*100,1)}%",
+                          bm["n_pred"], bm["n_pred_matched"],
+                          f"{round((bm['precision_like'] or 0)*100,1)}%"]]
+                el.append(tbl(brows))
+
     # -- Popülasyon kapsamı (IEDB)
     popcov = meta.get("population_coverage") or {}
     if popcov:
-        el.append(Paragraph("5. Popülasyon kapsamı (IEDB HLA frekansları)", h2))
+        el.append(Paragraph("6. Popülasyon kapsamı (IEDB HLA frekansları)", h2))
         el.append(Paragraph("Aday epitop setinin, bir bireyin en az bir epitop-bağlayan "
                             "allele sahip olma olasılığı (%). Gerçek frekans verisi yalnız "
                             "insan HLA için mevcuttur.", small))
@@ -205,7 +245,7 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
                 el.append(tbl(prows))
 
     # -- Referanslar (tam atıflar)
-    el.append(Paragraph("6. Referanslar", h2))
+    el.append(Paragraph("7. Referanslar", h2))
     for i, r in enumerate(refs, 1):
         doi = r["doi"]
         link = doi if doi.startswith("http") else f"https://doi.org/{doi}"

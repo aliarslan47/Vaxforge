@@ -141,4 +141,23 @@ def candidate_rows(p, thr: dict) -> list[dict]:
         rows.append(_row("Toksisite (ToxinPred2)", v, f"≤ {c}", st,
                          p.methods.get("toxicity", ""), hard=True))
 
+    # ---- IEDB literatür/bilinen-epitop eşleşmesi (pozitif kontrol, bilgilendirici) ----
+    ie = m.get("iedb")
+    if ie is not None:
+        if ie.get("matched") is True:
+            org = (ie.get("organisms") or ["?"])[0]
+            pmids = ie.get("pmids") or []
+            pm = ("PMID " + ", ".join(pmids[:3])) if pmids else "IEDB kaydı"
+            val = f"{ie.get('match_type', 'eşleşme')} → {ie.get('epitope_seq', '')} [{org}]"
+            rows.append(_row("IEDB bilinen epitop (literatür)", val, pm, PASS,
+                             p.methods.get("iedb", ""), kind="doğrulama"))
+        elif ie.get("matched") is False:
+            rows.append(_row("IEDB bilinen epitop (literatür)", "eşleşme yok",
+                             "bilgi (yenilik olabilir)", NA, p.methods.get("iedb", ""),
+                             kind="doğrulama"))
+        else:
+            rows.append(_row("IEDB bilinen epitop (literatür)",
+                             ie.get("note", "çalıştırılamadı"), "—", NA,
+                             p.methods.get("iedb", ""), kind="doğrulama"))
+
     return rows

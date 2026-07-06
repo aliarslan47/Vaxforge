@@ -156,6 +156,15 @@ tools:
     params:
       min_percent: { default: {bacteria: 90, virus: 90, parasite: 85}, range: [0, 100], unit: "%", desc: "Minimum kapsam" }
 
+  # --- 6d) IEDB literatür/bilinen-epitop taraması -----------------------------
+  iedb_match:
+    step: iedb_match
+    engine: "IEDB IQ-API (query-api.iedb.org)"
+    description: "Aday peptitleri deneysel doğrulanmış epitoplarla (IEDB) eşleştirir; eşleşme pozitif kontrol/literatür sinyalidir. SALT YORUM — adaylık puanını değiştirmez. Organizma taxon'u verilirse recall benchmark hesaplanır."
+    hard_filter: false
+    params:
+      min_overlap: { default: {bacteria: 8, virus: 8, parasite: 8}, range: [6, 15], unit: "aa", desc: "Minimum ortak çekirdek (exact/içerme dışı örtüşme için)" }
+
   # --- 6) Yapı + docking/MD ---------------------------------------------------
   structure_plddt:
     step: structure
