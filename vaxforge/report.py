@@ -89,6 +89,27 @@ def write_package(outdir: Path, peptides: list[Peptide],
                      f"{('|gene='+g) if g else ''}{('|locus='+lt) if lt else ''}\n{p.seq}\n")
     paths["fasta"] = p_fa
 
+    # Excel (tam liste) — Adaylar + aday-başına TÜM araç sonuçları
+    try:
+        from . import evaluate
+        thr = evaluate.thr_lookup(run_meta)
+        tool_rows = []
+        for i, p in enumerate(peptides, 1):
+            for r in evaluate.candidate_rows(p, thr):
+                tool_rows.append({
+                    "#": i, "peptit": p.seq, "tip": p.kind, "adaylık": p.candidacy,
+                    "araç": r["tool"], "sonuç": r["value"], "eşik": r["cutoff"],
+                    "durum": r["status"].replace("✅ ", "").replace("❌ ", ""),
+                    "sert_filtre": r["hard"], "yöntem": r["method"],
+                })
+        p_xlsx = outdir / "candidates_full.xlsx"
+        with pd.ExcelWriter(p_xlsx, engine="openpyxl") as xw:
+            df.to_excel(xw, sheet_name="Adaylar", index=False)
+            pd.DataFrame(tool_rows).to_excel(xw, sheet_name="Arac_sonuclari", index=False)
+        paths["xlsx"] = p_xlsx
+    except Exception as e:
+        (outdir / "xlsx_error.txt").write_text(f"Excel üretilemedi: {e}")
+
     # JSON (tam koşum)
     run_meta = dict(run_meta)
     run_meta["candidates"] = df.to_dict(orient="records")
@@ -114,11 +135,16 @@ def write_package(outdir: Path, peptides: list[Peptide],
 
 
 def _candidate_blocks(peptides, meta) -> str:
-    """Her aday için (best→worst) tüm araç sonuçları + GEÇTİ/GEÇEMEDİ tablosu."""
+    """Öne çıkan adaylar (en iyi 15 + literatürde eşleşen) için araç sonuçları +
+    GEÇTİ/GEÇEMEDİ tablosu. Tam liste candidates_full.xlsx'te."""
     from . import evaluate
     thr = evaluate.thr_lookup(meta)
-    blocks = []
-    for i, p in enumerate(peptides, 1):
+    subset = evaluate.report_subset(peptides, top_n=15)
+    intro = (f'<p style="font-size:.85rem">En iyi 15 aday + literatürde (IEDB) eşleşen '
+             f'adaylar gösterilir ({len(subset)} / {len(peptides)} aday). Tüm adayların '
+             f'tam araç-sonucu tablosu <code>candidates_full.xlsx</code> dosyasındadır.</p>')
+    blocks = [intro]
+    for n, (i, p, reason) in enumerate(subset, 1):
         rows = evaluate.candidate_rows(p, thr)
         trs = ""
         for r in rows:
@@ -129,10 +155,11 @@ def _candidate_blocks(peptides, meta) -> str:
                     f'<td>{r["cutoff"]}</td><td class="{cls}">{r["status"]}</td>'
                     f'<td class="mono">{r["method"]}</td></tr>')
         gene = p.metrics.get("gene") or "—"
+        tag = ' · 📖 <b>literatürde</b>' if reason == "literatür" else ""
         blocks.append(
-            f'<details {"open" if i <= 3 else ""}><summary><b>#{i} {p.seq}</b> '
+            f'<details {"open" if n <= 3 else ""}><summary><b>#{i} {p.seq}</b> '
             f'— {p.kind} — adaylık <b>{p.candidacy}</b> '
-            f'(kaynak: {p.parent}, gen: {gene})</summary>'
+            f'(kaynak: {p.parent}, gen: {gene}){tag}</summary>'
             f'<table><tr><th>Araç</th><th>Sonuç</th><th>Eşik (referans)</th>'
             f'<th>Durum</th><th>Yöntem</th></tr>{trs}</table></details>')
     return "".join(blocks)

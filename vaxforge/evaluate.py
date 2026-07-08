@@ -32,6 +32,31 @@ def _row(tool, value, cutoff, status, method, hard=False, kind="skor"):
             "status": status, "method": method, "hard": hard, "kind": kind}
 
 
+def report_subset(peptides, top_n: int = 15) -> list[tuple]:
+    """Yayın raporuna (PDF/HTML) girecek aday alt kümesi.
+
+    Tüm adayları uzun uzadıya dökmek raporu şişirir; bunun yerine:
+      - en iyi `top_n` aday (adaylık puanına göre sıralı), +
+      - literatürde (IEDB) bilinen bir epitopla eşleşen HER aday (top_n dışında olsa da).
+    Tam liste ayrıca candidates_full.xlsx'e yazılır.
+
+    Dönüş: [(orijinal_sıra, peptide, sebep)] — sebep ∈ {'top', 'literatür'};
+    orijinal sıra numarası korunur (tam listedeki yeri).
+    """
+    out, seen = [], set()
+    for rank, p in enumerate(peptides, 1):
+        if rank <= top_n:
+            out.append((rank, p, "top"))
+            seen.add(id(p))
+    for rank, p in enumerate(peptides, 1):
+        if id(p) in seen:
+            continue
+        if (p.metrics.get("iedb") or {}).get("matched") is True:
+            out.append((rank, p, "literatür"))
+            seen.add(id(p))
+    return out
+
+
 def _num(x):
     try:
         return float(x)

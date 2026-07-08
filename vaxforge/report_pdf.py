@@ -137,16 +137,21 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
     # -- Aday-başına TÜM araç sonuçları + GEÇTİ/GEÇEMEDİ
     from . import evaluate
     thr = evaluate.thr_lookup(meta)
-    el.append(Paragraph("2c. Aday peptitler — tüm araç sonuçları (en iyiden en kötüye)", h2))
-    el.append(Paragraph("Her aday için çalışan tüm araçların çıktısı ve referans eşiğe göre "
-                        "durumu. (H)=sert filtre (geçemeyen elenir); eşiksiz satırlar yorum amaçlıdır.", small))
-    for i, p in enumerate(peptides, 1):
+    subset = evaluate.report_subset(peptides, top_n=15)
+    el.append(Paragraph("2c. Öne çıkan adaylar — tüm araç sonuçları", h2))
+    el.append(Paragraph(
+        f"En iyi 15 aday + literatürde (IEDB) eşleşen adaylar gösterilir "
+        f"({len(subset)} / {len(peptides)} aday). Tüm adayların tam araç-sonucu tablosu "
+        f"<b>candidates_full.xlsx</b> dosyasındadır. (H)=sert filtre (geçemeyen elenir); "
+        f"eşiksiz satırlar yorum amaçlıdır.", small))
+    for i, p, reason in subset:
         rows = evaluate.candidate_rows(p, thr)
         if not rows:
             continue
+        tag = " &nbsp;·&nbsp; <b>📖 literatürde</b>" if reason == "literatür" else ""
         el.append(Spacer(1, 5))
         el.append(Paragraph(f"#{i} &nbsp;<b>{p.seq}</b> — {p.kind} — adaylık <b>{p.candidacy}</b> "
-                            f"&nbsp;(kaynak: {p.parent}, gen: {p.metrics.get('gene') or '—'})", body))
+                            f"&nbsp;(kaynak: {p.parent}, gen: {p.metrics.get('gene') or '—'}){tag}", body))
         drows = [["Araç", "Sonuç", "Eşik", "Durum"]]
         style_extra = []
         for ri, r in enumerate(rows, 1):

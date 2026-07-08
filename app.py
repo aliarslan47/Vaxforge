@@ -302,14 +302,18 @@ if st.button("▶ Pipeline'ı başlat", type="primary"):
 
         # --- Her aday için TÜM araç sonuçları + GEÇTİ/GEÇEMEDİ --------------
         from vaxforge import evaluate
-        st.subheader("🔬 Her aday için tüm araç sonuçları (en iyiden en kötüye)")
-        st.caption("Her adayda çalışan tüm araçların çıktısı ve referans eşiğe göre durumu. "
-                   "🔒 = sert filtre (geçemeyen elenir); eşiksiz satırlar yorum amaçlıdır.")
         thr = evaluate.thr_lookup(rmeta)
-        for i, p in enumerate(peptides, 1):
+        subset = evaluate.report_subset(peptides, top_n=15)
+        st.subheader("🔬 Öne çıkan adaylar — tüm araç sonuçları")
+        st.caption(f"En iyi 15 aday + literatürde (IEDB) eşleşen adaylar "
+                   f"({len(subset)} / {len(peptides)} aday). Tüm adayların tam tablosu "
+                   f"**candidates_full.xlsx** indirmesindedir. 🔒 = sert filtre "
+                   f"(geçemeyen elenir); eşiksiz satırlar yorum amaçlıdır.")
+        for n, (i, p, reason) in enumerate(subset, 1):
+            tag = " · 📖 literatürde" if reason == "literatür" else ""
             with st.expander(f"{i}. {p.seq} — {p.kind} — adaylık {p.candidacy} "
-                             f"(kaynak: {p.parent}, gen: {p.metrics.get('gene') or '—'})",
-                             expanded=(i <= 3)):
+                             f"(kaynak: {p.parent}, gen: {p.metrics.get('gene') or '—'}){tag}",
+                             expanded=(n <= 3)):
                 a = [{"Araç": r["tool"] + (" 🔒" if r["hard"] else ""),
                       "Sonuç": r["value"], "Eşik (referans)": r["cutoff"],
                       "Durum": r["status"], "Yöntem": r["method"]}
@@ -387,8 +391,8 @@ if st.button("▶ Pipeline'ı başlat", type="primary"):
 
         st.subheader("İndirilebilir çıktılar")
         cols = st.columns(len(paths))
-        labels = {"csv": "Adaylar (CSV)", "fasta": "Peptitler (FASTA)",
-                  "json": "Tam koşum (JSON)",
+        labels = {"csv": "Adaylar (CSV)", "xlsx": "Tam liste (Excel)",
+                  "fasta": "Peptitler (FASTA)", "json": "Tam koşum (JSON)",
                   "html": "Rapor (HTML)", "pdf": "Rapor (PDF)"}
         for col, (kind, path) in zip(cols, paths.items()):
             data = Path(path).read_bytes()
