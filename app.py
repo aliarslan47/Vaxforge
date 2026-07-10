@@ -15,7 +15,7 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
-from vaxforge import mhc_real
+from vaxforge import netmhc_local
 from vaxforge.config_loader import ThresholdConfig
 from vaxforge.detect import detect
 from vaxforge.hosts import HostRegistry
@@ -133,12 +133,13 @@ with st.sidebar:
     )
     for n in selected_hosts:
         h = HOSTS.get(n)
-        pi = "GERÇEK" if (h.predictor("mhc_i") == "mhcflurry" and mhc_real.available()) else "proxy"
+        pi = "GERÇEK" if netmhc_local.runnable("mhc_i") else "IEDB/proxy"
+        pii = "GERÇEK" if netmhc_local.runnable("mhc_ii") else "IEDB/proxy"
         st.caption(f"• {h.label}: MHC-I {len(h.mhc_i)} allel ({pi}), "
-                   f"MHC-II {len(h.mhc_ii)} allel (proxy)")
+                   f"MHC-II {len(h.mhc_ii)} allel ({pii})")
     st.divider()
     st.caption(f"config: `{CFG.path.name}` · hosts: `{HOSTS.path.name}` · "
-               f"MHCflurry: {'var' if mhc_real.available() else 'yok'}")
+               f"NetMHCpan: {'yerel' if netmhc_local.available() else 'IEDB/proxy'}")
 
 # IEDB literatür/bilinen-epitop eşleştirmesi otomatik çalışır (organizma seçimi
 # olmadan tüm IEDB'ye karşı canlı tarama). Yapısal/docking-MD adımları çıkarıldı

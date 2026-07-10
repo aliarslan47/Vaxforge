@@ -3,8 +3,7 @@
 Tek bir birleşik arayüz: predict(peptides, host, mhc_class, rank_weak).
 Backend seçimi konağın config'indeki 'predictors' alanına göre yapılır:
 
-  mhcflurry     -> GERÇEK, yalnız insan MHC-I (kurulu, GPU'suz)
-  netmhcpan/... -> GERÇEK çok-tür + MHC-II [henüz kurulu değil -> proxy'ye düşer]
+  netmhcpan/... -> GERÇEK çok-tür + MHC-II (yerel binary; yoksa IEDB API)
   iedb_api      -> IEDB REST [opsiyonel, internet]
   proxy         -> saf-Python vekil (gerçek yok -> dürüst 'heuristik' etiket)
 
@@ -14,7 +13,7 @@ etiketinde hangi gerçek aracın eksik olduğu yazılır.
 
 from __future__ import annotations
 
-from . import iedb, mhc_real, netmhc_local
+from . import iedb, netmhc_local
 from .hosts import Host
 from .sequtils import KD, sanitize
 
@@ -44,21 +43,6 @@ def _proxy(peptides, alleles, rank_weak, missing_tool):
     return out
 
 
-def _from_mhcflurry(peptides, alleles, rank_weak, host, mhc_class):
-    raw = mhc_real.predict(peptides, alleles=alleles, weak_percentile=rank_weak)
-    if not raw:
-        return None
-    out = {}
-    for pep, d in raw.items():
-        psize = d.get("panel_size", len(alleles)) or 1
-        out[pep] = {"score": d["presentation_score"], "rank": d["best_percentile"],
-                    "best_allele": d["best_allele"], "n_alleles": d["n_alleles"],
-                    "panel_size": psize, "coverage_frac": d["n_alleles"] / psize,
-                    "bound_alleles": [d["best_allele"]] if d["n_alleles"] else [],
-                    "method": f"GERÇEK (MHCflurry, {host.label} MHC-I çevrimdışı)"}
-    return out
-
-
 def _from_iedb(peptides, alleles, mhc_class, rank_weak, host):
     raw = iedb.predict(peptides, alleles, mhc_class, rank_weak)
     if not raw:
@@ -72,39 +56,25 @@ def _from_iedb(peptides, alleles, mhc_class, rank_weak, host):
 def predict(peptides: list[str], host: Host, mhc_class: str, rank_weak: float) -> dict[str, dict]:
     """Peptit -> {score, rank, best_allele, n_alleles, coverage_frac, method}.
 
-    Öncelik: seçilen gerçek backend (NetMHCpan/NetMHCIIpan via IEDB) -> insan MHC-I
-    için MHCflurry çevrimdışı yedek -> proxy. Hiçbir yere kilitli değil; kullanılan
-    yöntem 'method' etiketinde yazılır.
+    Öncelik: yerel NetMHCpan/NetMHCIIpan -> IEDB API (çok-tür) -> proxy.
+    Hiçbir yere kilitli değil; kullanılan yöntem 'method' etiketinde yazılır.
     """
     alleles = host.alleles(mhc_class)
     backend = host.predictor(mhc_class)
-    human_hla = any(a.startswith("HLA") for a in alleles)
 
-    # 1) GERÇEK: NetMHCpan / NetMHCIIpan
+    # GERÇEK: NetMHCpan / NetMHCIIpan
     if backend in ("netmhcpan", "netmhciipan"):
-        # 1a) yerel binary (varsa ve bu mimaride çalışıyorsa) — en hızlı, çevrimdışı
+        # 1) yerel binary (varsa ve bu mimaride çalışıyorsa) — en hızlı, çevrimdışı
         local = netmhc_local.predict(peptides, alleles, mhc_class, rank_weak)
         if local:
             tool = "NetMHCpan" if mhc_class == "mhc_i" else "NetMHCIIpan"
             for d in local.values():
                 d["method"] = f"GERÇEK ({tool} yerel, {host.label} {mhc_class.upper()})"
             return local
-        # 1b) IEDB API (çok-tür, gerçek)
+        # 2) IEDB API (çok-tür, gerçek)
         res = _from_iedb(peptides, alleles, mhc_class, rank_weak, host)
         if res is not None:
             return res
-        # 1c) insan MHC-I ise MHCflurry çevrimdışı yedek
-        if mhc_class == "mhc_i" and human_hla and mhc_real.available():
-            res = _from_mhcflurry(peptides, alleles, rank_weak, host, mhc_class)
-            if res is not None:
-                return res
         return _proxy(peptides, alleles, rank_weak, backend)
-
-    # 2) MHCflurry doğrudan seçilmişse (insan MHC-I)
-    if backend == "mhcflurry" and mhc_class == "mhc_i" and mhc_real.available():
-        res = _from_mhcflurry(peptides, alleles, rank_weak, host, mhc_class)
-        if res is not None:
-            return res
-        return _proxy(peptides, alleles, rank_weak, "MHCflurry-desteği")
 
     return _proxy(peptides, alleles, rank_weak, backend)

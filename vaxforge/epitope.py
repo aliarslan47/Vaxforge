@@ -5,8 +5,8 @@ MHC-I ve MHC-II: SEÇİLEN KONAK(LAR)ın allelleri taranır (predictors katmanı
 insana kilitli değil). Her peptit için hangi konaklarda sunulduğu (host_coverage)
 hesaplanır — sizin 'hangi organizmada işe yarar' haritanız.
 
-Yordayıcı gerçekliği predictors.py'de: MHCflurry (insan MHC-I gerçek), diğerleri
-NetMHCpan/NetMHCIIpan kurulunca gerçek, yoksa proxy (dürüst etiketli).
+Yordayıcı gerçekliği predictors.py'de: yerel NetMHCpan/NetMHCIIpan (gerçek),
+yoksa IEDB API, o da yoksa proxy (dürüst etiketli).
 """
 
 from __future__ import annotations
