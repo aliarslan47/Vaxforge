@@ -3,8 +3,8 @@
 Her hayatta kalan peptidin metriklerini config'teki ağırlıklarla tek skora
 indirger. Bir peptit tüm bileşenlere sahip olmayabilir (ör. B-hücre peptidinin
 MHC skoru yoktur); o durumda mevcut bileşenler üzerinden ağırlıklar yeniden
-normalize edilir. Yapısal kalite (pLDDT) ağır/deferred adımdan gelir; yoksa
-bileşen dışında bırakılır.
+normalize edilir. (Yapısal kalite/pLDDT bileşeni, yapısal doğrulama adımı
+şimdilik çıkarıldığı için kullanılmıyor.)
 """
 
 from __future__ import annotations
@@ -35,8 +35,6 @@ def _components(p: Peptide) -> dict[str, float]:
         comp["antigenicity"] = max(comp.get("antigenicity", 0), float(m.get("bcell_score", 0)))
     if m.get("coverage_frac") is not None:
         comp["organism_coverage"] = float(m["coverage_frac"])
-    if m.get("plddt") is not None:
-        comp["structural_quality"] = float(m["plddt"]) / 100
     return comp
 
 

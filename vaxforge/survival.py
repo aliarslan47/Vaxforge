@@ -5,7 +5,7 @@ Yumuşak: konservasyon (suş verisi yoksa 'çalıştırılmadı'), popülasyon/t
 
 Gerçek araçlar: AllerTOP/AllergenFP, ToxinPred, IEDB Population Coverage.
 Buradakiler HEURİSTİK vekillerdir ve 'method' ile etiketlenir.
-(2. aşama olan docking/MD ağır adımdır; bu makinede 'deferred'.)
+(Yapısal kararlılık/docking-MD ikinci aşaması şimdilik çıkarıldı.)
 """
 
 from __future__ import annotations

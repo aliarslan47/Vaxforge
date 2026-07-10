@@ -1,8 +1,9 @@
 """Tanıma sonucundan pipeline planı üretir.
 
 Her adım: id, başlık, hangi araçlar, GPU gerektirir mi, uzak-worker'a mı gider,
-ve girdiye göre gerekli mi. Ağır adımlar (AlphaFold peptit-MHC, docking/MD) bu
-makinede GPU olmadığı için 'deferred' (takılabilir/uzak) olarak işaretlenir.
+ve girdiye göre gerekli mi. (Yapısal doğrulama / docking-MD adımları şimdilik
+çıkarıldı; odak aday-belirleme. GPU'lu 'deferred' altyapısı korunur, ileride
+geri eklenebilir.)
 """
 
 from __future__ import annotations
@@ -52,12 +53,9 @@ def _core(det: Detection) -> list[Step]:
              ["NetMHCpan", "IPD-MHC paneli"]),
         Step("survival", "Sağ kalım elemesi (alerjenite/toksisite/kapsam)",
              ["AllerTOP", "ToxinPred", "IEDB-coverage"]),
-        Step("structure", "Peptit-MHC yapısı (AlphaFold)",
-             ["AlphaFold"], gpu=True, deferred=True,
-             note="GPU gerektirir -> ayrı makine/bulut"),
-        Step("docking_md", "Docking + MD kararlılık testi",
-             ["HADDOCK", "GROMACS"], gpu=True, deferred=True,
-             note="GPU + uzun süre -> ayrı makine/bulut"),
+        # NOT: yapısal doğrulama (AlphaFold peptit-MHC) + docking/MD (HADDOCK/
+        # GROMACS) adımları ŞİMDİLİK ÇIKARILDI — odak aday-belirlemede. GPU
+        # gelince/gerektiğinde geri eklenir.
         Step("scoring", "Adaylık puanı + sıralama", ["VaxForge scorer"]),
         Step("report", "Rapor + veri paketi + HTML panosu",
              ["PDF", "CSV/FASTA/GenBank/PDB", "HTML"]),

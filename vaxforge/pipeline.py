@@ -7,7 +7,7 @@ Kullanım:
         else:
             print(ev["phase"], ev["status"], ev["msg"])
 
-Ağır/deferred adımlar (structure, docking_md) GPU yoksa atlanır ve öyle işaretlenir.
+(Yapısal doğrulama + docking/MD adımları şimdilik çıkarıldı; odak aday-belirleme.)
 """
 
 from __future__ import annotations
@@ -112,13 +112,6 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
     yield _ev("survival_toxicity", "done",
               f"Toksisite ({ssum['toksisite']}): {ssum['alerjenite_sonrasi']} → "
               f"{ssum['toksisite_sonrasi']} peptit ({ssum['toksik_elenen']} toksik elendi)", ssum)
-
-    # 6) Deferred ağır adımlar
-    for hid, title in [("structure", "Peptit-MHC yapısı (AlphaFold)"),
-                       ("docking_md", "Docking + MD")]:
-        st = next((s for s in steps if s.id == hid), None)
-        if st and st.status == "deferred":
-            yield _ev(hid, "deferred", f"{title}: GPU yok → ertelendi (uzak worker)")
 
     # 6b) Scoring
     yield _ev("scoring", "running", "Adaylık puanı hesaplanıyor…")

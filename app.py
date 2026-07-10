@@ -3,8 +3,8 @@
 Akış: dosya yükle -> otomatik tanı -> planlanan adımları göster ->
 organizma profiline göre düzenlenebilir eşikleri göster.
 
-Ağır adımlar (AlphaFold peptit-MHC, docking/MD) bu makinede GPU olmadığı için
-'deferred' rozetiyle işaretlenir; ilerideki GPU makinesine/buluta gider.
+Yapısal doğrulama (AlphaFold peptit-MHC) + docking/MD adımları şimdilik
+çıkarıldı; odak aday-belirleme. GPU gelince geri eklenebilir.
 """
 
 from __future__ import annotations
@@ -141,8 +141,8 @@ with st.sidebar:
                f"MHCflurry: {'var' if mhc_real.available() else 'yok'}")
 
 # IEDB literatür/bilinen-epitop eşleştirmesi otomatik çalışır (organizma seçimi
-# olmadan tüm IEDB'ye karşı canlı tarama). GPU yok → ağır adımlar (AlphaFold/MD)
-# zaten 'deferred'. Sidebar sade tutuldu (kullanıcı isteği, 2026-07-10).
+# olmadan tüm IEDB'ye karşı canlı tarama). Yapısal/docking-MD adımları çıkarıldı
+# (odak aday-belirleme). Sidebar sade tutuldu (kullanıcı isteği, 2026-07-10).
 organism_taxon = None
 has_gpu = False
 
