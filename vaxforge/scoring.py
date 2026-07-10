@@ -19,6 +19,8 @@ def _components(p: Peptide) -> dict[str, float]:
     parent_ag = p.metrics.get("parent_antigenicity")
     if parent_ag is not None:
         comp["antigenicity"] = float(parent_ag)
+    if m.get("virulence") is not None:  # kaynak proteinin virülans kanıtı (VFDB skoru)
+        comp["virulence"] = float(m["virulence"])
     if p.kind == "MHC-I":
         comp["mhc_i_binding"] = float(m.get("mhc_score", 0))
         if m.get("immunogenicity_norm") is not None:
@@ -27,6 +29,8 @@ def _components(p: Peptide) -> dict[str, float]:
             comp["antigen_processing"] = float(m["processing_norm"])
     if p.kind == "MHC-II":
         comp["mhc_ii_binding"] = float(m.get("mhc_score", 0))
+        if m.get("ifn_gamma_norm") is not None:
+            comp["ifn_gamma"] = float(m["ifn_gamma_norm"])
     if p.kind == "B":
         comp["antigenicity"] = max(comp.get("antigenicity", 0), float(m.get("bcell_score", 0)))
     if m.get("coverage_frac") is not None:

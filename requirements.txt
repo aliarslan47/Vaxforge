@@ -9,5 +9,12 @@ fair-esm>=2.0
 plotly>=5.8
 tenacity>=8.0
 importlib-resources>=5.8
+# IFN-γ (HTL/MHC-II) indükleme: IFNepitope2 (ExtraTrees+BLAST, model+blastp gömülü).
+# KURULUM: pip install --no-deps ifnepitope2  (katı pandas==1.4/sklearn==1.2.1
+# pinlerini ES GEÇ — venv'deki sürümler kullanılır). Modeller sklearn 0.24 ile
+# pickle'lanmış; vaxforge/ifngamma.py çalışma anında kurulu sklearn'e köprüler
+# (scripts/convert_ifn_models.py referans CLI için kalıcı dönüştürür).
+# ifnepitope2  # --no-deps ile elle kurulur
+#
 # Ağır/harici araçlar (diamond, prodigal, AlphaFold, GROMACS ...) konteyner
 # (podman) veya ayrı GPU makinesinde; buraya dahil değildir.

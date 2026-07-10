@@ -21,21 +21,101 @@ from vaxforge.detect import detect
 from vaxforge.hosts import HostRegistry
 from vaxforge.plan import build_plan, plan_table
 
-st.set_page_config(page_title="VaxForge", page_icon="🧬", layout="wide")
+st.set_page_config(page_title="VaxForge — Reverse Vaccinology", page_icon="🧬",
+                   layout="wide", initial_sidebar_state="expanded")
 
 CFG = ThresholdConfig.load()
 HOSTS = HostRegistry.load()
 
-# --- Başlık -----------------------------------------------------------------
-st.title("🧬 VaxForge")
-st.caption(
-    "Ajan destekli in silico reverse vaccinology pipeline — prototip. "
-    "Dosyayı yükleyin; sistem tipini tanıyıp ne yapacağını planlar."
-)
+# --- Kurumsal tema (CSS) ----------------------------------------------------
+st.markdown("""
+<style>
+:root{
+  --vf-bg:#0b1220; --vf-panel:#111a2e; --vf-line:#1e2a44;
+  --vf-ink:#e6ecf7; --vf-mut:#93a2c0;
+  --vf-brand:#2dd4bf; --vf-brand2:#6366f1; --vf-accent:#38bdf8;
+}
+html,body,[class*="css"]{ font-feature-settings:"cv02","cv03","cv04"; }
+.stApp{ background:radial-gradient(1200px 600px at 12% -8%, #14213d 0%, var(--vf-bg) 55%); }
+#MainMenu, footer, [data-testid="stToolbar"]{ visibility:hidden; height:0; }
+.block-container{ padding-top:1.4rem; padding-bottom:3rem; max-width:1280px; }
+h1,h2,h3{ letter-spacing:-.01em; }
+[data-testid="stSidebar"]{ background:linear-gradient(180deg,#0d1526,#0b1220);
+  border-right:1px solid var(--vf-line); }
+[data-testid="stSidebar"] .stMarkdown, [data-testid="stSidebar"] label{ color:var(--vf-ink); }
+
+/* Hero */
+.vf-hero{ display:flex; align-items:center; gap:18px; padding:22px 26px; margin-bottom:6px;
+  background:linear-gradient(110deg, rgba(45,212,191,.14), rgba(99,102,241,.14) 60%, rgba(56,189,248,.10));
+  border:1px solid var(--vf-line); border-radius:18px;
+  box-shadow:0 10px 40px -20px rgba(56,189,248,.5); }
+.vf-hero .vf-logo{ font-size:44px; line-height:1;
+  filter:drop-shadow(0 4px 14px rgba(45,212,191,.5)); }
+.vf-hero h1{ margin:0; font-size:30px; font-weight:800; color:var(--vf-ink); }
+.vf-hero .vf-sub{ margin:4px 0 0; color:var(--vf-mut); font-size:14px; max-width:720px; }
+.vf-chip{ display:inline-block; padding:3px 10px; border-radius:999px; font-size:11px;
+  font-weight:700; letter-spacing:.03em; text-transform:uppercase;
+  background:rgba(45,212,191,.16); color:var(--vf-brand); border:1px solid rgba(45,212,191,.35); }
+.vf-chips{ display:flex; gap:8px; flex-wrap:wrap; margin:14px 0 26px; }
+.vf-chips .c{ padding:6px 12px; border-radius:10px; font-size:12px; color:var(--vf-mut);
+  background:var(--vf-panel); border:1px solid var(--vf-line); }
+.vf-chips .c b{ color:var(--vf-ink); font-weight:700; }
+
+/* Bileşenler */
+.stButton>button{ border-radius:11px; border:1px solid var(--vf-line);
+  background:var(--vf-panel); color:var(--vf-ink); font-weight:600; transition:.15s; }
+.stButton>button:hover{ border-color:var(--vf-brand); color:#fff;
+  box-shadow:0 6px 20px -10px rgba(45,212,191,.7); transform:translateY(-1px); }
+.stButton>button[kind="primary"]{ border:0;
+  background:linear-gradient(90deg,var(--vf-brand),var(--vf-brand2)); color:#04121a; font-weight:800; }
+[data-testid="stMetric"]{ background:var(--vf-panel); border:1px solid var(--vf-line);
+  border-radius:14px; padding:12px 16px; }
+[data-testid="stMetricValue"]{ color:var(--vf-ink); font-weight:800; }
+[data-testid="stExpander"]{ border:1px solid var(--vf-line); border-radius:12px;
+  background:rgba(17,26,46,.5); }
+[data-testid="stExpander"] summary:hover{ color:var(--vf-brand); }
+hr{ border-color:var(--vf-line); }
+.vf-sec{ display:flex; align-items:center; gap:10px; margin:26px 0 4px; }
+.vf-sec .n{ width:26px; height:26px; border-radius:8px; display:grid; place-items:center;
+  font-size:13px; font-weight:800; color:#04121a;
+  background:linear-gradient(135deg,var(--vf-brand),var(--vf-accent)); }
+.vf-sec h3{ margin:0; font-size:19px; color:var(--vf-ink); }
+</style>
+""", unsafe_allow_html=True)
+
+# --- Hero başlık ------------------------------------------------------------
+_n_tools = len(CFG.resolve(CFG.default_profile))
+_n_hosts = len(HOSTS.names())
+st.markdown(f"""
+<div class="vf-hero">
+  <div class="vf-logo">🧬</div>
+  <div>
+    <h1>VaxForge <span class="vf-chip">prototip</span></h1>
+    <p class="vf-sub">Ajan destekli <b>in&nbsp;silico reverse vaccinology</b> pipeline —
+    proteomdan doğrulanmış aşı-aday epitoplarına. Dosyanızı yükleyin; sistem tipini
+    tanır, planı kurar ve uçtan uca çalıştırır.</p>
+  </div>
+</div>
+<div class="vf-chips">
+  <div class="c">🔬 <b>{_n_tools}</b> analiz aracı</div>
+  <div class="c">🧫 <b>{_n_hosts}</b> konak / MHC paneli</div>
+  <div class="c">🧠 B-hücre · MHC-I/II · IFN-γ · işleme</div>
+  <div class="c">🛡️ alerjenite · toksisite · insan-homoloji</div>
+  <div class="c">📄 PDF · HTML · Excel · atıflı rapor</div>
+</div>
+""", unsafe_allow_html=True)
+
+
+def _sec(num: str, title: str) -> None:
+    """Numaralı profesyonel bölüm başlığı."""
+    st.markdown(f'<div class="vf-sec"><div class="n">{num}</div>'
+                f'<h3>{title}</h3></div>', unsafe_allow_html=True)
 
 # --- Kenar çubuğu: organizma profili + ortam --------------------------------
 with st.sidebar:
-    st.header("Ayarlar")
+    st.markdown('<div class="vf-sec" style="margin:2px 0 10px">'
+                '<div class="n">⚙</div><h3>Çalışma ayarları</h3></div>',
+                unsafe_allow_html=True)
     profile = st.selectbox(
         "Patojen profili (etken)",
         CFG.profiles,
@@ -57,33 +137,17 @@ with st.sidebar:
         st.caption(f"• {h.label}: MHC-I {len(h.mhc_i)} allel ({pi}), "
                    f"MHC-II {len(h.mhc_ii)} allel (proxy)")
     st.divider()
-    st.markdown("**IEDB literatür/bilinen-epitop taraması**")
-    _TAXA = {
-        "— (organizma seçme / genel canlı arama)": "",
-        "SARS-CoV-2 (2697049)": "NCBITaxon:2697049",
-        "M. tuberculosis (1773)": "NCBITaxon:1773",
-        "Influenza A (11320)": "NCBITaxon:11320",
-        "N. meningitidis (487)": "NCBITaxon:487",
-    }
-    _taxon_choice = st.selectbox(
-        "Kaynak organizma (IEDB eşleşmesi)", list(_TAXA),
-        help="Seçilirse o organizmanın IEDB epitop seti çekilir, adaylar onunla "
-             "eşleştirilir ve bilinen-epitop RECALL benchmark'ı hesaplanır. "
-             "Boşsa her aday tüm IEDB'ye karşı canlı taranır (yalnız eşleşme, benchmark yok).",
-    )
-    _taxon_custom = st.text_input("…veya elle NCBITaxon", value="",
-                                  placeholder="NCBITaxon:2697049")
-    organism_taxon = _taxon_custom.strip() or _TAXA[_taxon_choice] or None
-    has_gpu = st.toggle(
-        "Yerel GPU var", value=False,
-        help="Kapalıysa AlphaFold/MD adımları 'deferred' (uzak worker) işaretlenir.",
-    )
-    st.divider()
     st.caption(f"config: `{CFG.path.name}` · hosts: `{HOSTS.path.name}` · "
                f"MHCflurry: {'var' if mhc_real.available() else 'yok'}")
 
+# IEDB literatür/bilinen-epitop eşleştirmesi otomatik çalışır (organizma seçimi
+# olmadan tüm IEDB'ye karşı canlı tarama). GPU yok → ağır adımlar (AlphaFold/MD)
+# zaten 'deferred'. Sidebar sade tutuldu (kullanıcı isteği, 2026-07-10).
+organism_taxon = None
+has_gpu = False
+
 # --- Girdi: dosya yükleme veya örnek ----------------------------------------
-st.subheader("📁 Girdi dosyası")
+_sec("1", "Girdi dosyası")
 _SAMPLES = {
     "🧪 Patojen proteinleri (gerçek VFDB)": "data/samples/pathogen_demo.faa",
     "🧬 Proteom (protein FASTA)": "data/samples/proteome_demo.faa",
@@ -127,7 +191,7 @@ det = detect(input_path)
 det.filename = input_name
 
 # --- Tanıma sonucu ----------------------------------------------------------
-st.subheader("1) Dosya tanıma")
+_sec("2", "Dosya tanıma")
 c1, c2, c3, c4 = st.columns(4)
 c1.metric("Format", det.fmt.upper())
 c2.metric("Tip", det.seq_type)
@@ -144,7 +208,7 @@ for note in det.notes:
     st.write("•", note)
 
 # --- Planlanan adımlar ------------------------------------------------------
-st.subheader("2) Planlanan pipeline")
+_sec("3", "Planlanan pipeline")
 steps = build_plan(det, has_gpu=has_gpu)
 df_plan = pd.DataFrame(plan_table(steps))
 
@@ -167,7 +231,7 @@ if n_def:
             "Yan panelden 'Yerel GPU var' açılırsa yerelde koşarlar.")
 
 # --- Eşikler (organizma profiline göre, düzenlenebilir) ---------------------
-st.subheader(f"3) Eşikler — profil: `{profile}`")
+_sec("4", f"Eşikler — profil: {profile}")
 st.caption("Tüm eşikler config'ten gelir; organizmaya göre değişir ve burada düzenlenebilir. "
            "Koşulan değerler rapora yazılır (tekrarlanabilirlik).")
 
@@ -196,7 +260,7 @@ for step_id, tools in by_step.items():
                     st.text_input(label, value=str(p.value), key=key, help=p.description)
 
 # --- Çalıştır ---------------------------------------------------------------
-st.subheader("4) Çalıştır")
+_sec("5", "Çalıştır")
 _tool_status = []
 for _mod, _lbl in [("discovery", "DIAMOND+VFDB"), ("deeploc", "DeepLoc"),
                    ("tmhmm_local", "TMHMM"), ("signalp", "SignalP"),
@@ -260,7 +324,7 @@ if st.button("▶ Pipeline'ı başlat", type="primary"):
         flow = [
             (f"1· Girdi ({unit})", rmeta.get("n_raw", "?"), "dosyadaki ham dizi sayısı"),
             ("2· Proteine çevrildi", rmeta.get("n_input", "?"), "CDS→çeviri / ORF; ≥20 aa"),
-            ("3· Keşif sonrası (VFDB)", rmeta.get("n_discovery", "?"), "DIAMOND ile virülans DB eşleşmesi"),
+            ("3· Virülans skoru (VFDB)", rmeta.get("n_discovery", "?"), "DIAMOND→VFDB skorlama (eleme DEĞİL; NERVE2 gibi)"),
             ("4· Huni sonrası (protein)", rmeta.get("n_funnel", "?"), "DeepLoc+TMHMM+SignalP+IApred+insan homoloji"),
             ("5· Üretilen epitop", rmeta.get("n_epitope", "?"), "SLIDING-WINDOW: B + MHC-I + MHC-II"),
             ("6· Alerjenite sonrası", rmeta.get("n_after_allergen", "?"), "FAO/WHO 6-mer — alerjenler elendi"),

@@ -11,7 +11,8 @@ NetMHCpan/NetMHCIIpan kurulunca gerçek, yoksa proxy (dürüst etiketli).
 
 from __future__ import annotations
 
-from . import bepipred, bepipred3, immunogenicity, mhc_motif, netctl, predictors
+from . import (bepipred, bepipred3, ifngamma, immunogenicity, mhc_motif,
+               netctl, predictors)
 from .config_loader import ResolvedTool
 from .hosts import Host
 from .models import Peptide, ProteinRecord
@@ -175,10 +176,33 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
             p.metrics["protein_id"] = pr.annotations.get("protein_id")
             # kaynak proteinin funnel (araç) sonuçlarını adaya taşı (rapor için)
             for k in ("localization", "tm_helices", "signalp", "human_homology",
-                      "antigenicity_raw", "antigenicity_category",
+                      "antigenicity_raw", "antigenicity_category", "virulence",
+                      "vf_identity", "vf_keyword", "vf_hit",
                       "method_localization", "method_tm", "method_signalp",
-                      "method_human_homology", "method_antigenicity"):
+                      "method_human_homology", "method_antigenicity", "method_discovery"):
                 if k in pr.annotations:
                     p.metrics[k] = pr.annotations[k]
         peptides += made
+
+    # IFN-γ (HTL/Th1): MHC-II peptitleri için TEK batch (model bir kez yüklenir).
+    # Yalnız insan/fare modeli var → seçili konaklardan uygun olanı kullanılır;
+    # yoksa (ör. sığır/domuz) atlanır (dürüstçe metrik eklenmez).
+    ifn_host = ifngamma.model_host([h.name for h in hosts])
+    ii_peps = [p for p in peptides if p.kind == "MHC-II"]
+    if ifn_host and ii_peps:
+        ifn_tool = tools.get("ifn_gamma")
+        thr = (float(ifn_tool.params["threshold"].value) if ifn_tool
+               else ifngamma.DEFAULT_THRESHOLD)
+        res = ifngamma.predict([p.seq for p in ii_peps], ifn_host, threshold=thr)
+        for p in ii_peps:
+            d = res.get(p.seq)
+            if not d:
+                continue
+            p.metrics["ifn_gamma"] = d["ml"]
+            p.metrics["ifn_gamma_blast"] = d["blast"]
+            p.metrics["ifn_gamma_total"] = d["total"]
+            p.metrics["ifn_gamma_inducer"] = d["inducer"]
+            p.metrics["ifn_gamma_norm"] = d["norm"]
+            p.metrics["ifn_gamma_host"] = ifn_host
+            p.methods["ifn_gamma"] = ifngamma.METHOD
     return peptides

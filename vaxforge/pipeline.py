@@ -61,13 +61,18 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
         yield _ev("__error__", "error", "Hiç protein elde edilemedi.")
         return
 
-    # 2) Discovery
-    yield _ev("discovery", "running", "Küratörlü DB / anahtar-kelime taraması…")
+    # 2) Discovery — SKORLAMA (NERVE2 gibi), eleme DEĞİL: tüm proteinler geçer,
+    # her birine virülans skoru atanır (adaylık puanına bileşen). Gerçek eleme
+    # funnel'da (lokalizasyon/TM/homoloji). VFDB'de olmayan yüzey antijenleri kaybolmaz.
+    yield _ev("discovery", "running", "Virülans skoru (küratörlü VFDB / anahtar-kelime)…")
     proteins = discovery.run(proteins, resolved["discovery_vfdb"], profile=profile)
     meta["n_discovery"] = len(proteins)
-    yield _ev("discovery", "done", f"{len(proteins)} virülans/hedef adayı kaldı", {"n": len(proteins)})
+    n_vf = sum(1 for pr in proteins if pr.annotations.get("vf_hit"))
+    yield _ev("discovery", "done",
+              f"{len(proteins)} proteine virülans skoru atandı "
+              f"({n_vf} VFDB kanıtlı) — eleme funnel'da", {"n": len(proteins), "vf_hit": n_vf})
     if not proteins:
-        yield _ev("__error__", "error", "Keşif adımından aday çıkmadı (eşikleri gevşetin).")
+        yield _ev("__error__", "error", "İşlenecek protein yok.")
         return
 
     # 3) Funnel

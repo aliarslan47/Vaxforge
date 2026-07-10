@@ -44,6 +44,23 @@ def diamond_available() -> bool:
     return _DIAMOND.exists() and _VFDB.exists()
 
 
+def _virulence_score(vf_hit: bool, pident: float, kw: str | None) -> float:
+    """Virülans kanıtını 0-1 skora indirger (sert kapı DEĞİL, adaylık bileşeni).
+
+    Güçlü VFDB eşleşmesi → yüksek; zayıf/kısmi benzerlik → orta; yalnız küratörlü
+    anahtar-kelime → 0.5; hiç kanıt yok → 0.15 (kanıt yokluğu, virülans-değil kanıtı
+    değildir — bu yüzden taban sıfır değil). NERVE2'nin virülans-skoru mantığı.
+    """
+    score = 0.0
+    if vf_hit:
+        score = 0.7 + 0.3 * min(1.0, pident / 100.0)
+    elif pident > 0:
+        score = 0.2 + 0.5 * min(1.0, pident / 100.0)
+    if kw:
+        score = max(score, 0.5)
+    return round(score if score > 0 else 0.15, 3)
+
+
 def _run_diamond(proteins: list[ProteinRecord], evalue: float, min_id: float,
                  min_cov: float) -> dict[str, dict]:
     """qseqid -> {pident, coverage, hit, stitle}. Hata olursa boş döner."""
@@ -111,8 +128,11 @@ def run(proteins: list[ProteinRecord], tool: ResolvedTool,
         for pr in proteins:
             desc = str(pr.annotations.get("desc", "")).lower()
             kw = next((k for k in _VIRAL_KEYWORDS + _KEYWORDS if k in desc), None)
+            # Virüs/parazitte VFDB anlamsız; virülans skoru anahtar-kelimeden
+            # (yüzey/yapısal protein etiketi) yaklaşık — 0.15 taban, kw varsa 0.5.
             pr.annotations.update({
                 "vf_identity": 0.0, "vf_ref": "", "vf_keyword": kw or "",
+                "virulence": 0.5 if kw else 0.15,
                 "method_discovery": f"ATLANDI ({profile}: VFDB bakteriye özgü) — tüm proteinler aday",
             })
             pr.mark("discovery", True,
@@ -132,7 +152,10 @@ def run(proteins: list[ProteinRecord], tool: ResolvedTool,
     refs = None if use_diamond else [(r.id, sanitize(str(r.seq))) for r in SeqIO.parse(_REF_PATH, "fasta")]
     aligner = None if use_diamond else _aligner()
 
-    survivors = []
+    # SKORLAMA adımı (NERVE2 gibi) — ELEME DEĞİL: hiçbir protein burada düşmez.
+    # Her proteine virülans skoru atanır; gerçek eleme funnel'da (lokalizasyon/TM/
+    # insan-homoloji sert filtreleri) yapılır. Böylece VFDB'de olmayan gerçek yüzey
+    # antijenleri (ör. N. meningitidis NHBA) kaybolmaz.
     for pr in proteins:
         desc = str(pr.annotations.get("desc", "")).lower()
         kw = next((k for k in _KEYWORDS if k in desc), None)
@@ -150,10 +173,11 @@ def run(proteins: list[ProteinRecord], tool: ResolvedTool,
             reason = (f"mini-ref %{pct} ({ref})" if vf_hit
                       else f"anahtar-kelime: {kw}" if kw else f"mini-ref %{pct}, anahtar-kelime yok")
 
-        hit = vf_hit or kw is not None
+        vir = _virulence_score(vf_hit, pct, kw)
         pr.annotations.update({"vf_identity": pct, "vf_ref": ref, "vf_keyword": kw or "",
+                               "virulence": vir, "vf_hit": vf_hit,
                                "method_discovery": method})
-        pr.mark("discovery", hit, reason, vf_identity=pct, keyword=kw)
-        if hit:
-            survivors.append(pr)
-    return survivors
+        # Soft: her zaman geçer (sert kapı değil); kanıt 'reason'da + virülans skorunda.
+        pr.mark("discovery", True, f"{reason} → virülans skoru {vir}",
+                vf_identity=pct, keyword=kw, virulence=vir)
+    return list(proteins)

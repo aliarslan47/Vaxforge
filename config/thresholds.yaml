@@ -22,8 +22,8 @@ tools:
   discovery_vfdb:
     step: discovery
     engine: "diamond/blastp -> VFDB, Victors, BV-BRC"
-    description: "Proteomu küratörlü virülans faktörü DB'lerine tarama eşikleri."
-    hard_filter: true
+    description: "Proteomu küratörlü virülans faktörü DB'lerine tarar. SKORLAMA özelliğidir (NERVE2 gibi) — sert kapı DEĞİL: VFDB'de olmayan gerçek yüzey antijenlerini (ör. NHBA) elemez; virülans kanıtı adaylık puanına bileşen olur. Eleme lokalizasyon/TM/homoloji funnel'ında yapılır."
+    hard_filter: false
     params:
       evalue:       { default: {bacteria: 1.0e-5, virus: 1.0e-5, parasite: 1.0e-4}, range: [1.0e-30, 1.0e-2], desc: "Maksimum e-value" }
       min_identity: { default: {bacteria: 30, virus: 25, parasite: 30}, range: [10, 100], unit: "%", desc: "Minimum dizi kimliği" }
@@ -131,6 +131,14 @@ tools:
       rank_strong:    { default: {bacteria: 2.0, virus: 2.0, parasite: 2.0}, range: [0.0, 10.0], unit: "%rank", desc: "Güçlü bağlayıcı eşiği" }
       rank_weak:      { default: {bacteria: 10.0, virus: 10.0, parasite: 10.0}, range: [0.0, 20.0], unit: "%rank", desc: "Zayıf bağlayıcı eşiği" }
 
+  ifn_gamma:
+    step: epitope
+    engine: "IFNepitope2 (ExtraTrees + BLAST, Dhall 2024)"
+    description: "MHC-II sonrası: HTL epitobunun IFN-γ (Th1) salgılatma yeteneği. Yalnız insan/fare modeli var; diğer konaklarda atlanır. Güncel çok-epitoplu aşı literatüründe standart HTL seçim ölçütü."
+    hard_filter: false
+    params:
+      threshold: { default: {bacteria: 0.49, virus: 0.49, parasite: 0.49}, range: [0.0, 1.0], desc: "IFN-γ indükleyici sayılma eşiği (ml+BLAST toplam skoru)" }
+
   # --- 5) Sağ kalım elemesi ---------------------------------------------------
   allergenicity:
     step: survival
@@ -201,12 +209,14 @@ tools:
 candidacy_score:
   description: "En güçlü peptit adaylarını sıralayan birleşik skor. Yalnızca GERÇEK sonuç üreten analizler dahildir."
   weights:
-    antigenicity:        0.22   # IApred (kaynak protein)
-    mhc_i_binding:       0.22   # MHC-I %rank (NetMHCpan)
+    antigenicity:        0.20   # IApred (kaynak protein)
+    virulence:           0.10   # VFDB virülans kanıtı (NERVE2 gibi skor; sert kapı değil)
+    mhc_i_binding:       0.20   # MHC-I %rank (NetMHCpan)
     mhc_ii_binding:      0.18   # MHC-II %rank (NetMHCIIpan)
     organism_coverage:   0.14   # kaç konak allelinde/konakta sunuluyor
     immunogenicity:      0.12   # CD8+ T-hücre immünojenite (IEDB Calis 2013, yalnız MHC-I)
     antigen_processing:  0.12   # proteozomal kesim + TAP (NetCTL-1.2, yalnız MHC-I)
+    ifn_gamma:           0.12   # IFN-γ (Th1) indükleme (IFNepitope2, yalnız MHC-II/HTL)
   # KALDIRILDI (sonuç üretmiyordu): conservation (suş verisi yok),
   # structural_quality (AlphaFold GPU'suz deferred).
   # GPU/AlphaFold veya suş verisi eklenince geri açılabilir.

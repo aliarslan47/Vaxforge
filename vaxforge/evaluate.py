@@ -111,6 +111,15 @@ def candidate_rows(p, thr: dict) -> list[dict]:
         rows.append(_row("Antijenite — kaynak protein (IApred)",
                          f"{round(ag, 3)}" + (f" ({cat})" if cat else ""),
                          f"≥ {c}", st, m.get("method_antigenicity", "")))
+    vir = _num(m.get("virulence"))
+    if vir is not None:
+        vfid = m.get("vf_identity")
+        kw = m.get("vf_keyword")
+        ev = (f"VFDB %{vfid}" if m.get("vf_hit")
+              else (f"anahtar: {kw}" if kw else "DB kanıtı yok"))
+        rows.append(_row("Virülans (VFDB — skorlama, kapı değil)", f"{vir} ({ev})",
+                         "bilgi (sert filtre DEĞİL)", NA,
+                         m.get("method_discovery", ""), kind="skor"))
 
     # ---- Peptit-seviyesi ---------------------------------------------------
     if p.kind == "MHC-I":
@@ -143,6 +152,13 @@ def candidate_rows(p, thr: dict) -> list[dict]:
             st = PASS if rank <= weak else FAIL
             rows.append(_row("MHC-II bağlanma %rank (NetMHCIIpan)", rank,
                              f"≤ {weak} (güçlü ≤ {strong})", st, p.methods.get("mhc_score", "")))
+        if m.get("ifn_gamma_total") is not None:
+            v = _num(m.get("ifn_gamma_total")); c = _num(gv("ifn_gamma", "threshold"))
+            st = (PASS if v > c else FAIL) if (v is not None and c is not None) else NA
+            host = m.get("ifn_gamma_host", "")
+            rows.append(_row("IFN-γ indükleme (IFNepitope2)",
+                             f"{v}" + (f" [{host}]" if host else ""), f"> {c}", st,
+                             p.methods.get("ifn_gamma", "")))
     elif p.kind == "B":
         v = _num(m.get("bcell_score")); c = _num(gv("bcell_epitope", "min_score"))
         st = (PASS if v >= c else FAIL) if (v is not None and c is not None) else NA
