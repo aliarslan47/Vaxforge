@@ -91,9 +91,7 @@ st.markdown(f"""
   <div class="vf-logo">🧬</div>
   <div>
     <h1>VaxForge <span class="vf-chip">prototip</span></h1>
-    <p class="vf-sub">Ajan destekli <b>in&nbsp;silico reverse vaccinology</b> pipeline —
-    proteomdan doğrulanmış aşı-aday epitoplarına. Dosyanızı yükleyin; sistem tipini
-    tanır, planı kurar ve uçtan uca çalıştırır.</p>
+    <p class="vf-sub"><b><i>in&nbsp;silico</i> Reverse Vaccinology Pipeline</b></p>
   </div>
 </div>
 <div class="vf-chips">
@@ -122,6 +120,17 @@ with st.sidebar:
         index=CFG.profiles.index(CFG.default_profile),
         help="Eşik varsayılanları patojene göre değişir.",
     )
+    # Gram-tipi: yalnız bakteride anlamlı (PSORTb doğru bölmeleri Gram'a göre tanır).
+    gram = None
+    if profile == "bacteria":
+        _gram_lbl = st.radio(
+            "Gram boyaması",
+            ["Gram-negatif", "Gram-pozitif"],
+            horizontal=True,
+            help="PSORTb lokalizasyonu Gram-tipine göre çalışır. Yanlış seçim = "
+                 "yanlış tahmin. Gram−: dış membran/periplazma var; Gram+: hücre duvarı.",
+        )
+        gram = "negative" if _gram_lbl == "Gram-negatif" else "positive"
     host_choices = HOSTS.names()
     selected_hosts = st.multiselect(
         "Konak(lar) — MHC taranacak",
@@ -296,7 +305,7 @@ if st.button("▶ Pipeline'ı başlat", type="primary"):
         for ev in pipeline.run(input_path, det, CFG, profile,
                                host_names=selected_hosts, overrides=overrides,
                                has_gpu=has_gpu, outdir="outputs", host_registry=HOSTS,
-                               organism_taxon=organism_taxon):
+                               organism_taxon=organism_taxon, gram=gram):
             ph, stt, msg = ev["phase"], ev["status"], ev["msg"]
             if ph == "__result__":
                 result = ev["data"]

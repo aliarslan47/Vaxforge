@@ -15,8 +15,9 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-from . import antigen_acc, deeploc, iapred, signalp, tmhmm_local
+from . import antigen_acc, deeploc, iapred, psortb, signalp, tmhmm_local
 from .config_loader import ResolvedTool
+from .hosts import Host
 from .models import ProteinRecord
 from .sequtils import (antigenicity_proxy, count_tm_helices,
                        predict_localization, sanitize, signal_peptide_prob)
@@ -30,14 +31,25 @@ def human_db_available() -> bool:
     return _DIAMOND.exists() and _HUMAN_DB.exists()
 
 
-def _human_homology(proteins: list[ProteinRecord], evalue: float) -> dict[str, float]:
-    """qseqid -> insan proteomuna en iyi %kimlik (diamond blastp). Hata -> boş."""
+def _host_db_path(host: Host) -> Path | None:
+    """Konağın homology_db yolunu çözer (tools/ altına göre). Yoksa None."""
+    if not host.homology_db:
+        return None
+    p = _TOOLS / host.homology_db
+    return p if p.exists() else None
+
+
+def _homology_vs_db(proteins: list[ProteinRecord], db_path: Path,
+                    evalue: float) -> dict[str, float]:
+    """qseqid -> verilen proteom DB'sine en iyi %kimlik (diamond blastp). Hata -> boş."""
+    if not _DIAMOND.exists():
+        return {}
     with tempfile.NamedTemporaryFile("w", suffix=".faa", delete=False) as fh:
         for pr in proteins:
             fh.write(f">{pr.id}\n{sanitize(pr.seq)}\n")
         qpath = fh.name
     try:
-        cmd = [str(_DIAMOND), "blastp", "-q", qpath, "-d", str(_HUMAN_DB),
+        cmd = [str(_DIAMOND), "blastp", "-q", qpath, "-d", str(db_path),
                "--outfmt", "6", "qseqid", "pident", "--max-target-seqs", "1",
                "--evalue", str(evalue), "--quiet"]
         r = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
@@ -53,20 +65,54 @@ def _human_homology(proteins: list[ProteinRecord], evalue: float) -> dict[str, f
             best[qid] = max(best.get(qid, 0.0), pid)
     return best
 
+
+def _self_homology(proteins: list[ProteinRecord], hosts: list[Host],
+                   evalue: float) -> tuple[dict[str, dict], list[str], list[str]]:
+    """Host-driven otoimmünite taraması.
+
+    Seçili HER konağın kendi proteomuna karşı diamond blastp koşar. Bir protein
+    HERHANGİ bir seçili konağın proteomuna eşik üstü benzerse otoimmünite riski.
+
+    Döner: (per_protein, taranan_konaklar, DB'siz_konaklar)
+      per_protein[pid] = {'max_pident': float, 'by_host': {host_label: pident}}
+    """
+    scanned: list[str] = []
+    missing: list[str] = []
+    per_host: dict[str, dict[str, float]] = {}
+    for h in hosts:
+        db = _host_db_path(h)
+        if db is None:
+            missing.append(h.label)
+            continue
+        scanned.append(h.label)
+        per_host[h.label] = _homology_vs_db(proteins, db, evalue)
+    per_protein: dict[str, dict] = {}
+    for pr in proteins:
+        by_host = {lbl: best.get(pr.id, 0.0) for lbl, best in per_host.items()}
+        per_protein[pr.id] = {
+            "max_pident": max(by_host.values()) if by_host else 0.0,
+            "by_host": by_host,
+        }
+    return per_protein, scanned, missing
+
 # heuristik lokalizasyon çıktısını config sözlüğüne eşle
 _LOC_MAP = {"secreted": "extracellular", "outer_membrane": "outer_membrane",
             "membrane": "membrane", "cytoplasm": "cytoplasm"}
 
 
 def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
-        profile: str = "bacteria") -> tuple[list[ProteinRecord], dict]:
+        profile: str = "bacteria", hosts: list[Host] | None = None,
+        gram: str | None = None) -> tuple[list[ProteinRecord], dict]:
     """Huniyi uygula. (hayatta kalanlar, özet) döndürür.
 
-    NOT: lokalizasyon heuristiği yalnız BAKTERİ için doğrulanmıştır. Diğer
-    profillerde (virüs/parazit) gerçek araç (DeepLoc) olmadan sert eleme
-    yapmak yanıltıcı olur; bu yüzden lokalizasyon o profillerde 'çalıştırılmadı'
-    sayılır (eleme yapmaz) ve uyarı verilir. (Prototip kararı: bakteri dalı çalışır.)
+    Lokalizasyon (bakteride sert filtre): önce PSORTb (prokaryota-özel, Gram-tipine
+    göre; en doğru) → yoksa DeepLoc (ökaryot-yanlı, yedek) → yoksa heuristik.
+    Virüs/parazit profilinde lokalizasyon eleme yapmaz ('çalıştırılmadı').
+
+    Otoimmünite (self-homoloji): HOST-DRIVEN — seçili her konağın kendi proteomuna
+    karşı taranır (yalnız insan değil). DB'si olmayan konak için dürüst 'atlandı'.
     """
+    hosts = hosts or []
     loc_hard = profile == "bacteria"
     loc_allowed = set(tools["localization"].params["allowed"].value)
     max_tm = int(tools["transmembrane"].params["max_helices"].value)
@@ -76,14 +122,17 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
     hh_ev = float(tools["human_homology"].params["evalue"].value)
 
     survivors: list[ProteinRecord] = []
-    hh_available = human_db_available()
-    hh_best = _human_homology(proteins, hh_ev) if hh_available else {}
+    # -- host-driven self-homoloji (otoimmünite) — seçili her konak
+    hh_data, hh_scanned, hh_missing = _self_homology(proteins, hosts, hh_ev)
+    hh_available = bool(hh_scanned)
     seq_pairs = [(pr.id, sanitize(pr.seq)) for pr in proteins]
     tm_available = tmhmm_local.available()
     tm_real = tmhmm_local.predict(seq_pairs) if tm_available else {}
-    # DeepLoc yalnız bakteride sert filtre; diğer profillerde eleme yapmadığı için
-    # (çok sayıda viral ORF'ta çok yavaş) hesaplanmaz.
-    loc_available = deeploc.available() and loc_hard
+    # -- lokalizasyon: bakteride PSORTb (Gram) > DeepLoc > heuristik
+    psortb_ok = loc_hard and gram in ("positive", "negative") and psortb.available()
+    psortb_real = psortb.predict(seq_pairs, gram) if psortb_ok else {}
+    # DeepLoc yalnız bakteride ve PSORTb yoksa (çok sayıda viral ORF'ta çok yavaş).
+    loc_available = deeploc.available() and loc_hard and not psortb_ok
     loc_real = deeploc.predict(seq_pairs) if loc_available else {}
     sp_available = signalp.available()
     sp_real = signalp.predict(seq_pairs, profile=profile) if sp_available else {}
@@ -91,8 +140,13 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
     ia_res = iapred.predict(seq_pairs) if ia_available else {}
     ag_available = antigen_acc.available()
     for pr in proteins:
-        # -- lokalizasyon (gerçek DeepLoc, yoksa heuristik)
-        if loc_available and pr.id in loc_real:
+        # -- lokalizasyon: PSORTb (prokaryota-özel) > DeepLoc > heuristik
+        if psortb_ok and pr.id in psortb_real:
+            loc = psortb_real[pr.id]["localization"]
+            pr.annotations["localization_raw"] = psortb_real[pr.id]["raw"]
+            pr.annotations["localization_score"] = psortb_real[pr.id]["score"]
+            pr.annotations["method_localization"] = f"GERÇEK (PSORTb, Gram{'+' if gram=='positive' else '−'})"
+        elif loc_available and pr.id in loc_real:
             loc = loc_real[pr.id]["localization"]
             pr.annotations["localization_raw"] = loc_real[pr.id]["raw"]
             pr.annotations["method_localization"] = "GERÇEK (DeepLoc-2.1)"
@@ -132,7 +186,13 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
         })
 
         # -- sert (yalnız bakteride): lokalizasyon
-        if loc_hard:
+        if loc_hard and loc == "unknown":
+            # PSORTb belirsiz — muhafazakâr; gerçek yüzey proteinini kaçırmamak için
+            # ELEME YAPMA, dürüst 'belirsiz' notuyla geçir.
+            pr.trace.append({"step": "funnel:localization", "ok": True,
+                             "reason": "PSORTb 'Unknown' — lokalizasyon belirsiz, elenmedi (muhafazakârlık)",
+                             "warning": True})
+        elif loc_hard:
             ok_loc = loc in loc_allowed
             pr.mark("funnel:localization", ok_loc, f"{loc} {'∈' if ok_loc else '∉'} izinli", localization=loc)
         else:
@@ -143,19 +203,24 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
         # -- sert: TM sayısı
         ok_tm = tm <= max_tm
         pr.mark("funnel:transmembrane", ok_tm, f"{tm} TM ≤ {max_tm}" if ok_tm else f"{tm} TM > {max_tm}", tm=tm)
-        # -- sert: insan homolojisi (ZORUNLU otoimmünite güvenliği) — gerçek diamond
+        # -- sert: self-homoloji (ZORUNLU otoimmünite güvenliği) — HOST-DRIVEN
         if hh_available:
-            pid = hh_best.get(pr.id, 0.0)
-            pr.annotations["human_homology"] = pid
-            pr.annotations["method_human_homology"] = "GERÇEK (diamond → insan Swiss-Prot)"
-            ok_hh = pid < hh_id   # eşik ÜSTÜ insana benzer -> elenir
+            hd = hh_data.get(pr.id, {"max_pident": 0.0, "by_host": {}})
+            pid = hd["max_pident"]
+            # en yüksek benzerliği veren konağı bul (raporlama için)
+            worst_host = max(hd["by_host"], key=hd["by_host"].get, default="—") if hd["by_host"] else "—"
+            pr.annotations["self_homology"] = pid
+            pr.annotations["self_homology_by_host"] = hd["by_host"]
+            pr.annotations["human_homology"] = pid   # geriye-uyum (rapor/evaluate)
+            pr.annotations["method_human_homology"] = f"GERÇEK (diamond → {', '.join(hh_scanned)} proteom)"
+            ok_hh = pid < hh_id   # eşik ÜSTÜ konağa benzer -> elenir
             pr.mark("funnel:human_homology", ok_hh,
-                    f"insan %{pid} < {hh_id} (güvenli)" if ok_hh
-                    else f"insan %{pid} ≥ {hh_id} → OTOİMMÜNİTE riski, elendi", human_pident=pid)
+                    f"konak-öz %{pid} < {hh_id} (güvenli)" if ok_hh
+                    else f"{worst_host} %{pid} ≥ {hh_id} → OTOİMMÜNİTE riski, elendi", human_pident=pid)
         else:
             pr.annotations["human_homology"] = "not_run"
             pr.trace.append({"step": "funnel:human_homology", "ok": True,
-                             "reason": "ATLANDI — insan proteom DB'si bağlı değil (gerçek kullanımda ZORUNLU)",
+                             "reason": "ATLANDI — seçili konakların hiçbirinde proteom DB'si yok (gerçek kullanımda ZORUNLU)",
                              "warning": True})
 
         # -- yumuşak skorlama (0-1): sinyal + antijenite + adezin proxy
@@ -166,13 +231,22 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
         if pr.passed:
             survivors.append(pr)
 
+    if psortb_ok:
+        loc_method = f"GERÇEK (PSORTb, Gram{'+' if gram=='positive' else '−'})"
+    elif loc_available:
+        loc_method = "GERÇEK (DeepLoc-2.1)"
+    else:
+        loc_method = "heuristik"
+    hh_method = (f"GERÇEK (diamond → {', '.join(hh_scanned)})" if hh_available
+                 else "ÇALIŞTIRILMADI (seçili konaklarda DB yok)")
+    if hh_missing:
+        hh_method += f" · DB'siz: {', '.join(hh_missing)}"
     summary = {
         "girdi": len(proteins), "hayatta": len(survivors),
-        "lokalizasyon": ("GERÇEK (DeepLoc-2.1)" if loc_available else "heuristik")
-                        + (" [sert:bakteri]" if loc_hard else f" [atlandı:{profile}]"),
+        "lokalizasyon": loc_method + (" [sert:bakteri]" if loc_hard else f" [atlandı:{profile}]"),
         "transmembran": "GERÇEK (TMHMM-2.0)" if tm_available else "Kyte-Doolittle (klasik)",
         "sinyal_peptidi": "GERÇEK (SignalP-5.0)" if sp_available else "heuristik",
         "antijenite": "GERÇEK (IApred)" if ia_available else ("z-ACC model" if ag_available else "heuristik"),
-        "insan_homoloji": "GERÇEK (diamond→insan)" if hh_available else "ÇALIŞTIRILMADI (DB yok)",
+        "self_homoloji": hh_method,
     }
     return survivors, summary

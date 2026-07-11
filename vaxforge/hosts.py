@@ -23,6 +23,9 @@ class Host:
     mhc_i: list[str] = field(default_factory=list)
     mhc_ii: list[str] = field(default_factory=list)
     predictors: dict[str, str] = field(default_factory=dict)
+    # Otoimmünite (self-homoloji) filtresi için bu konağın proteom diamond DB'si
+    # (tools/ altına göre göreli yol). None -> DB henüz indirilmedi (dürüst 'atlandı').
+    homology_db: str | None = None
 
     def alleles(self, mhc_class: str) -> list[str]:
         return self.mhc_i if mhc_class == "mhc_i" else self.mhc_ii
@@ -41,6 +44,7 @@ class HostRegistry:
                 name=name, label=spec.get("label", name), source=spec.get("source", ""),
                 mhc_i=list(spec.get("mhc_i", [])), mhc_ii=list(spec.get("mhc_ii", [])),
                 predictors=dict(spec.get("predictors", {})),
+                homology_db=spec.get("homology_db"),
             )
         self.default_hosts: list[str] = raw.get("default_hosts", list(self.hosts)[:1])
 

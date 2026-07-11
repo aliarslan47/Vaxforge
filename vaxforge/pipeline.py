@@ -31,7 +31,7 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
         host_names: list[str] | None = None,
         overrides: dict | None = None, has_gpu: bool = False,
         outdir: str | Path = "outputs", host_registry: HostRegistry | None = None,
-        organism_taxon: str | None = None):
+        organism_taxon: str | None = None, gram: str | None = None):
     resolved = cfg.resolve(profile, overrides)
     steps = build_plan(det, has_gpu=has_gpu)
     reg = host_registry or HostRegistry.load()
@@ -48,6 +48,7 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
         "citations": citations.for_report(),
         "n_raw": det.num_seqs,          # dosyadaki ham dizi/CDS sayısı
         "molecule": det.molecule,
+        "gram": gram if profile == "bacteria" else None,
     }
 
     # 1) Ingest (prep dahil): CDS -> protein çevirisi / ORF vb.
@@ -77,7 +78,8 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
 
     # 3) Funnel
     yield _ev("funnel", "running", "Antijen eleme hunisi (melez)…")
-    proteins, fsum = funnel.run(proteins, resolved, profile=profile)
+    proteins, fsum = funnel.run(proteins, resolved, profile=profile,
+                                hosts=hosts, gram=gram)
     meta["n_funnel"] = len(proteins)
     yield _ev("funnel", "done", f"{len(proteins)} antijen huniden geçti", fsum)
     if not proteins:

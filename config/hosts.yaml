@@ -27,8 +27,10 @@ hosts:
              HLA-B*07:02, HLA-B*08:01, HLA-B*15:01, HLA-B*40:01]
     mhc_ii: [HLA-DRB1*01:01, HLA-DRB1*03:01, HLA-DRB1*04:01, HLA-DRB1*07:01,
              HLA-DRB1*11:01, HLA-DRB1*15:01]
-    # MHC-I: NetMHCpan (IEDB API, gerçek); IEDB erişilemezse MHCflurry çevrimdışı yedek
+    # MHC-I/II: yerel NetMHCpan/NetMHCIIpan (gerçek); yoksa IEDB API; o da yoksa proxy
     predictors: {mhc_i: netmhcpan, mhc_ii: netmhciipan}
+    # Otoimmünite (self-homoloji) DB — insan Swiss-Prot (kurulu, 20.431 protein)
+    homology_db: db/human.dmnd
 
   # Allel adları IEDB NetMHCpan biçimine göre ampirik doğrulandı (2026-07-04).
   # Geçersizler çalışma-zamanı valid_alleles() ile elenir; hepsi elenirse proxy.
@@ -38,6 +40,7 @@ hosts:
     mhc_i:  [H-2-Kb, H-2-Db, H-2-Kd, H-2-Dd, H-2-Ld]   # H-2-Kb IEDB'de doğrulandı
     mhc_ii: [H2-IAb, H2-IAd, H2-IEd]                    # H2-IAb, H2-IAd doğrulandı
     predictors: {mhc_i: netmhcpan, mhc_ii: netmhciipan}
+    # homology_db: db/mouse.dmnd   # PLANLI — fare proteomu indirilince aç (diamond makedb)
 
   bovine:
     label: "Sığır (Bos taurus, BoLA)"
