@@ -40,7 +40,7 @@ hosts:
     mhc_i:  [H-2-Kb, H-2-Db, H-2-Kd, H-2-Dd, H-2-Ld]   # H-2-Kb IEDB'de doğrulandı
     mhc_ii: [H2-IAb, H2-IAd, H2-IEd]                    # H2-IAb, H2-IAd doğrulandı
     predictors: {mhc_i: netmhcpan, mhc_ii: netmhciipan}
-    # homology_db: db/mouse.dmnd   # PLANLI — fare proteomu indirilince aç (diamond makedb)
+    homology_db: db/mouse.dmnd   # Swiss-Prot reviewed fare (17.267 protein)
 
   bovine:
     label: "Sığır (Bos taurus, BoLA)"
@@ -50,6 +50,7 @@ hosts:
              BoLA-4:02401, BoLA-6:04001, BoLA-2:01801, BoLA-1:00901]
     mhc_ii: [BoLA-DRB3*011:01, BoLA-DRB3*020:01]        # çalışma-zamanı doğrular
     predictors: {mhc_i: netmhcpan, mhc_ii: netmhciipan}
+    homology_db: db/bovine.dmnd  # Swiss-Prot reviewed sığır (6.053 protein)
 
   pig:
     label: "Domuz (Sus scrofa, SLA)"
@@ -58,6 +59,7 @@ hosts:
     mhc_i:  [SLA-1*0401, SLA-2*0401, SLA-3*0401, SLA-1*0101, SLA-2*0102, SLA-3*0304]
     mhc_ii: [SLA-DRB1*0401]                              # çalışma-zamanı doğrular
     predictors: {mhc_i: netmhcpan, mhc_ii: netmhciipan}
+    homology_db: db/pig.dmnd     # Swiss-Prot reviewed domuz (1.463 protein — seyrek kapsam)
 
   chicken:
     label: "Tavuk (Gallus gallus, BF) — IEDB NetMHCpan desteklemiyor → proxy"
@@ -66,3 +68,4 @@ hosts:
     mhc_i:  [BF2*21:01]
     mhc_ii: [BLB2*21:01]
     predictors: {mhc_i: netmhcpan, mhc_ii: netmhciipan}
+    homology_db: db/chicken.dmnd # Swiss-Prot reviewed tavuk (2.316 protein — seyrek kapsam)
