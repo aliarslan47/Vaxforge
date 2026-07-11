@@ -77,7 +77,8 @@ def _bcell(pr: ProteinRecord, tool: ResolvedTool, top: int = 5,
 
 
 def _mhc(pr: ProteinRecord, hosts: list[Host], mhc_class: str, kind_label: str,
-         lengths: list[int], rank_strong: float, rank_weak: float, top: int = 6,
+         lengths: list[int], rank_strong: float, rank_weak: float,
+         per_host: dict[str, dict[str, dict]], top: int = 6,
          proc: dict[int, dict[str, float]] | None = None) -> list[Peptide]:
     s = sanitize(pr.seq)
     pos = {}
@@ -87,7 +88,9 @@ def _mhc(pr: ProteinRecord, hosts: list[Host], mhc_class: str, kind_label: str,
     peps = list(pos)
     if not peps:
         return []
-    per_host = {h.name: predictors.predict(peps, h, mhc_class, rank_weak) for h in hosts}
+    # per_host: TÜM proteinler için ÖNCEDEN hesaplanmış GLOBAL tahmin (protein
+    # başına ayrı netMHCpan çağrısı YERİNE tek batch — bkz. run()). Bu proteinin
+    # peptitleri global sözlükten okunur.
 
     ranked = []
     for pep in peps:
@@ -156,17 +159,39 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
     # batch NetCTL. Allel-bağımsız cle/tap protein-başına C-terminal pozisyona
     # göre haritalanır; kuruluysa gerçek, yoksa boş (MHC-I metrikleri atlanır).
     proc_scores = netctl.predict([(pr.id, sanitize(pr.seq)) for pr in proteins])
+
+    # --- MHC bağlanma: TÜM proteinlerin peptitleri TEK GLOBAL BATCH ---
+    # Eskiden _mhc her protein için ayrı netMHCpan çağırıyordu (580 protein =
+    # 580+ süreç başlatma → seri darboğaz). netMHCpan zaten tek çağrıda çok peptit
+    # işler; bu yüzden peptitleri bir kez toplayıp TEK batch tahmin ediyoruz,
+    # sonra protein bazında sözlükten okuyoruz. Sonuç: birkaç süreç, dakikalar.
+    i_lengths = list(i_tool.params["peptide_lengths"].value)
+    ii_length = int(ii_tool.params["peptide_length"].value)
+    i_rank_weak = float(i_tool.params["rank_weak"].value)
+    ii_rank_weak = float(ii_tool.params["rank_weak"].value)
+
+    def _all_peptides(lengths: list[int]) -> list[str]:
+        allp: set[str] = set()
+        for pr in proteins:
+            s = sanitize(pr.seq)
+            for L in lengths:
+                for i in range(len(s) - L + 1):
+                    allp.add(s[i:i + L])
+        return sorted(allp)
+
+    all_i = _all_peptides(i_lengths)
+    all_ii = _all_peptides([ii_length])
+    pred_i = {h.name: predictors.predict(all_i, h, "mhc_i", i_rank_weak) for h in hosts}
+    pred_ii = {h.name: predictors.predict(all_ii, h, "mhc_ii", ii_rank_weak) for h in hosts}
+
     for pr in proteins:
         made = _bcell(pr, tools["bcell_epitope"], bp3=bp3_scores.get(pr.id))
-        made += _mhc(pr, hosts, "mhc_i", "MHC-I",
-                     list(i_tool.params["peptide_lengths"].value),
-                     float(i_tool.params["rank_strong"].value),
-                     float(i_tool.params["rank_weak"].value),
-                     proc=proc_scores.get(pr.id))
-        made += _mhc(pr, hosts, "mhc_ii", "MHC-II",
-                     [int(ii_tool.params["peptide_length"].value)],
-                     float(ii_tool.params["rank_strong"].value),
-                     float(ii_tool.params["rank_weak"].value))
+        made += _mhc(pr, hosts, "mhc_i", "MHC-I", i_lengths,
+                     float(i_tool.params["rank_strong"].value), i_rank_weak,
+                     pred_i, proc=proc_scores.get(pr.id))
+        made += _mhc(pr, hosts, "mhc_ii", "MHC-II", [ii_length],
+                     float(ii_tool.params["rank_strong"].value), ii_rank_weak,
+                     pred_ii)
         parent_ag = pr.annotations.get("antigenicity")
         for p in made:
             p.metrics["parent_antigenicity"] = parent_ag
