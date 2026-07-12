@@ -169,9 +169,11 @@ def predict(peptides: list[str], alleles: list[str], mhc_class: str,
             cmd = [w, "-f", fpath, "-a", ",".join(alleles_n)]
             if mhc_class == "mhc_i":
                 cmd += ["-l", str(L)]
-            # Global batch (tüm proteinlerin peptitleri tek çağrıda) → büyük olabilir;
-            # süre sınırı geniş tutulur (protein-başına eski 600s yerine).
-            r = subprocess.run(cmd, capture_output=True, timeout=3600, text=True)
+            # Global batch (tüm proteinlerin peptitleri tek çağrıda) çok büyük
+            # olabilir — özellikle MHC-II (nnalign, çok-allel × ~170k 15-mer, sığır
+            # 8 BoLA-DRB3'te 60dk+). Timeout 120dk: gerçek MHC-II tamamlansın,
+            # proxy'ye düşmesin (biyoloji-öncelikli, kullanıcı kararı 2026-07-12).
+            r = subprocess.run(cmd, capture_output=True, timeout=7200, text=True)
             os.unlink(fpath)
             _parse_into(r.stdout, agg, alleles_n, rank_weak, mhc_class)
     except Exception:
