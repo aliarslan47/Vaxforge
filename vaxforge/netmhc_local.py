@@ -88,6 +88,29 @@ def available() -> bool:
     return runnable("mhc_i") or runnable("mhc_ii")
 
 
+@functools.lru_cache(maxsize=2)
+def _supported(mhc_class: str) -> frozenset:
+    """Aracın desteklediği allel adları (tam araç biçimi, ör. BoLA-DRB3_01101).
+
+    netMHCpan '-listMHC', netMHCIIpan '-list'. Alınamazsa boş küme → çağıran
+    doğrulamayı ATLAR (eski davranış, regresyon yok).
+    """
+    w = _wrapper(mhc_class)
+    if not w:
+        return frozenset()
+    flag = "-listMHC" if mhc_class == "mhc_i" else "-list"
+    try:
+        r = subprocess.run([w, flag], capture_output=True, timeout=60, text=True)
+    except Exception:
+        return frozenset()
+    names = set()
+    for line in r.stdout.splitlines():
+        t = line.strip()
+        if t and not t.startswith("#"):
+            names.add(t.split()[0])
+    return frozenset(names)
+
+
 def _fasta(peptides: list[str]) -> str:
     return "".join(f">p{i}\n{p}\n" for i, p in enumerate(peptides))
 
@@ -125,6 +148,14 @@ def predict(peptides: list[str], alleles: list[str], mhc_class: str,
     for p in peps:
         by_len.setdefault(len(p), []).append(p)
     alleles_n = [_norm_allele(a, mhc_class) for a in alleles]
+    # Geçersiz allelleri ele: netMHCpan/IIpan -a listesinde TEK geçersiz allel
+    # tüm çağrıyı düşürür → hepsi proxy'ye kaçardı. Araç -list'ine karşı süz.
+    supported = _supported(mhc_class)
+    if supported:
+        valid = [a for a in alleles_n if a in supported]
+        if not valid:
+            return None    # hiç geçerli allel yok → çağıran proxy'ye düşer (dürüst)
+        alleles_n = valid
     # Çıktıdaki allel adını (araç biçimi) orijinal konak allel adına (IEDB biçimi,
     # ör. HLA-A*02:01) çevirmek için normalize-anahtar haritası — popülasyon
     # kapsamı gerçek allel adlarını gerektirir.

@@ -38,7 +38,9 @@ hosts:
     label: "Fare (Mus musculus, H-2)"
     source: "IPD-MHC"
     mhc_i:  [H-2-Kb, H-2-Db, H-2-Kd, H-2-Dd, H-2-Ld]   # H-2-Kb IEDB'de doğrulandı
-    mhc_ii: [H2-IAb, H2-IAd, H2-IEd]                    # H2-IAb, H2-IAd doğrulandı
+    # DÜZELTİLDİ (2026-07-12): netMHCIIpan-4.3 biçimi 'H-2-IAb' (tireli). Eski 'H2-IAb'
+    # araçta yoktu → sessizce proxy'ye düşüyordu. Şimdi GERÇEK NetMHCIIpan.
+    mhc_ii: [H-2-IAb, H-2-IAd, H-2-IEd, H-2-IAk, H-2-IEk]
     predictors: {mhc_i: netmhcpan, mhc_ii: netmhciipan}
     homology_db: db/mouse.dmnd   # Swiss-Prot reviewed fare (17.267 protein)
 
@@ -48,7 +50,11 @@ hosts:
     # DOĞRULANDI (kolon biçimi, yıldız yok):
     mhc_i:  [BoLA-1:02301, BoLA-3:00101, BoLA-6:01301, BoLA-2:00801,
              BoLA-4:02401, BoLA-6:04001, BoLA-2:01801, BoLA-1:00901]
-    mhc_ii: [BoLA-DRB3*011:01, BoLA-DRB3*020:01]        # çalışma-zamanı doğrular
+    # DOĞRULANDI: netMHCIIpan-4.3 -list'te GERÇEK BoLA-DRB3 (365 allel) — proxy DEĞİL.
+    # Yaygın Bos taurus DRB3 alleleri (*020:01 araçta yok → *020:02); *→_, :→sil ile
+    # araç biçimine map (BoLA-DRB3*011:01 → BoLA-DRB3_01101). Geçersizler runtime elenir.
+    mhc_ii: [BoLA-DRB3*011:01, BoLA-DRB3*016:01, BoLA-DRB3*024:01, BoLA-DRB3*008:01,
+             BoLA-DRB3*010:01, BoLA-DRB3*015:01, BoLA-DRB3*022:01, BoLA-DRB3*023:01]
     predictors: {mhc_i: netmhcpan, mhc_ii: netmhciipan}
     homology_db: db/bovine.dmnd  # Swiss-Prot reviewed sığır (6.053 protein)
 
