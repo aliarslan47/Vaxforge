@@ -201,10 +201,10 @@ STRINGS: dict[str, dict[str, str]] = {
     "tt_intro_pdf":       {"tr": "Epitoplar tipe göre ayrı tablolarda, her tip kendi içinde bağlanma gücüne "
                                  "göre sıralı (T-hücre: %rank artan; B-hücre: BepiPred azalan). ★ + yeşil "
                                  "satır = tüm zorunlu ölçütleri geçen final seçilen epitop. ✓=geçti, "
-                                 "📖=IEDB literatürde, Kons.=suş verisi yok.",
+                                 "Lit ✓=IEDB literatürde, Kons.=suş verisi yok.",
                            "en": "Epitopes shown per type, each ranked by binding strength (T-cell: %rank "
                                  "ascending; B-cell: BepiPred descending). ★ + green row = final selected "
-                                 "epitope passing all mandatory criteria. ✓=pass, 📖=in IEDB literature, "
+                                 "epitope passing all mandatory criteria. ✓=pass, Lit ✓=in IEDB literature, "
                                  "Cons.=no strain data."},
     "col_anchors":        {"tr": "Anchorlar", "en": "Anchors"},
     "col_pocket":         {"tr": "Allel cep tercihi", "en": "Allele pocket pref."},

@@ -145,10 +145,14 @@ def _type_tables_html(peptides, meta) -> str:
     lang = meta.get("lang", "tr")
     tt = evaluate.type_tables(peptides, meta, top_n=15)
     total = {k: sum(1 for p in peptides if p.kind == k) for k in ("MHC-I", "MHC-II", "B")}
+    # Emoji kare yerine CSS rozet (her sistemde düzgün görünür, 'kutu' çıkmaz)
+    def _badge(color):
+        return (f"<span style='display:inline-block;width:11px;height:11px;border-radius:3px;"
+                f"background:{color};vertical-align:middle;margin-right:6px'></span>")
     titles = {
-        "MHC-I": f"🟦 {t(lang,'tt_ctl')} <span class='mono'>({t(lang,'tt_rank_asc')})</span>",
-        "MHC-II": f"🟨 {t(lang,'tt_htl')} <span class='mono'>({t(lang,'tt_rank_asc')})</span>",
-        "B": f"🟩 {t(lang,'tt_bcell')} <span class='mono'>({t(lang,'tt_bepi_desc')})</span>"}
+        "MHC-I": f"{_badge('#1565c0')}{t(lang,'tt_ctl')} <span class='mono'>({t(lang,'tt_rank_asc')})</span>",
+        "MHC-II": f"{_badge('#b26a00')}{t(lang,'tt_htl')} <span class='mono'>({t(lang,'tt_rank_asc')})</span>",
+        "B": f"{_badge('#2e7d32')}{t(lang,'tt_bcell')} <span class='mono'>({t(lang,'tt_bepi_desc')})</span>"}
 
     def ok(b):
         return '<span class="pass">✔</span>' if b else '<span class="fail">✗</span>'
@@ -215,7 +219,7 @@ def _iedb_section(meta: dict, peptides) -> str:
         ie = p.metrics.get("iedb") or {}
         if ie.get("matched") is not True:
             continue
-        org = "; ".join((ie.get("organisms") or [])[:2]) or "—"
+        org = "; ".join(o.split(" (")[0] for o in (ie.get("organisms") or [])[:2]) or "—"
         ag = "; ".join((ie.get("antigens") or [])[:2]) or "—"
         pmids = ie.get("pmids") or []
         plinks = ", ".join(
