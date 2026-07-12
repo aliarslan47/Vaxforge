@@ -16,10 +16,12 @@ from pathlib import Path
 
 import pandas as pd
 
+from .i18n import t
 from .models import Peptide
 
 
-def _candidates_df(peptides: list[Peptide]) -> pd.DataFrame:
+def _candidates_df(peptides: list[Peptide], lang: str = "tr") -> pd.DataFrame:
+    from .i18n import method_label
     rows = []
     for i, p in enumerate(peptides, 1):
         rows.append({
@@ -46,7 +48,7 @@ def _candidates_df(peptides: list[Peptide]) -> pd.DataFrame:
             "iedb_epitope": _iedb_cell(p, "epitope"),
             "iedb_organism": _iedb_cell(p, "organism"),
             "iedb_pmids": _iedb_cell(p, "pmids"),
-            "method": p.methods.get("mhc_score"),
+            "method": method_label(p.methods.get("mhc_score"), lang),
             "passed": p.passed,
         })
     return pd.DataFrame(rows)
@@ -74,7 +76,8 @@ def write_package(outdir: Path, peptides: list[Peptide],
     paths = {}
 
     # CSV
-    df = _candidates_df(peptides)
+    lang = run_meta.get("lang", "tr")
+    df = _candidates_df(peptides, lang)
     p_csv = outdir / "candidates.csv"
     df.to_csv(p_csv, index=False)
     paths["csv"] = p_csv
@@ -139,11 +142,13 @@ def _type_tables_html(peptides, meta) -> str:
     ★ + yeşil satır = tüm zorunlu ölçütleri geçen final seçilen epitop.
     Tam araç dökümü candidates_full.xlsx'te."""
     from . import evaluate
+    lang = meta.get("lang", "tr")
     tt = evaluate.type_tables(peptides, meta, top_n=15)
     total = {k: sum(1 for p in peptides if p.kind == k) for k in ("MHC-I", "MHC-II", "B")}
-    titles = {"MHC-I": "🟦 CTL — MHC-I / CD8⁺ T-hücre <span class='mono'>(bağlanma %rank artan)</span>",
-              "MHC-II": "🟨 HTL — MHC-II / CD4⁺ T-hücre <span class='mono'>(bağlanma %rank artan)</span>",
-              "B": "🟩 B-hücre — antikor <span class='mono'>(BepiPred azalan)</span>"}
+    titles = {
+        "MHC-I": f"🟦 {t(lang,'tt_ctl')} <span class='mono'>({t(lang,'tt_rank_asc')})</span>",
+        "MHC-II": f"🟨 {t(lang,'tt_htl')} <span class='mono'>({t(lang,'tt_rank_asc')})</span>",
+        "B": f"🟩 {t(lang,'tt_bcell')} <span class='mono'>({t(lang,'tt_bepi_desc')})</span>"}
 
     def ok(b):
         return '<span class="pass">✔</span>' if b else '<span class="fail">✗</span>'
@@ -151,28 +156,25 @@ def _type_tables_html(peptides, meta) -> str:
     def nz(v, nd=2):
         return "—" if v is None else f"{v:.{nd}f}"
 
-    intro = ('<p style="font-size:.85rem">Epitoplar <b>tipe göre ayrı</b> tablolarda, her tip kendi '
-             'içinde bağlanma gücüne göre sıralı. <b>★ + yeşil satır</b> = tüm zorunlu ölçütleri geçen '
-             '<b>final seçilen</b> epitop (antijenik + güçlü bağlanma [+ HTL\'de IFN-γ]). ✔=geçti, '
-             '📖=IEDB literatürde, Kons.=suş verisi yok → hesaplanmadı. Tüm adayların tam araç dökümü '
-             '<code>candidates_full.xlsx</code> dosyasındadır.</p>')
+    S = lambda k: t(lang, k)  # noqa: E731
+    intro = f'<p style="font-size:.85rem">{t(lang,"tt_intro")}</p>'
     out = [intro]
     for kind in ("MHC-I", "MHC-II", "B"):
         rows = tt.get(kind, [])
         if not rows:
             continue
-        out.append(f'<h3>{titles[kind]} <span class="mono">— {len(rows)}/{total[kind]} gösteriliyor</span></h3>')
+        out.append(f'<h3>{titles[kind]} <span class="mono">— {len(rows)}/{total[kind]} {S("tt_showing")}</span></h3>')
         if kind == "B":
-            head = ("<tr><th>★</th><th>Epitop</th><th>Kaynak antijen</th><th>Poz.</th><th>Uzun.</th>"
-                    "<th>BepiPred</th><th>Antij.</th><th>Alerjen</th><th>Toksik</th><th>📖</th></tr>")
+            head = (f"<tr><th>★</th><th>{S('col_epitope')}</th><th>{S('col_source')}</th><th>{S('col_pos')}</th><th>{S('col_len')}</th>"
+                    f"<th>BepiPred</th><th>{S('col_antig')}</th><th>{S('col_allergen')}</th><th>{S('col_toxic')}</th><th>📖</th></tr>")
         elif kind == "MHC-I":
-            head = ("<tr><th>★</th><th>Epitop</th><th>Kaynak antijen</th><th>Poz.</th><th>%rank</th>"
-                    "<th>Allel</th><th>Antij.</th><th>Alerjen</th><th>Toksik</th><th>İmmüno.</th>"
-                    "<th>İşleme</th><th>Kons.</th><th>📖</th></tr>")
+            head = (f"<tr><th>★</th><th>{S('col_epitope')}</th><th>{S('col_source')}</th><th>{S('col_pos')}</th><th>%rank</th>"
+                    f"<th>{S('col_allele')}</th><th>{S('col_antig')}</th><th>{S('col_allergen')}</th><th>{S('col_toxic')}</th><th>{S('col_immuno')}</th>"
+                    f"<th>{S('col_proc')}</th><th>{S('col_cons')}</th><th>📖</th></tr>")
         else:
-            head = ("<tr><th>★</th><th>Epitop</th><th>Kaynak antijen</th><th>Poz.</th><th>%rank</th>"
-                    "<th>Allel</th><th>Antij.</th><th>Alerjen</th><th>Toksik</th><th>IFN-γ</th>"
-                    "<th>Kons.</th><th>📖</th></tr>")
+            head = (f"<tr><th>★</th><th>{S('col_epitope')}</th><th>{S('col_source')}</th><th>{S('col_pos')}</th><th>%rank</th>"
+                    f"<th>{S('col_allele')}</th><th>{S('col_antig')}</th><th>{S('col_allergen')}</th><th>{S('col_toxic')}</th><th>IFN-γ</th>"
+                    f"<th>{S('col_cons')}</th><th>📖</th></tr>")
         trs = ""
         for r in rows:
             cls = ' class="sel"' if r["star"] else ""
@@ -199,12 +201,13 @@ def _type_tables_html(peptides, meta) -> str:
 
 def _iedb_section(meta: dict, peptides) -> str:
     """IEDB literatür/bilinen-epitop eşleşmesi + (varsa) recall benchmark bölümü."""
+    lang = meta.get("lang", "tr")
     im = meta.get("iedb_match")
     if not im:
         return ""
     if not im.get("available"):
-        return ('<h2>IEDB literatür/bilinen-epitop taraması</h2>'
-                f'<div class="warn">{im.get("note", "IEDB taraması yapılamadı")}</div>')
+        return (f'<h2>{t(lang,"iedb_title")}</h2>'
+                f'<div class="warn">{im.get("note", t(lang,"iedb_unavail"))}</div>')
     peptides = peptides or []
     # eşleşen adaylar tablosu
     trs = ""
@@ -223,42 +226,33 @@ def _iedb_section(meta: dict, peptides) -> str:
                 f"<td>{ie.get('match_type','')}</td><td class='mono'>{ie.get('epitope_seq','')}</td>"
                 f"<td>{org}</td><td>{ag}</td><td>{plinks}</td></tr>")
     if not trs:
-        trs = "<tr><td colspan='8'><i>Hiçbir aday bilinen IEDB epitobuyla eşleşmedi.</i></td></tr>"
+        trs = f"<tr><td colspan='8'><i>{t(lang,'iedb_none')}</i></td></tr>"
     bm = im.get("benchmark") or {}
     bm_html = ""
     if bm and bm.get("recall") is not None:
         k = bm.get("k", 8)
         bm_html = (
-            "<h3>Validasyon — bilinen epitop recall'ü</h3>"
-            "<p style='font-size:.85rem'>Bu organizma için IEDB'de deneysel doğrulanmış "
-            "lineer epitoplar 'ground truth' alınır; pipeline'ın tahminleri bunlarla "
-            f"örtüşme (≥{k} aa ortak çekirdek / içerme / exact) üzerinden değerlendirilir. "
-            "NOT: pipeline seçici olarak KISA bir öncelik listesi üretir (protein başına "
-            "sınırlı peptit); bu yüzden tüm epitop kataloğuna karşı recall doğası gereği "
-            "düşüktür — asıl anlamlı ölçüt, adayların ne kadarının deneysel doğrulanmış "
-            "olduğudur (eşleşme oranı).</p>"
-            "<table><tr><th>Bilinen epitop (benzersiz)</th><th>Yakalanan</th>"
-            "<th>Recall</th><th>Tahmin (aday)</th><th>Bilinene eşleşen aday</th>"
-            "<th>Eşleşme oranı</th></tr>"
+            f"<h3>{t(lang,'iedb_val_title')}</h3>"
+            f"<p style='font-size:.85rem'>{t(lang,'iedb_val_text').format(k=k)}</p>"
+            f"<table><tr><th>{t(lang,'col_known')}</th><th>{t(lang,'col_captured')}</th>"
+            f"<th>{t(lang,'col_recall')}</th><th>{t(lang,'col_pred')}</th><th>{t(lang,'col_pred_match')}</th>"
+            f"<th>{t(lang,'col_matchrate')}</th></tr>"
             f"<tr><td>{bm['n_known']}</td><td>{bm['n_known_hit']}</td>"
             f"<td><b>{round(bm['recall']*100,1)}%</b></td><td>{bm['n_pred']}</td>"
             f"<td>{bm['n_pred_matched']}</td>"
             f"<td><b>{round((bm['precision_like'] or 0)*100,1)}%</b></td></tr></table>"
         )
     return (
-        "<h2>IEDB literatür/bilinen-epitop taraması</h2>"
-        f"<p style='font-size:.85rem'>Kaynak: <code>{im.get('source','')}</code> · "
-        f"eşleşen aday: <b>{im.get('n_matched',0)}/{im.get('n_candidates','?')}</b>. "
-        "Eşleşme, adayın deneysel doğrulanmış bir epitopla (exact/içerme/ortak çekirdek) "
-        "örtüştüğünü gösterir — güçlü pozitif kontrol sinyali. Bu adım adaylık puanını "
-        "<b>değiştirmez</b> (salt yorumlama).</p>"
-        "<table><tr><th>Sıra</th><th>Aday peptit</th><th>Tip</th><th>Eşleşme</th>"
-        "<th>IEDB epitobu</th><th>Organizma</th><th>Antijen</th><th>Referans</th></tr>"
+        f"<h2>{t(lang,'iedb_title')}</h2>"
+        f"<p style='font-size:.85rem'>{t(lang,'iedb_intro').format(src=im.get('source',''), n=im.get('n_matched',0), tot=im.get('n_candidates','?'))}</p>"
+        f"<table><tr><th>{t(lang,'col_order')}</th><th>{t(lang,'col_candidate')}</th><th>{t(lang,'col_type')}</th><th>{t(lang,'col_match')}</th>"
+        f"<th>{t(lang,'col_iedb_epi')}</th><th>{t(lang,'col_organism')}</th><th>{t(lang,'col_antigen')}</th><th>{t(lang,'col_reference')}</th></tr>"
         f"{trs}</table>{bm_html}"
     )
 
 
 def _html(df: pd.DataFrame, meta: dict, peptides=None) -> str:
+    lang = meta.get("lang", "tr")
     thr_rows = "".join(
         f"<tr><td>{r['step']}</td><td>{r['tool']}</td><td>{r['param']}</td>"
         f"<td>{r['value']} {r['unit']}</td><td>{'🔒' if r['hard_filter'] else '◦'}</td></tr>"
@@ -296,15 +290,13 @@ def _html(df: pd.DataFrame, meta: dict, peptides=None) -> str:
             if trows:
                 head = "".join(f"<th>{a}</th>" for a in areas)
                 blocks.append(f'<p><b>{he.get("label", hname)}</b></p>'
-                              f'<table><tr><th>Sınıf</th>{head}</tr>{trows}</table>')
+                              f'<table><tr><th>{t(lang,"col_type")}</th>{head}</tr>{trows}</table>')
         note = ("" if popcov.get("available")
                 else f'<p><i>{popcov.get("note", "")}</i></p>')
-        pop_html = ("<h2>Popülasyon kapsamı (IEDB HLA frekansları)</h2>"
-                    "<p style='font-size:.85rem'>Bir bireyin en az bir epitop-bağlayan "
-                    "allele sahip olma olasılığı (%). Gerçek frekans verisi yalnız insan "
-                    "HLA için mevcuttur.</p>" + note + "".join(blocks))
-    return f"""<!doctype html><html lang="tr"><head><meta charset="utf-8">
-<title>VaxForge Raporu</title><style>
+        pop_html = (f"<h2>{t(lang,'pop_title')}</h2>"
+                    f"<p style='font-size:.85rem'>{t(lang,'pop_text')}</p>" + note + "".join(blocks))
+    return f"""<!doctype html><html lang="{lang}"><head><meta charset="utf-8">
+<title>{t(lang,'rep_title')}</title><style>
 body{{font-family:system-ui,Arial;margin:2rem;color:#1a1a1a;max-width:1100px}}
 h1{{color:#0b6}}h2{{border-bottom:2px solid #eee;padding-bottom:.3rem;margin-top:2rem}}
 table{{border-collapse:collapse;width:100%;font-size:.9rem;margin:.5rem 0}}
@@ -317,32 +309,29 @@ span.pass{{color:#0a7;font-weight:700}}span.fail{{color:#c33}}
 tr.sel{{background:#e7f7ee}}tr.sel td{{border-color:#b7e6ca}}
 details{{margin:.4rem 0;border:1px solid #e5e5e5;border-radius:5px;padding:.3rem .6rem}}
 summary{{cursor:pointer;font-size:.95rem}}</style></head><body>
-<h1>🧬 VaxForge — Aşı Adayı Raporu</h1>
-<p>Oluşturma: {meta.get('timestamp','')} · Girdi: <code>{meta.get('input','')}</code> ·
-Profil: <code>{meta.get('profile','')}</code></p>
-<div class="warn"><b>Not:</b> Bu prototip, harici araçlar takılı olmadığında
-saf-Python <b>heuristik/proxy</b> yöntemleri kullanır (VaxiJen, NetMHCpan, AllerTOP,
-AlphaFold vb. yerine). Skorlar gerçek araç çıktısı değildir; yöntem etiketleri
-JSON'da <code>methods</code> altındadır.</div>
+<h1>🧬 {t(lang,'rep_title')}</h1>
+<p>{t(lang,'rep_generated')}: {meta.get('timestamp','')} · {t(lang,'rep_input')}: <code>{meta.get('input','')}</code> ·
+{t(lang,'rep_profile')}: <code>{meta.get('profile','')}</code></p>
+<div class="warn"><b>Not/Note:</b> {t(lang,'rep_disclaimer')}</div>
 
-<h2>Özet</h2>
-<table><tr><th>Girdi proteini</th><th>Keşif sonrası</th><th>Huni sonrası</th>
-<th>Epitop</th><th>Sağ kalan aday</th></tr>
+<h2>{t(lang,'rep_summary')}</h2>
+<table><tr><th>{t(lang,'rep_sum_input')}</th><th>{t(lang,'rep_sum_discovery')}</th><th>{t(lang,'rep_sum_funnel')}</th>
+<th>{t(lang,'rep_sum_epitope')}</th><th>{t(lang,'rep_sum_survivors')}</th></tr>
 <tr><td>{meta.get('n_input','?')}</td><td>{meta.get('n_discovery','?')}</td>
 <td>{meta.get('n_funnel','?')}</td><td>{meta.get('n_epitope','?')}</td>
 <td>{meta.get('n_survivors','?')}</td></tr></table>
 
-<h2>En iyi 15 aday peptit (özet)</h2>
+<h2>{t(lang,'rep_top15')}</h2>
 {df.head(15).to_html(index=False)}
 
-<h2>Aday epitoplar — tipe göre sıralı (CTL / HTL / B-hücre)</h2>
+<h2>{t(lang,'rep_bytype')}</h2>
 {_type_tables_html(peptides or [], meta)}
 
-<h2>Kullanılan eşikler (tekrarlanabilirlik)</h2>
-<table><tr><th>Adım</th><th>Araç</th><th>Parametre</th><th>Değer</th><th>Tip</th></tr>{thr_rows}</table>
+<h2>{t(lang,'rep_thresholds')}</h2>
+<table><tr><th>{t(lang,'col_step')}</th><th>{t(lang,'col_tool')}</th><th>{t(lang,'col_param')}</th><th>{t(lang,'col_value')}</th><th>{t(lang,'col_type')}</th></tr>{thr_rows}</table>
 
-<h2>Çalıştırılan plan</h2>
-<table><tr><th>#</th><th>Adım</th><th>Durum</th><th>Not</th></tr>{steps_rows}</table>
+<h2>{t(lang,'rep_plan')}</h2>
+<table><tr><th>#</th><th>{t(lang,'col_step')}</th><th>{t(lang,'col_status')}</th><th>{t(lang,'col_note')}</th></tr>{steps_rows}</table>
 
 {iedb_html}
 

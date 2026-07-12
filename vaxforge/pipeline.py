@@ -31,7 +31,8 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
         host_names: list[str] | None = None,
         overrides: dict | None = None, has_gpu: bool = False,
         outdir: str | Path = "outputs", host_registry: HostRegistry | None = None,
-        organism_taxon: str | None = None, gram: str | None = None):
+        organism_taxon: str | None = None, gram: str | None = None,
+        lang: str = "tr"):
     resolved = cfg.resolve(profile, overrides)
     steps = build_plan(det, has_gpu=has_gpu)
     reg = host_registry or HostRegistry.load()
@@ -49,6 +50,7 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
         "n_raw": det.num_seqs,          # dosyadaki ham dizi/CDS sayısı
         "molecule": det.molecule,
         "gram": gram if profile == "bacteria" else None,
+        "lang": lang,
     }
 
     # 1) Ingest (prep dahil): CDS -> protein çevirisi / ORF vb.

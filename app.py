@@ -16,6 +16,7 @@ import pandas as pd
 import streamlit as st
 
 from vaxforge import netmhc_local
+from vaxforge.i18n import t
 from vaxforge.config_loader import ThresholdConfig
 from vaxforge.detect import detect
 from vaxforge.hosts import HostRegistry
@@ -88,6 +89,12 @@ hr{ border-color:var(--vf-line); }
 </style>
 """, unsafe_allow_html=True)
 
+# --- Dil seçimi (hero'dan ÖNCE ki başlık da seçilen dilde çıksın) ------------
+_lang_choice = st.sidebar.radio("🌐 " + t("tr", "language"),
+                                ["Türkçe", "English"], horizontal=True,
+                                key="vf_lang")
+lang = "en" if _lang_choice == "English" else "tr"
+
 # --- Hero başlık ------------------------------------------------------------
 _n_tools = len(CFG.resolve(CFG.default_profile))
 _n_hosts = len(HOSTS.names())
@@ -100,11 +107,11 @@ st.markdown(f"""
   </div>
 </div>
 <div class="vf-chips">
-  <div class="c">🔬 <b>{_n_tools}</b> analiz aracı</div>
-  <div class="c">🧫 <b>{_n_hosts}</b> konak / MHC paneli</div>
-  <div class="c">🧠 B-hücre · MHC-I/II · IFN-γ · işleme</div>
-  <div class="c">🛡️ alerjenite · toksisite · insan-homoloji</div>
-  <div class="c">📄 PDF · HTML · Excel · atıflı rapor</div>
+  <div class="c">🔬 <b>{_n_tools}</b> {t(lang,'chip_tools')}</div>
+  <div class="c">🧫 <b>{_n_hosts}</b> {t(lang,'chip_hosts')}</div>
+  <div class="c">🧠 {t(lang,'chip_epi')}</div>
+  <div class="c">🛡️ {t(lang,'chip_filters')}</div>
+  <div class="c">📄 {t(lang,'chip_report')}</div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -117,10 +124,10 @@ def _sec(num: str, title: str) -> None:
 # --- Kenar çubuğu: organizma profili + ortam --------------------------------
 with st.sidebar:
     st.markdown('<div class="vf-sec" style="margin:2px 0 10px">'
-                '<div class="n">⚙</div><h3>Çalışma ayarları</h3></div>',
+                f'<div class="n">⚙</div><h3>{t(lang,"settings")}</h3></div>',
                 unsafe_allow_html=True)
     profile = st.selectbox(
-        "Patojen profili (etken)",
+        t(lang,"pathogen_profile"),
         CFG.profiles,
         index=CFG.profiles.index(CFG.default_profile),
         help="Eşik varsayılanları patojene göre değişir.",
@@ -129,16 +136,16 @@ with st.sidebar:
     gram = None
     if profile == "bacteria":
         _gram_lbl = st.radio(
-            "Gram boyaması",
-            ["Gram-negatif", "Gram-pozitif"],
+            t(lang,"gram_stain"),
+            [t(lang,"gram_neg"), t(lang,"gram_pos")],
             horizontal=True,
             help="PSORTb lokalizasyonu Gram-tipine göre çalışır. Yanlış seçim = "
                  "yanlış tahmin. Gram−: dış membran/periplazma var; Gram+: hücre duvarı.",
         )
-        gram = "negative" if _gram_lbl == "Gram-negatif" else "positive"
+        gram = "negative" if _gram_lbl == t(lang,"gram_neg") else "positive"
     host_choices = HOSTS.names()
     selected_hosts = st.multiselect(
-        "Konak(lar) — MHC taranacak",
+        t(lang,"hosts_label"),
         host_choices,
         default=HOSTS.default_hosts,
         format_func=lambda n: HOSTS.get(n).label,
@@ -162,25 +169,26 @@ organism_taxon = None
 has_gpu = False
 
 # --- Girdi: dosya yükleme veya örnek ----------------------------------------
-_sec("1", "Girdi dosyası")
-_SAMPLES = {
-    "🧪 Patojen proteinleri (gerçek VFDB)": "data/samples/pathogen_demo.faa",
-    "🧬 Proteom (protein FASTA)": "data/samples/proteome_demo.faa",
-    "🔤 Genler / CDS (nükleotid)": "data/samples/genes_demo.fna",
-    "📄 Ham okumalar (FASTQ)": "data/samples/reads_demo.fastq",
-}
+_sec("1", t(lang,"sec_input"))
+# (emoji, i18n-anahtar, yol) — etiket seçilen dilde üretilir
+_SAMPLES = [
+    ("🧪", "sample_proteome_vfdb", "data/samples/pathogen_demo.faa"),
+    ("🧬", "sample_proteome", "data/samples/proteome_demo.faa"),
+    ("🔤", "sample_cds", "data/samples/genes_demo.fna"),
+    ("📄", "sample_reads", "data/samples/reads_demo.fastq"),
+]
 _up_col, _s_col = st.columns([2, 1])
 with _up_col:
     uploaded = st.file_uploader(
-        "Dosyanızı sürükleyip bırakın — FASTA / FASTQ / GenBank (.gz destekli)",
+        t(lang,"upload_hint"),
         type=["fasta", "fa", "faa", "fna", "fastq", "fq", "gz", "gb", "gbk", "genbank", "gbff"],
         help="Protein/nükleotid FASTA, ham okuma FASTQ, veya anotasyonlu GenBank (.gb/.gbk). "
              "GenBank'ta CDS'ler çeviri + gen + lokus ile doğrudan alınır. Tip otomatik tanınır.",
     )
 with _s_col:
-    st.caption("ya da örnek dosyayla dene:")
-    for _label, _path in _SAMPLES.items():
-        if st.button(_label, key=f"smp_{_path}", use_container_width=True):
+    st.caption(t(lang,"try_sample"))
+    for _emoji, _key, _path in _SAMPLES:
+        if st.button(f"{_emoji} {t(lang, _key)}", key=f"smp_{_path}", use_container_width=True):
             st.session_state["sample"] = _path
 
 # Girdiyi çöz: yüklenen dosya öncelikli, yoksa seçilen örnek
@@ -197,8 +205,7 @@ elif st.session_state.get("sample") and Path(st.session_state["sample"]).exists(
     input_name = Path(input_path).name
 
 if input_path is None:
-    st.info("👆 Bir dosya yükleyin ya da sağdaki örneklerden birini seçin. "
-            "Desteklenen: protein/nükleotid FASTA veya FASTQ (.gz olabilir).")
+    st.info(t(lang,"pick_info"))
     st.stop()
 
 st.success(f"Girdi: **{input_name}**")
@@ -206,7 +213,7 @@ det = detect(input_path)
 det.filename = input_name
 
 # --- Tanıma sonucu ----------------------------------------------------------
-_sec("2", "Dosya tanıma")
+_sec("2", t(lang,"sec_detect"))
 c1, c2, c3, c4 = st.columns(4)
 c1.metric("Format", det.fmt.upper())
 c2.metric("Tip", det.seq_type)
@@ -223,7 +230,7 @@ for note in det.notes:
     st.write("•", note)
 
 # --- Planlanan adımlar ------------------------------------------------------
-_sec("3", "Planlanan pipeline")
+_sec("3", t(lang,"sec_plan"))
 steps = build_plan(det, has_gpu=has_gpu)
 df_plan = pd.DataFrame(plan_table(steps))
 
@@ -246,7 +253,7 @@ if n_def:
             "Yan panelden 'Yerel GPU var' açılırsa yerelde koşarlar.")
 
 # --- Eşikler (organizma profiline göre, düzenlenebilir) ---------------------
-_sec("4", f"Eşikler — profil: {profile}")
+_sec("4", f"{t(lang,'sec_thresholds')}: {profile}")
 st.caption("Tüm eşikler config'ten gelir; organizmaya göre değişir ve burada düzenlenebilir. "
            "Koşulan değerler rapora yazılır (tekrarlanabilirlik).")
 
@@ -275,7 +282,7 @@ for step_id, tools in by_step.items():
                     st.text_input(label, value=str(p.value), key=key, help=p.description)
 
 # --- Çalıştır ---------------------------------------------------------------
-_sec("5", "Çalıştır")
+_sec("5", t(lang,"sec_run"))
 _tool_status = []
 for _mod, _lbl in [("discovery", "DIAMOND+VFDB"), ("deeploc", "DeepLoc"),
                    ("tmhmm_local", "TMHMM"), ("signalp", "SignalP"),
@@ -290,7 +297,7 @@ st.caption("Gerçek araç durumu: " + " · ".join(_tool_status)
            + "  \n(⚠️ = araç yok, o adım için dürüst-etiketli yedek yöntem kullanılır. "
              "Gerçek bir koşu birkaç dakika sürer — DeepLoc/NetMHCpan CPU'da yavaştır.)")
 
-if st.button("▶ Pipeline'ı başlat", type="primary"):
+if st.button(t(lang,"run_start"), type="primary"):
     # arayüzden düzenlenen sayısal/bool eşikleri override olarak topla
     overrides = {}
     for rtool in resolved.values():
@@ -310,7 +317,7 @@ if st.button("▶ Pipeline'ı başlat", type="primary"):
         for ev in pipeline.run(input_path, det, CFG, profile,
                                host_names=selected_hosts, overrides=overrides,
                                has_gpu=has_gpu, outdir="outputs", host_registry=HOSTS,
-                               organism_taxon=organism_taxon, gram=gram):
+                               organism_taxon=organism_taxon, gram=gram, lang=lang):
             ph, stt, msg = ev["phase"], ev["status"], ev["msg"]
             if ph == "__result__":
                 result = ev["data"]
@@ -332,7 +339,7 @@ if st.button("▶ Pipeline'ı başlat", type="primary"):
         rmeta = result["meta"]
 
         # --- Eleme akışı: kaç girdi → her adımda kaç kaldı ------------------
-        st.subheader("📊 Eleme akışı (kaç girdi → kaç kaldı)")
+        st.subheader(t(lang,"res_flow"))
         mol = rmeta.get("molecule", "dizi")
         unit = "CDS" if mol == "cds" else ("okuma" if mol == "reads" else "protein")
         n_pep_pass = sum(1 for p in peptides if p.passed)
@@ -367,7 +374,7 @@ if st.button("▶ Pipeline'ı başlat", type="primary"):
         st.caption("Not: epitop adımında sliding-window ile her proteinden çok sayıda "
                    "peptit üretilir; sonraki adımlar bunları eler.")
 
-        st.subheader("Sonuç — en iyi aday peptitler")
+        st.subheader(t(lang,"result_header"))
         rows = [{"sıra": i + 1, "peptit": p.seq, "tip": p.kind, "skor": p.candidacy,
                  "CDS / kaynak protein": p.parent,
                  "gen": p.metrics.get("gene") or "—",
@@ -383,7 +390,7 @@ if st.button("▶ Pipeline'ı başlat", type="primary"):
         from vaxforge import evaluate
         tt = evaluate.type_tables(peptides, rmeta, top_n=15)
         total = {k: sum(1 for p in peptides if p.kind == k) for k in ("MHC-I", "MHC-II", "B")}
-        st.subheader("🔬 Aday epitoplar — tipe göre sıralı (CTL / HTL / B-hücre)")
+        st.subheader(t(lang,"res_bytype"))
         st.caption("Her tip kendi içinde bağlanma gücüne göre sıralı (T-hücre: %rank artan; "
                    "B-hücre: BepiPred azalan). ★ + yeşil satır = tüm zorunlu ölçütleri geçen "
                    "**final seçilen** epitop. ✔=geçti, 📖=IEDB literatürde, Kons.=suş verisi yok. "
@@ -432,7 +439,7 @@ if st.button("▶ Pipeline'ı başlat", type="primary"):
         # --- Popülasyon kapsamı (IEDB) ------------------------------------
         popcov = rmeta.get("population_coverage")
         if popcov:
-            st.subheader("🌍 Popülasyon kapsamı (IEDB HLA frekansları)")
+            st.subheader(t(lang,"res_pop"))
             if not popcov.get("available"):
                 st.info(popcov.get("note", "IEDB Population Coverage aracı kurulu değil."))
             else:
@@ -459,7 +466,7 @@ if st.button("▶ Pipeline'ı başlat", type="primary"):
         # --- IEDB literatür/bilinen-epitop taraması + validasyon ----------
         im = rmeta.get("iedb_match")
         if im:
-            st.subheader("📖 IEDB literatür / bilinen-epitop taraması")
+            st.subheader(t(lang,"res_iedb"))
             if not im.get("available"):
                 st.info(im.get("note", "IEDB taraması yapılamadı."))
             else:
@@ -498,7 +505,7 @@ if st.button("▶ Pipeline'ı başlat", type="primary"):
                               f"{round((bm['precision_like'] or 0)*100,1)}%",
                               f"{bm['n_pred_matched']}/{bm['n_pred']}")
 
-        st.subheader("İndirilebilir çıktılar")
+        st.subheader(t(lang,"res_downloads"))
         cols = st.columns(len(paths))
         labels = {"csv": "Adaylar (CSV)", "xlsx": "Tam liste (Excel)",
                   "fasta": "Peptitler (FASTA)", "json": "Tam koşum (JSON)",
