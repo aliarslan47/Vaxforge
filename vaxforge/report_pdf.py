@@ -107,16 +107,20 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
         el.append(Spacer(1, 8))
         el.append(Image(str(chart), width=15 * cm, height=6.6 * cm))
 
-    # -- En iyi adaylar
+    # -- En iyi adaylar (hücreler Paragraph ile sarılır → taşma yok, uzun metin kaydırılır)
     el.append(Paragraph("2. En iyi aday peptitler (CDS kaynağı + lokus ile)", h2))
+    cell = ParagraphStyle("cell", parent=body, fontSize=6.5, leading=8, wordWrap="CJK")
+
+    def P(s):
+        return Paragraph(str(s).replace("&", "&amp;").replace("<", "&lt;"), cell)
+
     rows = [["#", "Peptit", "Tip", "Skor", "CDS / kaynak", "Gen", "Lokus", "Allel"]]
     for i, p in enumerate(peptides[:15], 1):
-        rows.append([i, p.seq, p.kind, f"{p.candidacy:.3f}",
-                     str(p.parent)[:22],
-                     str(p.metrics.get("gene") or "—"),
-                     str(p.metrics.get("locus_tag") or "—"),
-                     str(p.metrics.get("best_allele", "—"))])
-    el.append(tbl(rows, widths=[0.7*cm, 3*cm, 1.3*cm, 1.2*cm, 3.6*cm, 1.7*cm, 1.9*cm, 2.2*cm]))
+        rows.append([str(i), P(p.seq), p.kind, f"{p.candidacy:.3f}",
+                     P(str(p.parent)[:22]), P(p.metrics.get("gene") or "—"),
+                     P(p.metrics.get("locus_tag") or "—"),
+                     P(p.metrics.get("best_allele", "—"))])
+    el.append(tbl(rows, widths=[0.7*cm, 3*cm, 1.2*cm, 1.1*cm, 3.2*cm, 1.6*cm, 2.6*cm, 3.0*cm]))
 
     # -- MHC anchor/cep motifi (yorum)
     mhci = [p for p in peptides if p.kind == "MHC-I" and p.metrics.get("anchor_residues")][:10]

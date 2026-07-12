@@ -38,6 +38,11 @@ st.markdown("""
 html,body,[class*="css"]{ font-feature-settings:"cv02","cv03","cv04"; }
 .stApp{ background:radial-gradient(1200px 600px at 12% -8%, #14213d 0%, var(--vf-bg) 55%); }
 #MainMenu, footer, [data-testid="stToolbar"]{ visibility:hidden; height:0; }
+/* Daraltılan sidebar'ı geri açan buton görünür kalsın (toolbar gizlense de) */
+[data-testid="stSidebarCollapsedControl"], [data-testid="collapsedControl"]{
+  visibility:visible !important; height:auto !important; opacity:1 !important; z-index:1000; }
+[data-testid="stSidebarCollapsedControl"] button, [data-testid="collapsedControl"] button{
+  visibility:visible !important; color:var(--vf-ink) !important; }
 .block-container{ padding-top:1.4rem; padding-bottom:3rem; max-width:1280px; }
 h1,h2,h3{ letter-spacing:-.01em; }
 [data-testid="stSidebar"]{ background:linear-gradient(180deg,#0d1526,#0b1220);
