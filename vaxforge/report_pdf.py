@@ -134,37 +134,63 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
                           str(p.metrics.get("anchor_match", "—"))])
         el.append(tbl(arows, widths=[2.6*cm, 2.8*cm, 2.6*cm, 5.2*cm, 1.2*cm]))
 
-    # -- Aday-başına TÜM araç sonuçları + GEÇTİ/GEÇEMEDİ
+    # -- Aday epitoplar TİPE GÖRE sıralı tablolar (literatür stili: CTL/HTL/B)
     from . import evaluate
-    thr = evaluate.thr_lookup(meta)
-    subset = evaluate.report_subset(peptides, top_n=15)
-    el.append(Paragraph("2c. Öne çıkan adaylar — tüm araç sonuçları", h2))
+    tt = evaluate.type_tables(peptides, meta, top_n=15)
+    total = {k: sum(1 for p in peptides if p.kind == k) for k in ("MHC-I", "MHC-II", "B")}
+    el.append(Paragraph("2c. Aday epitoplar — tipe göre sıralı (CTL / HTL / B-hücre)", h2))
     el.append(Paragraph(
-        f"En iyi 15 aday + literatürde (IEDB) eşleşen adaylar gösterilir "
-        f"({len(subset)} / {len(peptides)} aday). Tüm adayların tam araç-sonucu tablosu "
-        f"<b>candidates_full.xlsx</b> dosyasındadır. (H)=sert filtre (geçemeyen elenir); "
-        f"eşiksiz satırlar yorum amaçlıdır.", small))
-    for i, p, reason in subset:
-        rows = evaluate.candidate_rows(p, thr)
+        "Epitoplar tipe göre ayrı tablolarda, her tip kendi içinde bağlanma gücüne göre sıralı "
+        "(T-hücre: %rank artan; B-hücre: BepiPred azalan). ★ + yeşil satır = tüm zorunlu ölçütleri "
+        "geçen final seçilen epitop (antijenik + güçlü bağlanma [+ HTL'de IFN-γ]). ✓=geçti, "
+        "📖=IEDB literatürde, Kons.=suş verisi yok. Tam araç dökümü <b>candidates_full.xlsx</b>'te.", small))
+
+    def _yn(b):
+        return "✓" if b else "✗"
+
+    def _n(v, nd=2):
+        return "—" if v is None else f"{v:.{nd}f}"
+
+    conf = {
+        "MHC-I": ("🟦 CTL — MHC-I / CD8+ T-hücre",
+                  ["★", "Epitop", "Kaynak", "%rank", "Allel", "Antij", "Al", "Tk", "İmmü", "İşle", "lit"],
+                  [0.5*cm, 2.7*cm, 2.5*cm, 1.3*cm, 2.2*cm, 1.2*cm, 0.8*cm, 0.8*cm, 1.3*cm, 1.2*cm, 0.9*cm]),
+        "MHC-II": ("🟨 HTL — MHC-II / CD4+ T-hücre",
+                   ["★", "Epitop", "Kaynak", "%rank", "Allel", "Antij", "Al", "Tk", "IFN", "lit"],
+                   [0.5*cm, 3.3*cm, 2.6*cm, 1.3*cm, 2.6*cm, 1.2*cm, 0.9*cm, 0.9*cm, 1.0*cm, 0.9*cm]),
+        "B": ("🟩 B-hücre — antikor",
+              ["★", "Epitop", "Kaynak", "Uz", "BepiPred", "Antij", "Al", "Tk", "lit"],
+              [0.5*cm, 3.0*cm, 2.8*cm, 1.0*cm, 1.8*cm, 1.3*cm, 0.9*cm, 0.9*cm, 0.9*cm]),
+    }
+    for kind in ("MHC-I", "MHC-II", "B"):
+        rows = tt.get(kind, [])
         if not rows:
             continue
-        tag = " &nbsp;·&nbsp; <b>📖 literatürde</b>" if reason == "literatür" else ""
-        el.append(Spacer(1, 5))
-        el.append(Paragraph(f"#{i} &nbsp;<b>{p.seq}</b> — {p.kind} — adaylık <b>{p.candidacy}</b> "
-                            f"&nbsp;(kaynak: {p.parent}, gen: {p.metrics.get('gene') or '—'}){tag}", body))
-        drows = [["Araç", "Sonuç", "Eşik", "Durum"]]
-        style_extra = []
+        title, header, widths = conf[kind]
+        el.append(Spacer(1, 6))
+        el.append(Paragraph(f"{title} — {len(rows)}/{total[kind]} gösteriliyor", body))
+        drows = [header]
+        star_rows = []
         for ri, r in enumerate(rows, 1):
-            status = r["status"].replace("✅ ", "").replace("❌ ", "")
-            tool = r["tool"] + (" (H)" if r["hard"] else "")
-            drows.append([tool, str(r["value"]), str(r["cutoff"]), status])
-            if r["status"] == evaluate.PASS:
-                style_extra.append(("TEXTCOLOR", (3, ri), (3, ri), colors.HexColor("#0a7a4f")))
-            elif r["status"] == evaluate.FAIL:
-                style_extra.append(("TEXTCOLOR", (3, ri), (3, ri), colors.HexColor("#c0392b")))
-        t = tbl(drows, widths=[6.4*cm, 3.8*cm, 3.4*cm, 2.4*cm])
-        for s in style_extra:
-            t.setStyle(TableStyle([s]))
+            star = "★" if r["star"] else ""
+            lit = "📖" if r["iedb"] else "–"
+            if r["star"]:
+                star_rows.append(ri)
+            if kind == "B":
+                drows.append([star, r["epitope"], r["source"], str(r["length"]),
+                              _n(r["bcell"]), _n(r["antigenicity"]),
+                              _yn(r["allergen_ok"]), _yn(r["toxic_ok"]), lit])
+            elif kind == "MHC-I":
+                drows.append([star, r["epitope"], r["source"], _n(r["rank"]), r["allele"],
+                              _n(r["antigenicity"]), _yn(r["allergen_ok"]), _yn(r["toxic_ok"]),
+                              _n(r["immunogenicity"]), _n(r["processing"]), lit])
+            else:
+                drows.append([star, r["epitope"], r["source"], _n(r["rank"]), r["allele"],
+                              _n(r["antigenicity"]), _yn(r["allergen_ok"]), _yn(r["toxic_ok"]),
+                              _yn(r["ifn_ok"]), lit])
+        t = tbl(drows, widths=widths)
+        for ri in star_rows:
+            t.setStyle(TableStyle([("BACKGROUND", (0, ri), (-1, ri), colors.HexColor("#e7f7ee"))]))
         el.append(t)
 
     # -- Kullanılan eşikler

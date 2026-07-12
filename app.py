@@ -374,25 +374,55 @@ if st.button("▶ Pipeline'ı başlat", type="primary"):
                 for i, p in enumerate(peptides[:20])]
         st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
 
-        # --- Her aday için TÜM araç sonuçları + GEÇTİ/GEÇEMEDİ --------------
+        # --- Aday epitoplar TİPE GÖRE sıralı tablolar (literatür stili) -----
         from vaxforge import evaluate
-        thr = evaluate.thr_lookup(rmeta)
-        subset = evaluate.report_subset(peptides, top_n=15)
-        st.subheader("🔬 Öne çıkan adaylar — tüm araç sonuçları")
-        st.caption(f"En iyi 15 aday + literatürde (IEDB) eşleşen adaylar "
-                   f"({len(subset)} / {len(peptides)} aday). Tüm adayların tam tablosu "
-                   f"**candidates_full.xlsx** indirmesindedir. 🔒 = sert filtre "
-                   f"(geçemeyen elenir); eşiksiz satırlar yorum amaçlıdır.")
-        for n, (i, p, reason) in enumerate(subset, 1):
-            tag = " · 📖 literatürde" if reason == "literatür" else ""
-            with st.expander(f"{i}. {p.seq} — {p.kind} — adaylık {p.candidacy} "
-                             f"(kaynak: {p.parent}, gen: {p.metrics.get('gene') or '—'}){tag}",
-                             expanded=(n <= 3)):
-                a = [{"Araç": r["tool"] + (" 🔒" if r["hard"] else ""),
-                      "Sonuç": r["value"], "Eşik (referans)": r["cutoff"],
-                      "Durum": r["status"], "Yöntem": r["method"]}
-                     for r in evaluate.candidate_rows(p, thr)]
-                st.dataframe(pd.DataFrame(a), use_container_width=True, hide_index=True)
+        tt = evaluate.type_tables(peptides, rmeta, top_n=15)
+        total = {k: sum(1 for p in peptides if p.kind == k) for k in ("MHC-I", "MHC-II", "B")}
+        st.subheader("🔬 Aday epitoplar — tipe göre sıralı (CTL / HTL / B-hücre)")
+        st.caption("Her tip kendi içinde bağlanma gücüne göre sıralı (T-hücre: %rank artan; "
+                   "B-hücre: BepiPred azalan). ★ + yeşil satır = tüm zorunlu ölçütleri geçen "
+                   "**final seçilen** epitop. ✔=geçti, 📖=IEDB literatürde, Kons.=suş verisi yok. "
+                   "Tam araç dökümü **candidates_full.xlsx** indirmesindedir.")
+
+        def _yn(b):
+            return "✔" if b else "✗"
+
+        def _n(v, nd=2):
+            return "—" if v is None else f"{v:.{nd}f}"
+
+        titles = {"MHC-I": "🟦 CTL — MHC-I / CD8⁺ T-hücre  ·  %rank artan",
+                  "MHC-II": "🟨 HTL — MHC-II / CD4⁺ T-hücre  ·  %rank artan",
+                  "B": "🟩 B-hücre — antikor  ·  BepiPred azalan"}
+        for kind in ("MHC-I", "MHC-II", "B"):
+            rows = tt.get(kind, [])
+            if not rows:
+                continue
+            st.markdown(f"**{titles[kind]}**  — {len(rows)}/{total[kind]} gösteriliyor")
+            data = []
+            for r in rows:
+                base = {"★": "★" if r["star"] else "", "Epitop": r["epitope"],
+                        "Kaynak": r["source"], "Poz.": r["pos"]}
+                if kind == "B":
+                    base.update({"Uzun.": r["length"], "BepiPred": _n(r["bcell"]),
+                                 "Antij.": _n(r["antigenicity"]), "Alerjen": _yn(r["allergen_ok"]),
+                                 "Toksik": _yn(r["toxic_ok"]), "📖": "📖" if r["iedb"] else "–"})
+                elif kind == "MHC-I":
+                    base.update({"%rank": _n(r["rank"]), "Allel": r["allele"],
+                                 "Antij.": _n(r["antigenicity"]), "Alerjen": _yn(r["allergen_ok"]),
+                                 "Toksik": _yn(r["toxic_ok"]), "İmmüno.": _n(r["immunogenicity"]),
+                                 "İşleme": _n(r["processing"]), "Kons.": "–",
+                                 "📖": "📖" if r["iedb"] else "–"})
+                else:
+                    base.update({"%rank": _n(r["rank"]), "Allel": r["allele"],
+                                 "Antij.": _n(r["antigenicity"]), "Alerjen": _yn(r["allergen_ok"]),
+                                 "Toksik": _yn(r["toxic_ok"]), "IFN-γ": _yn(r["ifn_ok"]),
+                                 "Kons.": "–", "📖": "📖" if r["iedb"] else "–"})
+                data.append(base)
+            df_t = pd.DataFrame(data)
+            sty = df_t.style.apply(
+                lambda row: ['background-color:#e7f7ee' if row["★"] == "★" else '' for _ in row],
+                axis=1)
+            st.dataframe(sty, use_container_width=True, hide_index=True)
 
         # --- Popülasyon kapsamı (IEDB) ------------------------------------
         popcov = rmeta.get("population_coverage")

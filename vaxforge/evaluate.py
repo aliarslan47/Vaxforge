@@ -64,6 +64,75 @@ def _num(x):
         return None
 
 
+def _pos(location) -> str:
+    if not location:
+        return "—"
+    s = str(location).replace("[", "").replace("]", "")
+    return (s.split(":")[0][:9] or "—")
+
+
+def type_tables(peptides, meta: dict, top_n: int = 15) -> dict:
+    """Rapor için TİP BAŞINA (MHC-I / MHC-II / B) sıralı aday tabloları.
+
+    Literatür konvansiyonu: epitoplar tipe göre ayrı tablolarda, her tip kendi
+    içinde bağlanma gücüne göre sıralı (T-hücre: %rank artan = güçlü üstte;
+    B-hücre: BepiPred azalan). 'star' = tüm zorunlu ölçütleri geçen 'final
+    seçilen' epitop: antijenik + güçlü bağlanma (B'de BepiPred geçti) [+ HTL'de
+    IFN-γ indükleyici]. Alerjen/toksisite zaten sağ-kalım sert filtresinde
+    elendiği için tüm adaylar geçer; yine de sütun gösterilir (literatür gibi).
+    top_n + literatürde (IEDB) eşleşen HER aday dahil. Tam döküm Excel'de.
+    """
+    thr = thr_lookup(meta)
+    ag_thr = _num(thr.get(("antigenicity_vaxijen", "threshold"), (0.4,))[0]) or 0.4
+    tox_max = _num(thr.get(("toxicity", "max_toxicity_score"), (0.6,))[0]) or 0.6
+
+    def antigenic(p):
+        a = _num(p.metrics.get("parent_antigenicity"))
+        return a is not None and a >= ag_thr
+
+    def strong(p):
+        return any("güçlü" in str(n) for n in getattr(p, "notes", []) or [])
+
+    def matched(p):
+        return (p.metrics.get("iedb") or {}).get("matched") is True
+
+    tables: dict[str, list] = {}
+    for kind in ("MHC-I", "MHC-II", "B"):
+        subs = [p for p in peptides if p.kind == kind]
+        if kind == "B":
+            subs.sort(key=lambda p: -(_num(p.metrics.get("bcell_score")) or 0))
+        else:
+            subs.sort(key=lambda p: (_num(p.metrics.get("pseudo_rank")) or 1e9))
+        chosen, seen = [], set()
+        for p in subs[:top_n]:
+            chosen.append(p); seen.add(id(p))
+        for p in subs:              # literatür-eşleşenler top_n dışında olsa da
+            if id(p) not in seen and matched(p):
+                chosen.append(p); seen.add(id(p))
+        rows = []
+        for p in chosen:
+            m = p.metrics
+            tox = _num(m.get("toxicity"))
+            star = antigenic(p) and (p.passed if kind == "B" else strong(p)) and (
+                m.get("ifn_gamma_inducer") is True if kind == "MHC-II" else True)
+            rows.append({
+                "star": bool(star), "epitope": p.seq, "kind": kind,
+                "source": (m.get("locus_tag") or m.get("gene") or p.parent or "?"),
+                "pos": _pos(m.get("location")), "length": len(p.seq),
+                "rank": _num(m.get("pseudo_rank")), "allele": m.get("best_allele") or "",
+                "antigenicity": _num(m.get("parent_antigenicity")),
+                "allergen_ok": (m.get("allergen") is not True),
+                "toxic_ok": (tox is None or tox < tox_max),
+                "immunogenicity": _num(m.get("immunogenicity")),
+                "processing": _num(m.get("processing_norm")),
+                "bcell": _num(m.get("bcell_score")),
+                "ifn_ok": (m.get("ifn_gamma_inducer") is True),
+                "iedb": matched(p),
+            })
+        tables[kind] = rows
+    return tables
+
+
 def candidate_rows(p, thr: dict) -> list[dict]:
     """Bir aday için sıralı araç-sonuç satırları (pipeline sırasıyla)."""
     m = p.metrics

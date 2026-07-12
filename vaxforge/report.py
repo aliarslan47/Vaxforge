@@ -134,35 +134,67 @@ def write_package(outdir: Path, peptides: list[Peptide],
     return paths
 
 
-def _candidate_blocks(peptides, meta) -> str:
-    """Öne çıkan adaylar (en iyi 15 + literatürde eşleşen) için araç sonuçları +
-    GEÇTİ/GEÇEMEDİ tablosu. Tam liste candidates_full.xlsx'te."""
+def _type_tables_html(peptides, meta) -> str:
+    """Tip başına (CTL/HTL/B) sıralı, renkli aday tabloları (literatür stili).
+    ★ + yeşil satır = tüm zorunlu ölçütleri geçen final seçilen epitop.
+    Tam araç dökümü candidates_full.xlsx'te."""
     from . import evaluate
-    thr = evaluate.thr_lookup(meta)
-    subset = evaluate.report_subset(peptides, top_n=15)
-    intro = (f'<p style="font-size:.85rem">En iyi 15 aday + literatürde (IEDB) eşleşen '
-             f'adaylar gösterilir ({len(subset)} / {len(peptides)} aday). Tüm adayların '
-             f'tam araç-sonucu tablosu <code>candidates_full.xlsx</code> dosyasındadır.</p>')
-    blocks = [intro]
-    for n, (i, p, reason) in enumerate(subset, 1):
-        rows = evaluate.candidate_rows(p, thr)
+    tt = evaluate.type_tables(peptides, meta, top_n=15)
+    total = {k: sum(1 for p in peptides if p.kind == k) for k in ("MHC-I", "MHC-II", "B")}
+    titles = {"MHC-I": "🟦 CTL — MHC-I / CD8⁺ T-hücre <span class='mono'>(bağlanma %rank artan)</span>",
+              "MHC-II": "🟨 HTL — MHC-II / CD4⁺ T-hücre <span class='mono'>(bağlanma %rank artan)</span>",
+              "B": "🟩 B-hücre — antikor <span class='mono'>(BepiPred azalan)</span>"}
+
+    def ok(b):
+        return '<span class="pass">✔</span>' if b else '<span class="fail">✗</span>'
+
+    def nz(v, nd=2):
+        return "—" if v is None else f"{v:.{nd}f}"
+
+    intro = ('<p style="font-size:.85rem">Epitoplar <b>tipe göre ayrı</b> tablolarda, her tip kendi '
+             'içinde bağlanma gücüne göre sıralı. <b>★ + yeşil satır</b> = tüm zorunlu ölçütleri geçen '
+             '<b>final seçilen</b> epitop (antijenik + güçlü bağlanma [+ HTL\'de IFN-γ]). ✔=geçti, '
+             '📖=IEDB literatürde, Kons.=suş verisi yok → hesaplanmadı. Tüm adayların tam araç dökümü '
+             '<code>candidates_full.xlsx</code> dosyasındadır.</p>')
+    out = [intro]
+    for kind in ("MHC-I", "MHC-II", "B"):
+        rows = tt.get(kind, [])
+        if not rows:
+            continue
+        out.append(f'<h3>{titles[kind]} <span class="mono">— {len(rows)}/{total[kind]} gösteriliyor</span></h3>')
+        if kind == "B":
+            head = ("<tr><th>★</th><th>Epitop</th><th>Kaynak antijen</th><th>Poz.</th><th>Uzun.</th>"
+                    "<th>BepiPred</th><th>Antij.</th><th>Alerjen</th><th>Toksik</th><th>📖</th></tr>")
+        elif kind == "MHC-I":
+            head = ("<tr><th>★</th><th>Epitop</th><th>Kaynak antijen</th><th>Poz.</th><th>%rank</th>"
+                    "<th>Allel</th><th>Antij.</th><th>Alerjen</th><th>Toksik</th><th>İmmüno.</th>"
+                    "<th>İşleme</th><th>Kons.</th><th>📖</th></tr>")
+        else:
+            head = ("<tr><th>★</th><th>Epitop</th><th>Kaynak antijen</th><th>Poz.</th><th>%rank</th>"
+                    "<th>Allel</th><th>Antij.</th><th>Alerjen</th><th>Toksik</th><th>IFN-γ</th>"
+                    "<th>Kons.</th><th>📖</th></tr>")
         trs = ""
         for r in rows:
-            cls = ("pass" if r["status"] == evaluate.PASS else
-                   "fail" if r["status"] == evaluate.FAIL else "na")
-            hard = " 🔒" if r["hard"] else ""
-            trs += (f'<tr><td>{r["tool"]}{hard}</td><td>{r["value"]}</td>'
-                    f'<td>{r["cutoff"]}</td><td class="{cls}">{r["status"]}</td>'
-                    f'<td class="mono">{r["method"]}</td></tr>')
-        gene = p.metrics.get("gene") or "—"
-        tag = ' · 📖 <b>literatürde</b>' if reason == "literatür" else ""
-        blocks.append(
-            f'<details {"open" if n <= 3 else ""}><summary><b>#{i} {p.seq}</b> '
-            f'— {p.kind} — adaylık <b>{p.candidacy}</b> '
-            f'(kaynak: {p.parent}, gen: {gene}){tag}</summary>'
-            f'<table><tr><th>Araç</th><th>Sonuç</th><th>Eşik (referans)</th>'
-            f'<th>Durum</th><th>Yöntem</th></tr>{trs}</table></details>')
-    return "".join(blocks)
+            cls = ' class="sel"' if r["star"] else ""
+            star = "★" if r["star"] else ""
+            lit = "📖" if r["iedb"] else "–"
+            base = (f'<td>{star}</td><td class="mono"><b>{r["epitope"]}</b></td>'
+                    f'<td class="mono">{r["source"]}</td><td>{r["pos"]}</td>')
+            if kind == "B":
+                trs += (f'<tr{cls}>{base}<td>{r["length"]}</td><td>{nz(r["bcell"])}</td>'
+                        f'<td>{nz(r["antigenicity"])}</td><td>{ok(r["allergen_ok"])}</td>'
+                        f'<td>{ok(r["toxic_ok"])}</td><td>{lit}</td></tr>')
+            elif kind == "MHC-I":
+                trs += (f'<tr{cls}>{base}<td>{nz(r["rank"])}</td><td class="mono">{r["allele"]}</td>'
+                        f'<td>{nz(r["antigenicity"])}</td><td>{ok(r["allergen_ok"])}</td>'
+                        f'<td>{ok(r["toxic_ok"])}</td><td>{nz(r["immunogenicity"])}</td>'
+                        f'<td>{nz(r["processing"])}</td><td>–</td><td>{lit}</td></tr>')
+            else:
+                trs += (f'<tr{cls}>{base}<td>{nz(r["rank"])}</td><td class="mono">{r["allele"]}</td>'
+                        f'<td>{nz(r["antigenicity"])}</td><td>{ok(r["allergen_ok"])}</td>'
+                        f'<td>{ok(r["toxic_ok"])}</td><td>{ok(r["ifn_ok"])}</td><td>–</td><td>{lit}</td></tr>')
+        out.append(f"<table>{head}{trs}</table>")
+    return "".join(out)
 
 
 def _iedb_section(meta: dict, peptides) -> str:
@@ -281,6 +313,8 @@ th{{background:#f4f4f4}}code{{background:#f4f4f4;padding:.1rem .3rem;border-radi
 .warn{{background:#fff4e5;border-left:4px solid #b26a00;padding:.6rem;margin:1rem 0}}
 .mono{{font-family:monospace;font-size:.72rem;color:#555;word-break:break-all}}
 td.pass{{color:#0a7;font-weight:600}}td.fail{{color:#c33;font-weight:600}}td.na{{color:#999}}
+span.pass{{color:#0a7;font-weight:700}}span.fail{{color:#c33}}
+tr.sel{{background:#e7f7ee}}tr.sel td{{border-color:#b7e6ca}}
 details{{margin:.4rem 0;border:1px solid #e5e5e5;border-radius:5px;padding:.3rem .6rem}}
 summary{{cursor:pointer;font-size:.95rem}}</style></head><body>
 <h1>🧬 VaxForge — Aşı Adayı Raporu</h1>
@@ -301,10 +335,8 @@ JSON'da <code>methods</code> altındadır.</div>
 <h2>En iyi 15 aday peptit (özet)</h2>
 {df.head(15).to_html(index=False)}
 
-<h2>Aday peptitler — TÜM araç sonuçları (en iyiden en kötüye)</h2>
-<p style="font-size:.82rem">Her aday için çalışan tüm araçların çıktısı ve referans eşiğe göre
-durumu. 🔒 = sert filtre (geçemeyen elenir); eşiksiz satırlar yorum amaçlıdır.</p>
-{_candidate_blocks(peptides or [], meta)}
+<h2>Aday epitoplar — tipe göre sıralı (CTL / HTL / B-hücre)</h2>
+{_type_tables_html(peptides or [], meta)}
 
 <h2>Kullanılan eşikler (tekrarlanabilirlik)</h2>
 <table><tr><th>Adım</th><th>Araç</th><th>Parametre</th><th>Değer</th><th>Tip</th></tr>{thr_rows}</table>
