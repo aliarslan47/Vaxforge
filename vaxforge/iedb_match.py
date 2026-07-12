@@ -36,6 +36,9 @@ from pathlib import Path
 _API = "https://query-api.iedb.org"
 _CACHE = Path(__file__).resolve().parent.parent / "tools" / "db" / "iedb"
 _TIMEOUT = 60
+# taxon yokken aday-başına canlı IEDB sorgusu üst sınırı (fazlası ağ-bağlı,
+# pratik değil → atlanır; toplu yol için organizma taxon'u verilmeli).
+LIVE_MAX = 150
 _PAGE = 10000  # IQ-API sayfa başına maksimum satır
 
 METHOD = "GERÇEK (IEDB IQ-API, deneysel epitop kaydı)"
@@ -306,7 +309,20 @@ def annotate_candidates(peptides, taxon_iri: str | None = None,
         }
         return summary
 
-    # taxon yok / önbellek+ağ yok → canlı yedek (varsa)
+    # taxon yok → aday-başına CANLI substring sorgusu. Bu O(N) ağ isteğidir
+    # (her biri _TIMEOUT'a kadar); çok adayda saatlerce sürer/askıda kalır.
+    # Bu yüzden ÜST SINIR: LIVE_MAX'ı aşarsa atla (dürüst not). Toplu/hızlı yol
+    # için organizma taxon'u verilmeli (fetch_source_organism → yerel Index).
+    if live_fallback and len(peptides) > LIVE_MAX:
+        for p in peptides:
+            p.metrics["iedb"] = {"matched": None,
+                                 "note": f"atlandı ({len(peptides)} aday > {LIVE_MAX}); "
+                                         "organizma taxon'u verilirse toplu eşleştirilir"}
+            p.methods["iedb"] = METHOD
+        return {"available": False, "source": None, "taxon": None,
+                "n_candidates": len(peptides), "n_matched": 0, "benchmark": None,
+                "note": f"aday-başına canlı IEDB taraması atlandı ({len(peptides)} > "
+                        f"{LIVE_MAX} aday, çok yavaş) — organizma taxon'u önerilir"}
     if live_fallback and online():
         for p in peptides:
             hit = _live_match(p.seq)

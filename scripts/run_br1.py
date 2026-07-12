@@ -24,6 +24,7 @@ t0 = time.time()
 result = None
 for ev in pipeline.run(str(work), det, cfg, "bacteria",
                        host_names=["bovine"], gram="negative",
+                       organism_taxon="NCBITaxon:235",  # Brucella abortus → hızlı toplu IEDB
                        outdir="outputs", host_registry=reg):
     if ev["phase"] == "__result__":
         result = ev["data"]
