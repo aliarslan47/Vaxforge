@@ -128,14 +128,31 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
     if mhci:
         el.append(Paragraph("2b. "+t(lang,"pdf_anchor_title"), h2))
         el.append(Paragraph(t(lang,"pdf_anchor_text"), small))
-        arows = [[t(lang,"col_epitope"), t(lang,"col_allele"), t(lang,"col_anchors"), t(lang,"col_pocket"), t(lang,"col_match2")]]
+        def _anchor_full(m):
+            # 'N/N' (tüm anchor'lar cebe uyuyor) = önemli → yıldız
+            try:
+                a, b = str(m).split("/")
+                return int(a) == int(b) and int(b) > 0
+            except Exception:
+                return False
+
+        arows = [["★", t(lang, "col_epitope"), t(lang, "col_allele"), t(lang, "col_anchors"),
+                  t(lang, "col_pocket"), t(lang, "col_match2")]]
+        astar = []
         for p in mhci:
             anch = ";".join(f"{k}={v}" for k, v in (p.metrics.get("anchor_residues") or {}).items())
             motif = "  ".join(f"{k}:{','.join(v)}" for k, v in
                               (p.metrics.get("allele_anchor_motif") or {}).items()) or "—"
-            arows.append([p.seq, str(p.metrics.get("best_allele", "—")), anch, motif,
-                          str(p.metrics.get("anchor_match", "—"))])
-        el.append(tbl(arows, widths=[2.6*cm, 2.8*cm, 2.6*cm, 5.2*cm, 1.2*cm]))
+            am = str(p.metrics.get("anchor_match", "—"))
+            full = _anchor_full(am)
+            if full:
+                astar.append(len(arows))
+            arows.append(["★" if full else "", P(p.seq), P(str(p.metrics.get("best_allele", "—"))),
+                          P(anch), P(motif), am])
+        atb = tbl(arows, widths=[0.6*cm, 2.5*cm, 2.6*cm, 2.4*cm, 5.0*cm, 1.1*cm])
+        for ri in astar:
+            atb.setStyle(TableStyle([("BACKGROUND", (0, ri), (-1, ri), colors.HexColor("#e7f7ee"))]))
+        el.append(atb)
 
     # -- Aday epitoplar TİPE GÖRE sıralı tablolar (literatür stili: CTL/HTL/B)
     from . import evaluate
@@ -151,16 +168,23 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
     def _n(v, nd=2):
         return "—" if v is None else f"{v:.{nd}f}"
 
+    # Not: emoji (🟦/📖) DejaVu'da kutu çıkar → PDF'te metin başlık + ✓ kullanılır.
+    # Hücreler Paragraph ile sarılır (taşma yok); kolonlar geniş (sayfa yeri var).
+    _lit = "✓"
     conf = {
-        "MHC-I": (f"🟦 {t(lang,'tt_ctl')}",
-                  ["★", t(lang,"col_epitope"), t(lang,"col_source"), "%rank", t(lang,"col_allele"), t(lang,"col_antig"), t(lang,"col_allergen")[:3], t(lang,"col_toxic")[:3], t(lang,"col_immuno")[:5], t(lang,"col_proc")[:5], "lit"],
-                  [0.5*cm, 2.7*cm, 2.5*cm, 1.3*cm, 2.2*cm, 1.2*cm, 0.8*cm, 0.8*cm, 1.3*cm, 1.2*cm, 0.9*cm]),
-        "MHC-II": (f"🟨 {t(lang,'tt_htl')}",
-                   ["★", t(lang,"col_epitope"), t(lang,"col_source"), "%rank", t(lang,"col_allele"), t(lang,"col_antig"), t(lang,"col_allergen")[:3], t(lang,"col_toxic")[:3], "IFN", "lit"],
-                   [0.5*cm, 3.3*cm, 2.6*cm, 1.3*cm, 2.6*cm, 1.2*cm, 0.9*cm, 0.9*cm, 1.0*cm, 0.9*cm]),
-        "B": (f"🟩 {t(lang,'tt_bcell')}",
-              ["★", t(lang,"col_epitope"), t(lang,"col_source"), t(lang,"col_len")[:3], "BepiPred", t(lang,"col_antig"), t(lang,"col_allergen")[:3], t(lang,"col_toxic")[:3], "lit"],
-              [0.5*cm, 3.0*cm, 2.8*cm, 1.0*cm, 1.8*cm, 1.3*cm, 0.9*cm, 0.9*cm, 0.9*cm]),
+        "MHC-I": (t(lang, "tt_ctl"),
+                  ["★", t(lang, "col_epitope"), t(lang, "col_source"), "%rank", t(lang, "col_allele"),
+                   t(lang, "col_antig"), t(lang, "col_allergen"), t(lang, "col_toxic"),
+                   t(lang, "col_immuno"), t(lang, "col_proc"), "Lit"],
+                  [0.6*cm, 2.5*cm, 2.9*cm, 1.2*cm, 2.1*cm, 1.3*cm, 1.4*cm, 1.3*cm, 1.4*cm, 1.3*cm, 0.9*cm]),
+        "MHC-II": (t(lang, "tt_htl"),
+                   ["★", t(lang, "col_epitope"), t(lang, "col_source"), "%rank", t(lang, "col_allele"),
+                    t(lang, "col_antig"), t(lang, "col_allergen"), t(lang, "col_toxic"), "IFN-γ", "Lit"],
+                   [0.6*cm, 3.0*cm, 3.0*cm, 1.3*cm, 2.5*cm, 1.3*cm, 1.4*cm, 1.3*cm, 1.2*cm, 0.9*cm]),
+        "B": (t(lang, "tt_bcell"),
+              ["★", t(lang, "col_epitope"), t(lang, "col_source"), t(lang, "col_len"), "BepiPred",
+               t(lang, "col_antig"), t(lang, "col_allergen"), t(lang, "col_toxic"), "Lit"],
+              [0.6*cm, 3.2*cm, 3.2*cm, 1.3*cm, 1.8*cm, 1.4*cm, 1.4*cm, 1.3*cm, 0.9*cm]),
     }
     for kind in ("MHC-I", "MHC-II", "B"):
         rows = tt.get(kind, [])
@@ -168,24 +192,25 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
             continue
         title, header, widths = conf[kind]
         el.append(Spacer(1, 6))
-        el.append(Paragraph(f"{title} — {len(rows)}/{total[kind]} {t(lang,'disc_short')}", body))
+        el.append(Paragraph(f"<b>{title}</b> — {len(rows)}/{total[kind]} {t(lang,'disc_short')}", body))
         drows = [header]
         star_rows = []
         for ri, r in enumerate(rows, 1):
             star = "★" if r["star"] else ""
-            lit = "📖" if r["iedb"] else "–"
+            lit = _lit if r["iedb"] else "–"
             if r["star"]:
                 star_rows.append(ri)
+            epi, src, all = P(r["epitope"]), P(r["source"]), P(r.get("allele", ""))
             if kind == "B":
-                drows.append([star, r["epitope"], r["source"], str(r["length"]),
+                drows.append([star, epi, src, str(r["length"]),
                               _n(r["bcell"]), _n(r["antigenicity"]),
                               _yn(r["allergen_ok"]), _yn(r["toxic_ok"]), lit])
             elif kind == "MHC-I":
-                drows.append([star, r["epitope"], r["source"], _n(r["rank"]), r["allele"],
+                drows.append([star, epi, src, _n(r["rank"]), all,
                               _n(r["antigenicity"]), _yn(r["allergen_ok"]), _yn(r["toxic_ok"]),
                               _n(r["immunogenicity"]), _n(r["processing"]), lit])
             else:
-                drows.append([star, r["epitope"], r["source"], _n(r["rank"]), r["allele"],
+                drows.append([star, epi, src, _n(r["rank"]), all,
                               _n(r["antigenicity"]), _yn(r["allergen_ok"]), _yn(r["toxic_ok"]),
                               _yn(r["ifn_ok"]), lit])
         tb = tbl(drows, widths=widths)
@@ -219,19 +244,20 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
         else:
             el.append(Paragraph(
                 t(lang,"iedb_intro").format(src=im.get('source',''), n=im.get('n_matched',0), tot=im.get('n_candidates','?')), small))
-            mrows = [["#", t(lang,"col_epitope"), t(lang,"col_type"), t(lang,"col_match"), t(lang,"col_iedb_epi"), t(lang,"col_organism"), "PMID"]]
+            mrows = [["#", t(lang, "col_epitope"), t(lang, "col_type"), t(lang, "col_match"),
+                      t(lang, "col_iedb_epi"), t(lang, "col_organism"), "PMID"]]
             for i, p in enumerate(peptides, 1):
                 ie = p.metrics.get("iedb") or {}
                 if ie.get("matched") is not True:
                     continue
                 pmids = ie.get("pmids") or []
                 ref = ", ".join(pmids[:3]) or (f"IEDB {ie.get('iedb_id')}" if ie.get("iedb_id") else "—")
-                mrows.append([i, p.seq, p.kind, ie.get("match_type", ""),
-                              ie.get("epitope_seq", ""),
-                              (ie.get("organisms") or ["—"])[0], ref])
+                org = (ie.get("organisms") or ["—"])[0].split(" (")[0]   # uzun suş parantezini at
+                mrows.append([str(i), P(p.seq), p.kind, P(ie.get("match_type", "")),
+                              P(ie.get("epitope_seq", "")), P(org), P(ref)])
             if len(mrows) > 1:
                 el.append(Spacer(1, 4))
-                el.append(tbl(mrows, widths=[0.7*cm, 2.8*cm, 1.2*cm, 3.0*cm, 3.0*cm, 3.2*cm, 2.6*cm]))
+                el.append(tbl(mrows, widths=[0.7*cm, 2.6*cm, 1.1*cm, 2.6*cm, 3.0*cm, 3.6*cm, 2.4*cm]))
             else:
                 el.append(Paragraph(f"<i>{t(lang,'iedb_none')}</i>", small))
             bm = im.get("benchmark") or {}
