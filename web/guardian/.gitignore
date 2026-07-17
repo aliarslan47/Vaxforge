@@ -2,3 +2,5 @@
 logs/
 incidents/
 ALERTS.log
+supervisor.pid
+_archive/

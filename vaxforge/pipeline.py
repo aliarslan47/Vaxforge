@@ -32,7 +32,7 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
         overrides: dict | None = None, has_gpu: bool = False,
         outdir: str | Path = "outputs", host_registry: HostRegistry | None = None,
         organism_taxon: str | None = None, gram: str | None = None,
-        lang: str = "tr"):
+        lang: str = "tr", adjuvant: str = "beta_defensin"):
     resolved = cfg.resolve(profile, overrides)
     steps = build_plan(det, has_gpu=has_gpu)
     reg = host_registry or HostRegistry.load()
@@ -155,7 +155,7 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
     # birleştirilir; konstrukt-seviyesi fizikokimyasal/immünoinformatik özellikler.
     yield _ev("mev", "running", "Çok-epitoplu aşı konstruktu (MEV) inşa ediliyor…")
     try:
-        mev_out = mev.run(peptides)
+        mev_out = mev.run(peptides, adjuvant=adjuvant)
         meta["mev"] = mev_out
         mp = mev_out["properties"]
         yield _ev("mev", "done",

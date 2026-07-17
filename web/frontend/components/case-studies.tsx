@@ -1,8 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { ArrowUpRight, FileText, Dna, Bug, Microscope } from "lucide-react";
-import { RunSummary } from "@/lib/api";
+import { ArrowUpRight, FileText, Dna, Bug, Microscope, Trash2, Loader2 } from "lucide-react";
+import { RunSummary, deleteRun } from "@/lib/api";
 import { useLang } from "./lang-provider";
 import { Badge } from "./ui";
 
@@ -15,9 +16,25 @@ function organismIcon(input: string) {
   return Dna;
 }
 
-export function CaseStudies({ runs }: { runs: RunSummary[] }) {
+export function CaseStudies({ runs, onDeleted }: { runs: RunSummary[]; onDeleted?: (id: string) => void }) {
   const { t } = useLang();
+  const [deleting, setDeleting] = useState<string | null>(null);
   const top = runs.slice(0, 6);
+
+  const onDelete = async (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!window.confirm(t("runs_delete_confirm"))) return;
+    setDeleting(id);
+    try {
+      await deleteRun(id);
+      onDeleted?.(id);
+    } catch {
+      /* sessizce yut */
+    } finally {
+      setDeleting(null);
+    }
+  };
 
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -33,7 +50,22 @@ export function CaseStudies({ runs }: { runs: RunSummary[] }) {
               <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">
                 <Icon className="h-5 w-5" />
               </span>
-              <ArrowUpRight className="h-5 w-5 text-fg-faint transition-colors group-hover:text-primary" />
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={(e) => onDelete(e, r.id)}
+                  disabled={deleting === r.id}
+                  aria-label={t("runs_delete")}
+                  title={t("runs_delete")}
+                  className="grid h-8 w-8 place-items-center rounded-lg border border-line text-fg-faint transition hover:border-danger/50 hover:text-danger disabled:opacity-40 cursor-pointer"
+                >
+                  {deleting === r.id ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-4 w-4" />
+                  )}
+                </button>
+                <ArrowUpRight className="h-5 w-5 text-fg-faint transition-colors group-hover:text-primary" />
+              </div>
             </div>
             <h3 className="mt-4 truncate font-display text-lg font-semibold text-fg">
               {r.input}

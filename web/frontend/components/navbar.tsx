@@ -22,7 +22,7 @@ export function Navbar() {
   const links = [
     { href: "/#how", label: t("nav_method") },
     { href: "/#tools", label: t("nav_tools") },
-    { href: "/#cases", label: t("nav_runs") },
+    { href: "/runs", label: t("nav_runs") },
   ];
 
   return (
@@ -106,6 +106,21 @@ export function Navbar() {
             >
               {t("nav_run")}
             </Link>
+            <div className="mt-2 flex items-center gap-1 border-t border-line pt-3">
+              {LANGS.map((l) => (
+                <button
+                  key={l}
+                  onClick={() => setLang(l)}
+                  className={cn(
+                    "rounded-md px-3 py-1.5 text-xs font-medium uppercase transition-colors cursor-pointer",
+                    lang === l ? "bg-primary/15 text-primary" : "text-fg-faint hover:text-fg",
+                  )}
+                  aria-pressed={lang === l}
+                >
+                  {l}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       )}

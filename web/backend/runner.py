@@ -31,27 +31,71 @@ from vaxforge.plan import build_plan, plan_table  # noqa: E402
 CFG = ThresholdConfig.load()
 HOSTS = HostRegistry.load()
 
-# Araç durumu için modül listesi (app.py:288-297 deseni).
-_TOOL_MODULES = [
-    ("discovery", "DIAMOND+VFDB"), ("deeploc", "DeepLoc"),
-    ("tmhmm_local", "TMHMM"), ("signalp", "SignalP"),
-    ("iapred", "IApred"), ("bepipred", "BepiPred"),
-    ("netmhc_local", "NetMHCpan"), ("toxinpred", "ToxinPred2"),
+# ── Pipeline adımı → GERÇEK aktif yöntem kataloğu ──────────────────────────
+# Grid'in kodun gerçeğini yansıtması için: her satır bir pipeline adımı; o adımda
+# GERÇEKTE çalışan aracı gösterir. Araç kuruluysa `real`, değilse o adımın gerçek
+# `fallback` yöntemi (heuristik de olsa gerçek bir yöntemdir). "kurulu değil" değil.
+# alan: (id, module, step_tr, step_en, real, fallback)   fallback=None → hep gerçek
+_PIPELINE_STEPS = [
+    ("discovery", "discovery", "Virülans keşfi", "Virulence discovery",
+     "DIAMOND 2.1.9 + VFDB", "VFDB anahtar-kelime + yerel hizalama"),
+    ("localization", "psortb", "Hücre-altı lokalizasyon", "Subcellular localization",
+     "PSORTb 3.0 (Gram)", "Kyte-Doolittle + sinyal peptid"),
+    ("tm", "tmhmm_local", "Transmembran topoloji", "Transmembrane topology",
+     "TMHMM-2.0", "Kyte-Doolittle hidropati"),
+    ("signal", "signalp", "Sinyal peptidi", "Signal peptide",
+     "SignalP-5.0", "Heuristik sinyal skoru"),
+    ("antigenicity", "iapred", "Antijenite", "Antigenicity",
+     "IApred (Miles 2025)", "antigen_acc (VaxiJen-tarzı proxy)"),
+    ("bcell", "bepipred", "B-hücre epitop", "B-cell epitope",
+     "BepiPred-1.0", "Parker hidrofilisite"),
+    ("mhc", "netmhc_local", "MHC-I/II bağlanma", "MHC-I/II binding",
+     "NetMHCpan / NetMHCIIpan", "SMM/proxy bağlanma"),
+    ("allergen", "allergen", "Alerjenite", "Allergenicity",
+     "FAO/WHO Codex 6-mer", None),
+    ("toxicity", "toxinpred", "Toksisite", "Toxicity",
+     "ToxinPred2 (Hybrid)", "ToxinPred2 (Model 1, AAC+RF)"),
+    ("solubility", "solubility", "Çözünürlük (MEV)", "Solubility (MEV)",
+     "Protein-Sol", None),
+    ("secstruct", "secstruct", "İkincil yapı (MEV)", "Secondary structure (MEV)",
+     "S4PRED", None),
+    ("disorder", "disorder", "Düzensizlik (MEV)", "Disorder (MEV)",
+     "metapredict V3", None),
+    ("population", "population", "Popülasyon kapsamı", "Population coverage",
+     "IEDB Population Coverage", "hesaplanamadı"),
 ]
 
 
-def tool_status() -> list[dict]:
-    """Her gerçek aracın kurulu olup olmadığını döndürür (available())."""
+def _module_available(mod: str) -> bool:
+    try:
+        m = __import__(f"vaxforge.{mod}", fromlist=["available"])
+        return bool(m.available())
+    except Exception:
+        return False
+
+
+def pipeline_steps() -> list[dict]:
+    """Her pipeline adımı için GERÇEKTE çalışan yöntemi döndürür (grid için)."""
     out = []
-    for mod, label in _TOOL_MODULES:
-        ok = False
-        try:
-            m = __import__(f"vaxforge.{mod}", fromlist=["available"])
-            ok = bool(m.available())
-        except Exception:
-            ok = False
-        out.append({"module": mod, "label": label, "available": ok})
+    for sid, mod, step_tr, step_en, real, fallback in _PIPELINE_STEPS:
+        installed = _module_available(mod)
+        # fallback None ise yöntem zaten yereldir → her zaman gerçek/kurulu say.
+        active_installed = installed or fallback is None
+        method = real if active_installed else fallback
+        out.append({
+            "id": sid, "module": mod,
+            "step_tr": step_tr, "step_en": step_en,
+            "method": method,
+            "real": real, "fallback": fallback,
+            "installed": active_installed,
+        })
     return out
+
+
+def tool_status() -> list[dict]:
+    """Geriye-uyum: eski 'tools' alanı (module/label/available)."""
+    return [{"module": s["module"], "label": s["method"], "available": s["installed"]}
+            for s in pipeline_steps()]
 
 
 def get_config() -> dict:
@@ -67,12 +111,20 @@ def get_config() -> dict:
             "n_mhc_ii": len(h.mhc_ii),
             "default": name in HOSTS.default_hosts,
         })
+    try:
+        from vaxforge import mev as _mev
+        adjuvants = _mev.list_adjuvants()
+    except Exception:
+        adjuvants = []
     return {
         "profiles": CFG.profiles,
         "default_profile": CFG.default_profile,
         "hosts": hosts,
         "default_hosts": list(HOSTS.default_hosts),
         "tools": tool_status(),
+        "steps": pipeline_steps(),
+        "adjuvants": adjuvants,
+        "default_adjuvant": "beta_defensin",
         "config_file": CFG.path.name,
         "hosts_file": HOSTS.path.name,
     }
@@ -155,6 +207,16 @@ def _safe_run_dir(run_id: str) -> Path | None:
     return d if d.is_dir() else None
 
 
+def delete_run(run_id: str) -> bool:
+    """Bir koşu çıktısını (outputs/run_xxx) güvenle siler. Başarı → True."""
+    d = _safe_run_dir(run_id)
+    if d is None:
+        return False
+    import shutil as _sh
+    _sh.rmtree(d, ignore_errors=True)
+    return not d.exists()
+
+
 _ALLOWED_FILES = {
     "report.html", "report.pdf", "candidates.csv",
     "candidates_full.xlsx", "top_peptides.fasta", "run.json",
@@ -174,7 +236,7 @@ def get_run_file(run_id: str, name: str) -> Path | None:
 
 def run_pipeline(input_path: str, filename: str, profile: str,
                  host_names: list[str] | None, gram: str | None,
-                 lang: str = "tr") -> Iterator[dict]:
+                 lang: str = "tr", adjuvant: str = "beta_defensin") -> Iterator[dict]:
     """pipeline.run() generator'ını sarar; her event'i dict olarak yield eder.
 
     Streamlit app.py:319-322 ile aynı çağrı. Son event `__result__` yerine
@@ -210,7 +272,7 @@ def run_pipeline(input_path: str, filename: str, profile: str,
         input_path, det, CFG, profile,
         host_names=host_names or None, overrides={},
         has_gpu=False, outdir=str(OUTPUTS), host_registry=HOSTS,
-        organism_taxon=None, gram=gram_val, lang=lang,
+        organism_taxon=None, gram=gram_val, lang=lang, adjuvant=adjuvant,
     ):
         phase = ev["phase"]
         if phase == "__result__":

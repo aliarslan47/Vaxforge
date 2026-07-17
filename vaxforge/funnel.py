@@ -15,7 +15,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-from . import antigen_acc, deeploc, iapred, psortb, signalp, tmhmm_local
+from . import antigen_acc, iapred, psortb, signalp, tmhmm_local
 from .config_loader import ResolvedTool
 from .hosts import Host
 from .models import ProteinRecord
@@ -128,28 +128,21 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
     seq_pairs = [(pr.id, sanitize(pr.seq)) for pr in proteins]
     tm_available = tmhmm_local.available()
     tm_real = tmhmm_local.predict(seq_pairs) if tm_available else {}
-    # -- lokalizasyon: bakteride PSORTb (Gram) > DeepLoc > heuristik
+    # -- lokalizasyon: bakteride PSORTb (Gram) > heuristik (Kyte-Doolittle + sinyal)
     psortb_ok = loc_hard and gram in ("positive", "negative") and psortb.available()
     psortb_real = psortb.predict(seq_pairs, gram) if psortb_ok else {}
-    # DeepLoc yalnız bakteride ve PSORTb yoksa (çok sayıda viral ORF'ta çok yavaş).
-    loc_available = deeploc.available() and loc_hard and not psortb_ok
-    loc_real = deeploc.predict(seq_pairs) if loc_available else {}
     sp_available = signalp.available()
     sp_real = signalp.predict(seq_pairs, profile=profile) if sp_available else {}
     ia_available = iapred.available()
     ia_res = iapred.predict(seq_pairs) if ia_available else {}
     ag_available = antigen_acc.available()
     for pr in proteins:
-        # -- lokalizasyon: PSORTb (prokaryota-özel) > DeepLoc > heuristik
+        # -- lokalizasyon: PSORTb (prokaryota-özel) > heuristik (KD+sinyal)
         if psortb_ok and pr.id in psortb_real:
             loc = psortb_real[pr.id]["localization"]
             pr.annotations["localization_raw"] = psortb_real[pr.id]["raw"]
             pr.annotations["localization_score"] = psortb_real[pr.id]["score"]
             pr.annotations["method_localization"] = f"GERÇEK (PSORTb, Gram{'+' if gram=='positive' else '−'})"
-        elif loc_available and pr.id in loc_real:
-            loc = loc_real[pr.id]["localization"]
-            pr.annotations["localization_raw"] = loc_real[pr.id]["raw"]
-            pr.annotations["method_localization"] = "GERÇEK (DeepLoc-2.1)"
         else:
             loc = _LOC_MAP.get(predict_localization(pr.seq), "cytoplasm")
             pr.annotations["method_localization"] = "heuristik (KD+sinyal)"
@@ -233,10 +226,8 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
 
     if psortb_ok:
         loc_method = f"GERÇEK (PSORTb, Gram{'+' if gram=='positive' else '−'})"
-    elif loc_available:
-        loc_method = "GERÇEK (DeepLoc-2.1)"
     else:
-        loc_method = "heuristik"
+        loc_method = "heuristik (Kyte-Doolittle + sinyal)"
     hh_method = (f"GERÇEK (diamond → {', '.join(hh_scanned)})" if hh_available
                  else "ÇALIŞTIRILMADI (seçili konaklarda DB yok)")
     if hh_missing:

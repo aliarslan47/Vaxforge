@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { Button, Card, Badge, SectionHeading } from "@/components/ui";
-import { FunnelChart, CandidatesTable, DownloadBar } from "@/components/results";
+import { FunnelChart, CandidatesTable, DownloadBar, MevConstruct, PopulationCoverage, IedbValidation } from "@/components/results";
 import { useLang } from "@/components/lang-provider";
 import {
   getConfig,
@@ -23,7 +23,6 @@ import {
   AppConfig,
   SSEEvent,
   RunDetail,
-  fileUrl,
 } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
@@ -36,6 +35,7 @@ export default function RunPage() {
   const [profile, setProfile] = useState("bacteria");
   const [gram, setGram] = useState("negative");
   const [hosts, setHosts] = useState<string[]>([]);
+  const [adjuvant, setAdjuvant] = useState("beta_defensin");
   const [dragOver, setDragOver] = useState(false);
 
   const [phase, setPhase] = useState<Phase>("idle");
@@ -54,6 +54,7 @@ export default function RunPage() {
         setConfig(c);
         setProfile(c.default_profile);
         setHosts(c.default_hosts);
+        if (c.default_adjuvant) setAdjuvant(c.default_adjuvant);
       })
       .catch(() => {});
   }, []);
@@ -90,6 +91,7 @@ export default function RunPage() {
     form.append("hosts", hosts.join(","));
     form.append("gram", profile === "bacteria" ? gram : "");
     form.append("lang", lang);
+    form.append("adjuvant", adjuvant);
 
     const ac = new AbortController();
     abortRef.current = ac;
@@ -248,6 +250,43 @@ export default function RunPage() {
               </div>
             </Card>
 
+            {/* MEV adjuvanı */}
+            {config?.adjuvants && config.adjuvants.length > 0 && (
+              <Card className="p-4">
+                <div className="text-xs font-medium uppercase tracking-wide text-fg-faint">
+                  {t("run_adjuvant")}
+                </div>
+                <div className="mt-2 space-y-1.5">
+                  {config.adjuvants.map((a) => {
+                    const active = adjuvant === a.key;
+                    const label = lang === "tr" ? a.label_tr : a.label_en;
+                    const desc = lang === "tr" ? a.desc_tr : a.desc_en;
+                    return (
+                      <button
+                        key={a.key}
+                        onClick={() => setAdjuvant(a.key)}
+                        className={cn(
+                          "w-full rounded-lg border px-3 py-2 text-left transition cursor-pointer",
+                          active ? "border-primary/50 bg-primary/[0.07]" : "border-line hover:border-primary/30",
+                        )}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className={cn("text-[13px] font-medium", active ? "text-primary" : "text-fg")}>{label}</span>
+                          <span className="flex shrink-0 items-center gap-1.5 font-mono text-[10px] text-fg-faint">
+                            {a.tlr !== "—" && <span className="rounded bg-white/[0.06] px-1 py-0.5">{a.tlr}</span>}
+                            {a.length > 0 && <span>{a.length}aa</span>}
+                          </span>
+                        </div>
+                        {desc && <div className="mt-0.5 text-[11px] leading-snug text-fg-muted">{desc}</div>}
+                        {a.citation && <div className="mt-0.5 text-[10px] italic text-fg-faint">{a.citation}</div>}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="mt-2 text-[10px] leading-relaxed text-fg-faint">{t("run_adjuvant_hint")}</p>
+              </Card>
+            )}
+
             <Button
               onClick={start}
               disabled={!file || phase === "running"}
@@ -339,18 +378,9 @@ export default function RunPage() {
                   )}
                 </div>
 
-                {detail.candidates && (
-                  <div>
-                    <h3 className="mb-4 font-display text-xl font-semibold text-fg">{t("res_report")}</h3>
-                    <Card className="overflow-hidden">
-                      <iframe
-                        src={fileUrl(runId, "report.html")}
-                        className="h-[600px] w-full bg-white"
-                        title="report"
-                      />
-                    </Card>
-                  </div>
-                )}
+                {detail.mev && <MevConstruct mev={detail.mev} />}
+                {(detail as any).population_coverage && <PopulationCoverage pc={(detail as any).population_coverage} />}
+                {(detail as any).iedb_match && <IedbValidation iedb={(detail as any).iedb_match} />}
               </>
             )}
           </div>

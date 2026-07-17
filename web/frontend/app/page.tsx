@@ -28,7 +28,7 @@ export default function Home() {
     getRuns().then(setRuns).catch(() => {});
   }, []);
 
-  const nTools = config?.tools.filter((x) => x.available).length ?? 0;
+  const nTools = config?.steps?.filter((x) => x.installed).length ?? config?.tools.filter((x) => x.available).length ?? 0;
   const nHosts = config?.hosts.length ?? 0;
   const stats = [
     { v: nTools ? `${nTools}` : "—", l: t("stat_tools") },
@@ -130,7 +130,7 @@ export default function Home() {
           <SectionHeading eyebrow="Stack" title={t("tools_title")} sub={t("tools_sub")} />
           <div className="mt-12">
             {config ? (
-              <ToolsGrid tools={config.tools} />
+              <ToolsGrid steps={config.steps ?? []} />
             ) : (
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {Array.from({ length: 8 }).map((_, i) => (
@@ -148,7 +148,7 @@ export default function Home() {
           <SectionHeading eyebrow="Evidence" title={t("cases_title")} sub={t("cases_sub")} />
           <div className="mt-12">
             {runs.length ? (
-              <CaseStudies runs={runs} />
+              <CaseStudies runs={runs} onDeleted={(id) => setRuns((prev) => prev.filter((r) => r.id !== id))} />
             ) : (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 {Array.from({ length: 3 }).map((_, i) => (

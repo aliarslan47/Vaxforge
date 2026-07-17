@@ -19,7 +19,7 @@ from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 
-from runner import (get_config, get_run, get_run_file, list_runs,
+from runner import (delete_run, get_config, get_run, get_run_file, list_runs,
                     run_pipeline)
 
 app = FastAPI(title="VaxForge API", version="1.0")
@@ -67,6 +67,14 @@ def run_detail(run_id: str):
     return data
 
 
+@app.delete("/api/runs/{run_id}")
+def run_delete(run_id: str):
+    """Bir koşu çıktısını kalıcı olarak siler."""
+    if not delete_run(run_id):
+        raise HTTPException(status_code=404, detail="run bulunamadı")
+    return {"deleted": run_id}
+
+
 @app.get("/api/runs/{run_id}/file/{name}")
 def run_file(run_id: str, name: str):
     f = get_run_file(run_id, name)
@@ -85,6 +93,7 @@ async def run(
     hosts: str = Form(""),          # virgülle ayrık konak adları
     gram: str = Form(""),           # negative | positive | ""
     lang: str = Form("tr"),
+    adjuvant: str = Form("beta_defensin"),   # MEV adjuvan anahtarı
 ):
     """Yüklenen dosyayı geçici diske yazar ve pipeline'ı SSE ile akıtır."""
     suffix = Path(file.filename or "input.dat").suffix or ".dat"
@@ -99,7 +108,7 @@ async def run(
     def event_stream():
         try:
             for ev in run_pipeline(tmp_path, filename, profile,
-                                   host_names, gram_val, lang):
+                                   host_names, gram_val, lang, adjuvant):
                 yield f"data: {json.dumps(ev, ensure_ascii=False)}\n\n"
         except Exception as exc:  # pipeline içi beklenmeyen çökme
             err = {"phase": "__error__", "status": "error",

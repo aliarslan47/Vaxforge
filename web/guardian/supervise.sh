@@ -30,6 +30,25 @@ BACKEND_PID=""; FRONTEND_PID=""
 
 log() { echo "[$(date '+%F %T')] $*" | tee -a "$LOGS/supervisor.log"; }
 
+# Bir portu tutan süreçleri bul ve öldür, port boşalana kadar bekle.
+# KÖK NEDEN FİX: restart öncesi eski süreç portu bırakmazsa yeni uvicorn
+# "Errno 98 address already in use" ile anında çöker → sonsuz restart döngüsü.
+free_port() {
+  local port="$1" tries=0 pids
+  while :; do
+    pids="$( { ss -ltnpH "sport = :$port" 2>/dev/null || ss -ltnp 2>/dev/null | grep -E "[:.]$port\b"; } \
+             | grep -oE 'pid=[0-9]+' | cut -d= -f2 | sort -u )"
+    [ -z "$pids" ] && return 0
+    if [ "$tries" -ge 10 ]; then
+      log "⚠ port :$port hâlâ dolu (pid: $pids) — zorla kapatılıyor"
+      echo "$pids" | xargs -r kill -9 2>/dev/null || true
+      sleep 1; return 0
+    fi
+    [ "$tries" -eq 0 ] && log "port :$port dolu (pid: $pids) — boşaltılıyor" && echo "$pids" | xargs -r kill 2>/dev/null || true
+    tries=$((tries+1)); sleep 1
+  done
+}
+
 notify() {
   # Masaüstü bildirimi (varsa) + kalıcı bayrak dosyası (Claude hook/oturum görür).
   local title="$1" body="$2"
@@ -56,6 +75,7 @@ JSON
 }
 
 start_backend() {
+  free_port "$BACKEND_PORT"
   log "backend başlatılıyor (uvicorn :$BACKEND_PORT)"
   (cd "$BE" && exec "$VENV/bin/uvicorn" main:app --host 127.0.0.1 --port "$BACKEND_PORT" \
       --log-level warning) >>"$LOGS/backend.log" 2>&1 &
@@ -63,6 +83,7 @@ start_backend() {
 }
 
 start_frontend() {
+  free_port "$FRONTEND_PORT"
   log "frontend başlatılıyor (next start :$FRONTEND_PORT)"
   (cd "$FE" && VAXFORGE_API="http://127.0.0.1:$BACKEND_PORT" exec npm run start) \
       >>"$LOGS/frontend.log" 2>&1 &
@@ -73,11 +94,21 @@ cleanup() {
   log "kapatılıyor — çocuk süreçler durduruluyor"
   [ -n "$BACKEND_PID" ] && kill "$BACKEND_PID" 2>/dev/null || true
   [ -n "$FRONTEND_PID" ] && kill "$FRONTEND_PID" 2>/dev/null || true
+  rm -f "$GDIR/supervisor.pid" 2>/dev/null || true
   exit 0
 }
 trap cleanup INT TERM
 
 # --- başlangıç ---
+# ÇİFT-INSTANCE KORUMASI: başka bir supervisor koşuyorsa çık (iki süpervizörün
+# aynı portları restart etmesi de sonsuz "address in use" döngüsü doğuruyordu).
+PIDFILE="$GDIR/supervisor.pid"
+if [ -f "$PIDFILE" ] && kill -0 "$(cat "$PIDFILE" 2>/dev/null)" 2>/dev/null; then
+  log "başka bir guardian zaten çalışıyor (pid $(cat "$PIDFILE")) — çıkılıyor"
+  exit 1
+fi
+echo "$$" > "$PIDFILE"
+
 log "════ VaxForge Guardian başladı ════"
 start_backend
 start_frontend
@@ -86,36 +117,42 @@ start_frontend
 sleep 4
 
 declare -A FAILS=([backend]=0 [frontend]=0)
+declare -A GAVE_UP=([backend]=0 [frontend]=0)   # MAX aşıldı → sus (incident spam yok)
 MAX_RESTARTS="${VF_MAX_RESTARTS:-5}"
+
+# Bir servisi denetle: ölmüşse restart et, MAX aşıldıysa BİR KEZ pes edip sus.
+supervise_one() {
+  local svc="$1" pid_var="$2" port="$3" starter="$4" logf="$5"
+  local pid="${!pid_var}"
+  # pes edilmiş servis için hiçbir şey yapma (sonsuz incident yazımını önler)
+  [ "${GAVE_UP[$svc]}" -eq 1 ] && return 0
+
+  if ! kill -0 "$pid" 2>/dev/null; then
+    FAILS[$svc]=$(( FAILS[$svc] + 1 ))
+    log "⚠ $svc süreci öldü (deneme ${FAILS[$svc]}/$MAX_RESTARTS)"
+    incident "$svc" "process_exited" "$(tail -30 "$logf" 2>/dev/null)"
+    notify "VaxForge $svc çöktü" "Yeniden başlatılıyor (:$port)"
+    if [ "${FAILS[$svc]}" -le "$MAX_RESTARTS" ]; then
+      "$starter"; sleep 3
+    else
+      GAVE_UP[$svc]=1
+      log "$svc $MAX_RESTARTS kez çöktü — otomatik restart durduruldu (kod fix gerek). Bu servis artık sessiz."
+      notify "VaxForge $svc PES EDİLDİ" "Kod düzeltmesi gerekiyor — site-guardian devreye alınmalı"
+    fi
+  else
+    # süreç sağlıklı ayakta: geçici flapping sayacını sıfırla ki eski
+    # hatalar birikip yanlışlıkla MAX'e ulaşmasın.
+    [ "${FAILS[$svc]}" -gt 0 ] && FAILS[$svc]=0
+  fi
+}
 
 while true; do
   sleep 10
-
-  # süreç ölmüş mü? (PID kontrol)
-  if ! kill -0 "$BACKEND_PID" 2>/dev/null; then
-    FAILS[backend]=$(( FAILS[backend] + 1 ))
-    log "⚠ backend süreci öldü (deneme ${FAILS[backend]}/$MAX_RESTARTS)"
-    incident "backend" "process_exited" "$(tail -30 "$LOGS/backend.log" 2>/dev/null)"
-    notify "VaxForge backend çöktü" "Yeniden başlatılıyor (:$BACKEND_PORT)"
-    if [ "${FAILS[backend]}" -le "$MAX_RESTARTS" ]; then start_backend; sleep 3
-    else log "backend $MAX_RESTARTS kez çöktü — otomatik restart durduruldu (kod fix gerek)"; fi
-  fi
-
-  if ! kill -0 "$FRONTEND_PID" 2>/dev/null; then
-    FAILS[frontend]=$(( FAILS[frontend] + 1 ))
-    log "⚠ frontend süreci öldü (deneme ${FAILS[frontend]}/$MAX_RESTARTS)"
-    incident "frontend" "process_exited" "$(tail -30 "$LOGS/frontend.log" 2>/dev/null)"
-    notify "VaxForge frontend çöktü" "Yeniden başlatılıyor (:$FRONTEND_PORT)"
-    if [ "${FAILS[frontend]}" -le "$MAX_RESTARTS" ]; then start_frontend; sleep 3
-    else log "frontend $MAX_RESTARTS kez çöktü — otomatik restart durduruldu (kod fix gerek)"; fi
-  fi
+  supervise_one backend  BACKEND_PID  "$BACKEND_PORT"  start_backend  "$LOGS/backend.log"
+  supervise_one frontend FRONTEND_PID "$FRONTEND_PORT" start_frontend "$LOGS/frontend.log"
 
   # süreç canlı ama HTTP yanıt vermiyor mu? (asılı kalma)
   hc="$("$GDIR/healthcheck.sh" 2>&1)"
-  if echo "$hc" | grep -q "DOWN backend"; then
-    log "⚠ backend HTTP yanıt vermiyor (süreç canlı ama asılı)"
-  fi
-  if echo "$hc" | grep -q "DOWN frontend"; then
-    log "⚠ frontend HTTP yanıt vermiyor (süreç canlı ama asılı)"
-  fi
+  echo "$hc" | grep -q "DOWN backend"  && log "⚠ backend HTTP yanıt vermiyor (süreç canlı ama asılı)"
+  echo "$hc" | grep -q "DOWN frontend" && log "⚠ frontend HTTP yanıt vermiyor (süreç canlı ama asılı)"
 done

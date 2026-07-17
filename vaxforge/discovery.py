@@ -10,6 +10,7 @@ kelime (heuristik). Sonuçlar 'method' ile etiketlenir. Sert filtre.
 
 from __future__ import annotations
 
+import shutil
 import subprocess
 import tempfile
 from pathlib import Path
@@ -21,8 +22,17 @@ from .models import ProteinRecord
 from .sequtils import sanitize
 
 _TOOLS = Path(__file__).resolve().parent.parent / "tools"
-_DIAMOND = _TOOLS / "diamond"
 _VFDB = _TOOLS / "db" / "vfdb.dmnd"
+
+
+def _diamond_bin() -> str | None:
+    """DIAMOND binary yolu: önce paket-içi tools/diamond, yoksa sistem PATH'i.
+    (Eskiden yalnız tools/diamond'a bakılıyordu; sistemde kurulu diamond
+    görülmediği için gerçek araç boşuna 'yedek' sanılıyordu.)"""
+    local = _TOOLS / "diamond"
+    if local.exists():
+        return str(local)
+    return shutil.which("diamond")
 _REF_PATH = Path(__file__).resolve().parent / "refdata" / "virulence_ref.faa"
 
 _KEYWORDS = [
@@ -41,7 +51,13 @@ _VIRAL_KEYWORDS = [
 
 
 def diamond_available() -> bool:
-    return _DIAMOND.exists() and _VFDB.exists()
+    return _diamond_bin() is not None and _VFDB.exists()
+
+
+# runner/tool_status uyumu için standart isim (eskiden yalnız diamond_available
+# vardı; runner available() çağırıp bulamayınca araç yanlışlıkla 'yedek' oluyordu).
+def available() -> bool:
+    return diamond_available()
 
 
 def _virulence_score(vf_hit: bool, pident: float, kw: str | None) -> float:
@@ -70,7 +86,7 @@ def _run_diamond(proteins: list[ProteinRecord], evalue: float, min_id: float,
         qpath = fh.name
     lengths = {pr.id: len(sanitize(pr.seq)) for pr in proteins}
     try:
-        cmd = [str(_DIAMOND), "blastp", "-q", qpath, "-d", str(_VFDB),
+        cmd = [str(_diamond_bin()), "blastp", "-q", qpath, "-d", str(_VFDB),
                "--outfmt", "6", "qseqid", "sseqid", "pident", "length", "evalue", "stitle",
                "--max-target-seqs", "1", "--evalue", str(evalue), "--quiet"]
         r = subprocess.run(cmd, capture_output=True, text=True, timeout=600)

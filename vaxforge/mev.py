@@ -24,9 +24,12 @@ from . import (allergen, antigen_acc, disorder, iapred, secstruct, sequtils,
                solubility, toxinpred)
 from .models import Peptide, ProteinRecord
 
-# ── Adjuvan kütüphanesi (N-ucuna eklenir) ──────────────────────────────────
+# ── Adjuvan kütüphanesi (N-ucuna EAAAK ile eklenir) ────────────────────────
+# Her dizi literatürden/UniProt'tan doğrulanmıştır (uydurma YOK — VaxForge kuralı).
+# Kullanıcı hangisini kullanacağını seçebilir; ADJUVANT_INFO metaverisi arayüze
+# ve rapora aktarılır (atıf her zaman yanında).
 ADJUVANTS: dict[str, str] = {
-    # İnsan β-defensin-3 (hBD-3) — TLR agonisti, yaygın MEV adjuvanı
+    # İnsan β-defensin (hBD) — TLR4 agonisti, DC olgunlaşması; en yaygın MEV adjuvanı
     "beta_defensin": "GIINTLQKYYCRVRGGRCAVLSCLPKEEQIGKCSTRGRKCCRRKK",
     # 50S ribozomal protein L7/L12 (M. tuberculosis) — TLR4 agonisti
     "l7_l12": (
@@ -34,8 +37,66 @@ ADJUVANTS: dict[str, str] = {
         "EQSEFDVILEAAGDKKIGVIKVVREIVSGLGLKEAKDLVDGAPKPLLEKVAKEAADEA"
         "KAKLEAAGATVTVK"
     ),
+    # PADRE — pan-HLA-DR bağlayan universal CD4+ Th epitopu (Alexander 1994)
+    "padre": "AKFVAAWTLKAAA",
+    # RS09 — sentetik TLR4 agonist peptid (Shanmugam 2012)
+    "rs09": "APPHALS",
+    # HBHA — heparin-bağlayan hemaglutinin adezin (M. tuberculosis, UniProt P9WIP9);
+    # TLR4 üzerinden T-hücre aktivasyonu ve IFN-γ (Menozzi 1996; Pethe 2001)
+    "hbha": (
+        "MAENSNIDDIKAPLLAALGAADLALATVNELITNLRERAEETRTDTRSRVEESRARLTK"
+        "LLQEDLPEQLTELREKFTAEELRKAAEGYLEAATSRYNELVERGEAALERLRSQQSFEE"
+        "EVSARAEGYVDQAVELTQEALGTVASQTRAVGERAAKLVGIELPKKAAPAKKAAPAKKA"
+        "APAKKAAPAKKAAAKKAPAKKAAAKKVTQK"
+    ),
     "none": "",
 }
+
+# Adjuvan metaverisi — arayüz seçici + rapor için (label TR/EN, mekanizma, atıf anahtarı).
+ADJUVANT_INFO: dict[str, dict] = {
+    "beta_defensin": {"label_tr": "β-defensin (hBD)", "label_en": "β-defensin (hBD)",
+                      "tlr": "TLR4", "citation": "Biragyn et al. 2002",
+                      "desc_tr": "İnsan β-defensin; TLR4 üzerinden dendritik hücre olgunlaşması. En yaygın MEV adjuvanı.",
+                      "desc_en": "Human β-defensin; TLR4-driven dendritic-cell maturation. Most common MEV adjuvant."},
+    "l7_l12": {"label_tr": "50S ribozomal L7/L12", "label_en": "50S ribosomal L7/L12",
+               "tlr": "TLR4", "citation": "Rahmani et al. 2019",
+               "desc_tr": "M. tuberculosis 50S ribozomal protein L7/L12; TLR4 agonisti.",
+               "desc_en": "M. tuberculosis 50S ribosomal protein L7/L12; TLR4 agonist."},
+    "padre": {"label_tr": "PADRE (universal Th)", "label_en": "PADRE (universal Th)",
+              "tlr": "—", "citation": "Alexander et al. 1994",
+              "desc_tr": "Pan-HLA-DR bağlayan universal CD4+ yardımcı-T epitopu; CTL yanıtını güçlendirir.",
+              "desc_en": "Pan-HLA-DR-binding universal CD4+ helper-T epitope; boosts CTL response."},
+    "rs09": {"label_tr": "RS09 (sentetik TLR4)", "label_en": "RS09 (synthetic TLR4)",
+             "tlr": "TLR4", "citation": "Shanmugam et al. 2012",
+             "desc_tr": "Sentetik TLR4 agonist heptapeptid (APPHALS); LPS yerine güvenli mimik.",
+             "desc_en": "Synthetic TLR4-agonist heptapeptide (APPHALS); safe LPS mimic."},
+    "hbha": {"label_tr": "HBHA (M. tuberculosis)", "label_en": "HBHA (M. tuberculosis)",
+             "tlr": "TLR4", "citation": "Pethe et al. 2001",
+             "desc_tr": "Heparin-bağlayan hemaglutinin adezin; T-hücre aktivasyonu ve IFN-γ salımı.",
+             "desc_en": "Heparin-binding hemagglutinin adhesin; T-cell activation and IFN-γ release."},
+    "none": {"label_tr": "Adjuvan yok", "label_en": "No adjuvant",
+             "tlr": "—", "citation": "",
+             "desc_tr": "Adjuvansız — yalnız epitop kaseti (karşılaştırma / dış adjuvanla formülasyon için).",
+             "desc_en": "No adjuvant — epitope cassette only (for comparison / external-adjuvant formulation)."},
+}
+
+
+def list_adjuvants() -> list[dict]:
+    """Arayüz seçici için adjuvan kataloğu (anahtar + metaveri + uzunluk)."""
+    out = []
+    for key, seq in ADJUVANTS.items():
+        info = ADJUVANT_INFO.get(key, {})
+        out.append({
+            "key": key,
+            "label_tr": info.get("label_tr", key),
+            "label_en": info.get("label_en", key),
+            "tlr": info.get("tlr", "—"),
+            "citation": info.get("citation", ""),
+            "desc_tr": info.get("desc_tr", ""),
+            "desc_en": info.get("desc_en", ""),
+            "length": len(seq),
+        })
+    return out
 
 # ── Linker'lar ─────────────────────────────────────────────────────────────
 LINKERS = {
@@ -264,7 +325,6 @@ CITATION_KEYS = [
     "EAAAK linker (Arai et al. 2001)",       # rijit adjuvan ayırıcı
     "Livingston et al. 2002",        # GPGPG (HTL)
     "Schubert & Kohlbacher 2016",    # AAY / KK (string-of-beads)
-    "Biragyn et al. 2002",           # β-defensin adjuvan
     "metapredict V3",                # içsel düzensizlik (%disordered)
     "S4PRED (Moffat & Jones 2021)",  # ikincil yapı (%helix/strand/coil)
     "Protein-Sol (Hebditch et al. 2017)",  # çözünürlük (scaled solubility)
@@ -281,12 +341,19 @@ def run(
     """İnşa + karakterizasyon; rapora hazır tek sözlük döner."""
     mev = build_construct(peptides, adjuvant, top_i, top_ii, top_b)
     props = characterize(mev.seq, cassette=mev.cassette)
+    # Atıflar: sabit linker/karakterizasyon + SEÇİLEN adjuvanın kendi atfı
+    # (literatür daima kullanılan bileşenle eşleşir — β-defensin sabit değil).
+    cites = list(CITATION_KEYS)
+    adj_cite = ADJUVANT_INFO.get(mev.adjuvant, {}).get("citation")
+    if adj_cite:
+        cites.append(adj_cite)
     return {
         "sequence": mev.seq,
         "cassette": mev.cassette,
         "adjuvant": mev.adjuvant,
+        "adjuvant_label": ADJUVANT_INFO.get(mev.adjuvant, {}).get("label_en", mev.adjuvant),
         "n_by_kind": mev.n_by_kind,
         "components": mev.components,
         "properties": props,
-        "citation_keys": CITATION_KEYS,
+        "citation_keys": cites,
     }

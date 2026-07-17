@@ -6,9 +6,9 @@ import { useParams } from "next/navigation";
 import { ArrowLeft, Loader2, Calendar, FileText } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { Card, Badge, SectionHeading } from "@/components/ui";
-import { FunnelChart, CandidatesTable, DownloadBar } from "@/components/results";
+import { FunnelChart, CandidatesTable, DownloadBar, MevConstruct, PopulationCoverage, IedbValidation } from "@/components/results";
 import { useLang } from "@/components/lang-provider";
-import { getRun, RunDetail, fileUrl } from "@/lib/api";
+import { getRun, RunDetail } from "@/lib/api";
 
 export default function ResultsPage() {
   const { t, lang } = useLang();
@@ -88,16 +88,9 @@ export default function ResultsPage() {
               </div>
             )}
 
-            <div>
-              <h3 className="mb-4 font-display text-xl font-semibold text-fg">{t("res_report")}</h3>
-              <Card className="overflow-hidden">
-                <iframe
-                  src={fileUrl(id, "report.html")}
-                  className="h-[700px] w-full bg-white"
-                  title="report"
-                />
-              </Card>
-            </div>
+            {detail.mev && <MevConstruct mev={detail.mev} />}
+            {(detail as any).population_coverage && <PopulationCoverage pc={(detail as any).population_coverage} />}
+            {(detail as any).iedb_match && <IedbValidation iedb={(detail as any).iedb_match} />}
           </div>
         )}
       </div>

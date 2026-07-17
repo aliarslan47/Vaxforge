@@ -25,12 +25,35 @@ export interface HostInfo {
   n_mhc_ii: number;
   default: boolean;
 }
+export interface PipelineStep {
+  id: string;
+  module: string;
+  step_tr: string;
+  step_en: string;
+  method: string;
+  real: string;
+  fallback: string | null;
+  installed: boolean;
+}
+export interface AdjuvantInfo {
+  key: string;
+  label_tr: string;
+  label_en: string;
+  tlr: string;
+  citation: string;
+  desc_tr: string;
+  desc_en: string;
+  length: number;
+}
 export interface AppConfig {
   profiles: string[];
   default_profile: string;
   hosts: HostInfo[];
   default_hosts: string[];
   tools: ToolStatus[];
+  steps?: PipelineStep[];
+  adjuvants?: AdjuvantInfo[];
+  default_adjuvant?: string;
   config_file: string;
   hosts_file: string;
 }
@@ -51,11 +74,30 @@ export interface RunSummary {
 export interface Candidate {
   [key: string]: string | number;
 }
+export interface MevComponent {
+  seq: string;
+  role: "adjuvant" | "linker" | "epitope" | string;
+  source?: string;
+  kind?: string;
+}
+export interface MevData {
+  sequence: string;
+  cassette?: string;
+  adjuvant?: string;
+  adjuvant_label?: string;
+  n_by_kind?: Record<string, number>;
+  components?: MevComponent[];
+  properties?: Record<string, any>;
+  citation_keys?: string[];
+}
 export interface RunDetail {
   input?: string;
   profile?: string;
   timestamp?: string;
   candidates?: Candidate[];
+  mev?: MevData;
+  population_coverage?: any;
+  iedb_match?: any;
   [key: string]: unknown;
 }
 export interface SSEEvent {
@@ -85,6 +127,11 @@ export async function getRun(id: string): Promise<RunDetail> {
 
 export function fileUrl(id: string, name: string): string {
   return `/api/runs/${id}/file/${name}`;
+}
+
+export async function deleteRun(id: string): Promise<void> {
+  const r = await fetch(`/api/runs/${id}`, { method: "DELETE" });
+  if (!r.ok) throw new Error("koşu silinemedi");
 }
 
 /**
