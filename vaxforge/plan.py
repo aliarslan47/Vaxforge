@@ -57,6 +57,9 @@ def _core(det: Detection) -> list[Step]:
         # GROMACS) adımları ŞİMDİLİK ÇIKARILDI — odak aday-belirlemede. GPU
         # gelince/gerektiğinde geri eklenir.
         Step("scoring", "Adaylık puanı + sıralama", ["VaxForge scorer"]),
+        Step("mev", "Çok-epitoplu aşı konstruktu (MEV) inşa + karakterizasyon",
+             ["linker (AAY/GPGPG/KK/EAAAK)", "β-defensin", "ProtParam",
+              "IApred", "ToxinPred2", "metapredict", "S4PRED", "Protein-Sol"]),
         Step("report", "Rapor + veri paketi + HTML panosu",
              ["PDF", "CSV/FASTA/GenBank/PDB", "HTML"]),
     ]

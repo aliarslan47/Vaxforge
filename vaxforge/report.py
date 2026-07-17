@@ -255,6 +255,65 @@ def _iedb_section(meta: dict, peptides) -> str:
     )
 
 
+def _mev_section(meta: dict) -> str:
+    """Çok-epitoplu aşı konstruktu (MEV): dizi + özellik tablosu (atıflı)."""
+    mv = meta.get("mev")
+    if not mv:
+        return ""
+    lang = meta.get("lang", "tr")
+    p = mv["properties"]
+    ag, al, tx = p["antigenicity"], p["allergen"], p["toxicity"]
+    hs, ss, ds, so = (p["human_similarity"], p.get("secondary_structure", {}),
+                      p.get("disorder", {}), p.get("solubility", {}))
+    ttl = "Vaccine Construct (MEV)" if lang == "en" else "Aşı Konstruktu (MEV)"
+    is_en = lang == "en"
+
+    def yn(v, yes, no):
+        return "—" if v is None else (yes if v else no)
+
+    rows = [
+        ("Molecular weight" if is_en else "Molekül ağırlığı", f"{p['mw_kda']} kDa"),
+        ("Theoretical pI" if is_en else "Teorik pI", p["pI"]),
+        ("Negatively charged (Asp+Glu)" if is_en else "Negatif yüklü (Asp+Glu)", p["neg_residues"]),
+        ("Positively charged (Arg+Lys)" if is_en else "Pozitif yüklü (Arg+Lys)", p["pos_residues"]),
+        ("Instability index", f"{p['instability']} ({'Stable' if p['stable'] else 'Unstable'})"
+         if is_en else f"{p['instability']} ({'Kararlı' if p['stable'] else 'Kararsız'})"),
+        ("Aliphatic index", p["aliphatic_index"]),
+        ("GRAVY", p["gravy"]),
+        ("Antigenicity", f"{ag['score']} ({yn(ag['antigenic'],'Antigenic' if is_en else 'Antijenik','Non' )}) · {ag['method']}"),
+        ("Allergenicity", yn(al["allergenic"], "Allergen", "Non-allergen") + f" · {al['method']}"),
+        ("Toxicity", yn(tx["toxic"], "Toxic", "Non-toxic") + f" · {tx['method']}"),
+        ("Human proteome similarity" if is_en else "İnsan proteomu benzerliği",
+         ("No similarity" if is_en else "Benzerlik yok") if hs.get("available") and not hs.get("similar")
+         else (f"{hs.get('best_pident')}%" if hs.get("available") else "—")),
+        ("Solubility" if is_en else "Çözünürlük",
+         f"{so.get('scaled_solubility')} ({yn(so.get('soluble'),'Soluble' if is_en else 'Çözünür','Low')})"
+         if so.get("scaled_solubility") is not None else "—"),
+        ("Disordered regions" if is_en else "Düzensiz bölgeler",
+         f"{ds.get('percent_disordered')}%" if ds.get("percent_disordered") is not None else "—"),
+        ("α-Helix", f"{ss.get('helix_pct')}%" if ss.get("helix_pct") is not None else "—"),
+        ("β-Strand", f"{ss.get('strand_pct')}%" if ss.get("strand_pct") is not None else "—"),
+        ("Coil", f"{ss.get('coil_pct')}%" if ss.get("coil_pct") is not None else "—"),
+    ]
+    trows = "".join(f"<tr><td>{k}</td><td>{v}</td></tr>" for k, v in rows)
+    nb = mv["n_by_kind"]
+    comp = (f"β-defensin adjuvant + EAAAK/AAY/GPGPG/KK linkers · "
+            f"CTL={nb['MHC-I']}, HTL={nb['MHC-II']}, LBL={nb['B']}" if is_en
+            else f"β-defensin adjuvan + EAAAK/AAY/GPGPG/KK linker · "
+                 f"CTL={nb['MHC-I']}, HTL={nb['MHC-II']}, LBL={nb['B']}")
+    seq_lbl = "Construct sequence" if is_en else "Konstrukt dizisi"
+    len_lbl = "length" if is_en else "uzunluk"
+    return (
+        f"<h2>🧩 {ttl}</h2>"
+        f"<p style='font-size:.85rem'>{comp} · {len_lbl}: <b>{len(mv['sequence'])} aa</b> "
+        f"(adjuvan: {mv['adjuvant']})</p>"
+        f"<details><summary>{seq_lbl}</summary>"
+        f"<p class='mono'>{mv['sequence']}</p></details>"
+        f"<table><tr><th>{t(lang,'col_param') if False else ('Property' if is_en else 'Özellik')}</th>"
+        f"<th>{'Value' if is_en else 'Değer'}</th></tr>{trows}</table>"
+    )
+
+
 def _html(df: pd.DataFrame, meta: dict, peptides=None) -> str:
     lang = meta.get("lang", "tr")
     thr_rows = "".join(
@@ -273,6 +332,7 @@ def _html(df: pd.DataFrame, meta: dict, peptides=None) -> str:
         for r in meta.get("citations", [])
     )
     iedb_html = _iedb_section(meta, peptides)
+    mev_html = _mev_section(meta)
     popcov = meta.get("population_coverage") or {}
     pop_html = ""
     if popcov:
@@ -330,6 +390,8 @@ summary{{cursor:pointer;font-size:.95rem}}</style></head><body>
 
 <h2>{t(lang,'rep_bytype')}</h2>
 {_type_tables_html(peptides or [], meta)}
+
+{mev_html}
 
 <h2>{t(lang,'rep_thresholds')}</h2>
 <table><tr><th>{t(lang,'col_step')}</th><th>{t(lang,'col_tool')}</th><th>{t(lang,'col_param')}</th><th>{t(lang,'col_value')}</th><th>{t(lang,'col_type')}</th></tr>{thr_rows}</table>

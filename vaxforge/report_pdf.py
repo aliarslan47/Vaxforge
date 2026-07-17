@@ -218,6 +218,53 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
             tb.setStyle(TableStyle([("BACKGROUND", (0, ri), (-1, ri), colors.HexColor("#e7f7ee"))]))
         el.append(tb)
 
+    # -- Aşı Konstruktu (MEV)
+    mv = meta.get("mev")
+    if mv:
+        p = mv["properties"]
+        is_en = lang == "en"
+        ag, al, tx = p["antigenicity"], p["allergen"], p["toxicity"]
+        hs, ss, ds, so = (p["human_similarity"], p.get("secondary_structure", {}),
+                          p.get("disorder", {}), p.get("solubility", {}))
+
+        def _yn3(v, yes, no):
+            return "—" if v is None else (yes if v else no)
+
+        nb = mv["n_by_kind"]
+        el.append(Paragraph(("2d. Vaccine Construct (MEV)" if is_en
+                             else "2d. Aşı Konstruktu (MEV)"), h2))
+        el.append(Paragraph(
+            (f"β-defensin adjuvant + EAAAK/AAY/GPGPG/KK linkers · "
+             f"CTL={nb['MHC-I']}, HTL={nb['MHC-II']}, LBL={nb['B']} · "
+             f"length: <b>{len(mv['sequence'])} aa</b>" if is_en
+             else f"β-defensin adjuvan + EAAAK/AAY/GPGPG/KK linker · "
+             f"CTL={nb['MHC-I']}, HTL={nb['MHC-II']}, LBL={nb['B']} · "
+             f"uzunluk: <b>{len(mv['sequence'])} aa</b>"), small))
+        el.append(Paragraph(mv["sequence"], mono))
+        el.append(Spacer(1, 3))
+        mrows = [
+            ["Property" if is_en else "Özellik", "Value" if is_en else "Değer"],
+            ["MW / pI", f"{p['mw_kda']} kDa / {p['pI']}"],
+            [("Charged −/+ (D+E / R+K)" if is_en else "Yüklü −/+ (D+E / R+K)"),
+             f"{p['neg_residues']} / {p['pos_residues']}"],
+            ["Instability", f"{p['instability']} ({'Stable' if p['stable'] else 'Unstable'})"
+             if is_en else f"{p['instability']} ({'Kararlı' if p['stable'] else 'Kararsız'})"],
+            ["Aliphatic / GRAVY", f"{p['aliphatic_index']} / {p['gravy']}"],
+            ["Antigenicity", f"{ag['score']} · {ag['method']}"],
+            ["Allergenicity", _yn3(al["allergenic"], "Allergen", "Non-allergen") + f" · {al['method']}"],
+            ["Toxicity", _yn3(tx["toxic"], "Toxic", "Non-toxic") + f" · {tx['method']}"],
+            [("Human similarity" if is_en else "İnsan benzerliği"),
+             ("No similarity" if is_en else "Benzerlik yok") if hs.get("available") and not hs.get("similar")
+             else (f"{hs.get('best_pident')}%" if hs.get("available") else "—")],
+            ["Solubility" if is_en else "Çözünürlük",
+             f"{so.get('scaled_solubility')} ({_yn3(so.get('soluble'),'Soluble' if is_en else 'Çözünür','Low')})"
+             if so.get("scaled_solubility") is not None else "—"],
+            [("Disordered / α-Helix / β-Strand" if is_en else "Düzensiz / α-Heliks / β-Şerit"),
+             f"{ds.get('percent_disordered')}% / {ss.get('helix_pct')}% / {ss.get('strand_pct')}%"
+             if ds.get("percent_disordered") is not None else "—"],
+        ]
+        el.append(tbl(mrows, widths=[5.5*cm, 8.7*cm]))
+
     # -- Kullanılan eşikler
     el.append(Paragraph("3. "+t(lang,"rep_thresholds"), h2))
     trows = [[t(lang,"col_step"), t(lang,"col_tool"), t(lang,"col_param"), t(lang,"col_value"), t(lang,"col_type")]]

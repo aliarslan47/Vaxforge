@@ -15,7 +15,7 @@ from __future__ import annotations
 from datetime import datetime
 from pathlib import Path
 
-from . import (citations, discovery, epitope, funnel, iedb_match, ingest,
+from . import (citations, discovery, epitope, funnel, iedb_match, ingest, mev,
                population, report, scoring, survival)
 from .config_loader import ThresholdConfig, flatten_for_report
 from .detect import Detection
@@ -149,6 +149,23 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
     else:
         msg = im_summary.get("note", "IEDB taraması yapılamadı")
     yield _ev("iedb", "done", msg, {"n_matched": im_summary.get("n_matched", 0)})
+
+    # 6e) MEV — çok-epitoplu aşı konstruktu inşası + karakterizasyonu.
+    # Top epitoplar linker (AAY/GPGPG/KK/EAAAK) + β-defensin adjuvan ile
+    # birleştirilir; konstrukt-seviyesi fizikokimyasal/immünoinformatik özellikler.
+    yield _ev("mev", "running", "Çok-epitoplu aşı konstruktu (MEV) inşa ediliyor…")
+    try:
+        mev_out = mev.run(peptides)
+        meta["mev"] = mev_out
+        mp = mev_out["properties"]
+        yield _ev("mev", "done",
+                  f"MEV: {len(mev_out['sequence'])} aa · MHC-I={mev_out['n_by_kind']['MHC-I']}, "
+                  f"MHC-II={mev_out['n_by_kind']['MHC-II']}, B={mev_out['n_by_kind']['B']} · "
+                  f"MW {mp['mw_kda']} kDa · antijenite {mp['antigenicity']['score']}",
+                  {"length": len(mev_out["sequence"]), "adjuvant": mev_out["adjuvant"]})
+    except Exception as e:  # MEV opsiyonel: hata pipeline'ı düşürmesin
+        meta["mev"] = None
+        yield _ev("mev", "done", f"MEV atlandı ({type(e).__name__})", {})
 
     # 7) Rapor
     yield _ev("report", "running", "Rapor ve veri paketi üretiliyor…")
