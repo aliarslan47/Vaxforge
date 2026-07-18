@@ -1,12 +1,16 @@
 """VaxForge web backend — FastAPI.
 
 Uçlar:
-  GET  /api/health              canlılık (supervisor + hook için)
-  GET  /api/config              profiller, konaklar, araç durumu
-  GET  /api/runs                geçmiş run özetleri (outputs/)
-  GET  /api/runs/{id}           tek run.json (adaylar + meta)
-  GET  /api/runs/{id}/file/{n}  çıktı dosyası (report.html/pdf, csv, xlsx, fasta)
-  POST /api/run                 dosya yükle -> SSE ilerleme akışı
+  GET  /api/health                 canlılık (supervisor + hook için)
+  GET  /api/config                 profiller, konaklar, araç durumu
+  GET  /api/runs                   geçmiş run özetleri (outputs/)
+  GET  /api/runs/{id}              tek run.json (adaylar + meta)
+  GET  /api/runs/{id}/file/{n}     çıktı dosyası (report.html/pdf, csv, xlsx, fasta)
+  POST /api/run                    dosya yükle -> job başlat + SSE ilerleme akışı
+  GET  /api/active-runs            devam eden koşular (UI 'çalışıyor' rozeti için)
+  GET  /api/jobs/{jid}             tek job durumu (yenileme sonrası kontrol)
+  GET  /api/jobs/{jid}/stream      job akışına yeniden bağlan (?cursor=N)
+  POST /api/jobs/{jid}/cancel      devam eden koşuyu iptal et
 """
 
 from __future__ import annotations
@@ -15,12 +19,24 @@ import json
 import tempfile
 from pathlib import Path
 
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 
-from runner import (delete_run, get_config, get_run, get_run_file, list_runs,
-                    run_pipeline)
+import jobs
+from runner import (delete_run, get_config, get_run, get_run_file, list_runs)
+
+
+def _sse(ev: dict) -> str:
+    """Bir event dict'ini SSE 'data:' satırına çevirir."""
+    return f"data: {json.dumps(ev, ensure_ascii=False)}\n\n"
+
+
+_SSE_HEADERS = {
+    "Cache-Control": "no-cache",
+    "X-Accel-Buffering": "no",   # nginx/proxy tampon kapat
+    "Connection": "keep-alive",
+}
 
 app = FastAPI(title="VaxForge API", version="1.0")
 
@@ -95,7 +111,13 @@ async def run(
     lang: str = Form("tr"),
     adjuvant: str = Form("beta_defensin"),   # MEV adjuvan anahtarı
 ):
-    """Yüklenen dosyayı geçici diske yazar ve pipeline'ı SSE ile akıtır."""
+    """Yüklenen dosyayı geçici diske yazar, koşuyu arka-plan job'ı olarak başlatır
+    ve o job'ın akışını SSE ile döndürür.
+
+    Koşu artık SSE bağlantısından bağımsız (thread'de) çalışır: tarayıcı kapansa/
+    yenilense bile iş sürer; istemci `job_id` ile /api/jobs/{jid}/stream'e yeniden
+    bağlanabilir. İlk event `__job__` job_id'yi taşır.
+    """
     suffix = Path(file.filename or "input.dat").suffix or ".dat"
     with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
         tmp.write(await file.read())
@@ -105,30 +127,57 @@ async def run(
     gram_val = gram.strip() or None
     filename = file.filename or Path(tmp_path).name
 
-    def event_stream():
-        try:
-            for ev in run_pipeline(tmp_path, filename, profile,
-                                   host_names, gram_val, lang, adjuvant):
-                yield f"data: {json.dumps(ev, ensure_ascii=False)}\n\n"
-        except Exception as exc:  # pipeline içi beklenmeyen çökme
-            err = {"phase": "__error__", "status": "error",
-                   "msg": f"Sunucu hatası: {exc}", "data": None}
-            yield f"data: {json.dumps(err, ensure_ascii=False)}\n\n"
-        finally:
-            try:
-                Path(tmp_path).unlink(missing_ok=True)
-            except Exception:
-                pass
+    job = jobs.create_job(filename, profile, tmp_path=tmp_path)
+    jobs.start_job(job, {
+        "input_path": tmp_path, "filename": filename, "profile": profile,
+        "host_names": host_names, "gram": gram_val,
+        "lang": lang, "adjuvant": adjuvant,
+    })
 
-    return StreamingResponse(
-        event_stream(),
-        media_type="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "X-Accel-Buffering": "no",   # nginx/proxy tampon kapat
-            "Connection": "keep-alive",
-        },
-    )
+    def event_stream():
+        for ev in jobs.stream_job(job, cursor=0):
+            yield _sse(ev)
+
+    return StreamingResponse(event_stream(), media_type="text/event-stream",
+                             headers=_SSE_HEADERS)
+
+
+@app.get("/api/active-runs")
+def active_runs():
+    """Devam eden koşular — UI 'çalışıyor' rozeti / yenileme sonrası kurtarma."""
+    return {"runs": jobs.active_jobs()}
+
+
+@app.get("/api/jobs/{job_id}")
+def job_detail(job_id: str):
+    st = jobs.job_status(job_id)
+    if st is None:
+        raise HTTPException(status_code=404, detail="job bulunamadı")
+    return st
+
+
+@app.get("/api/jobs/{job_id}/stream")
+def job_stream(job_id: str, cursor: int = Query(0, ge=0)):
+    """Devam eden (ya da yeni bitmiş) bir koşunun akışına yeniden bağlan."""
+    job = jobs.get_job(job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="job bulunamadı")
+
+    def event_stream():
+        for ev in jobs.stream_job(job, cursor=cursor):
+            yield _sse(ev)
+
+    return StreamingResponse(event_stream(), media_type="text/event-stream",
+                             headers=_SSE_HEADERS)
+
+
+@app.post("/api/jobs/{job_id}/cancel")
+def job_cancel(job_id: str):
+    """Devam eden koşuyu iptal et (alt-süreçleri öldürür)."""
+    if not jobs.cancel_job(job_id):
+        raise HTTPException(status_code=404,
+                            detail="job bulunamadı ya da zaten bitmiş")
+    return {"cancelled": job_id}
 
 
 @app.get("/")

@@ -106,6 +106,17 @@ export interface SSEEvent {
   msg: string;
   data: any;
 }
+export interface ActiveRun {
+  job_id: string;
+  filename: string;
+  profile: string;
+  status: "running" | "done" | "error" | "cancelled";
+  run_id: string | null;
+  phase: string | null;
+  msg: string | null;
+  n_events: number;
+  elapsed: number;
+}
 
 export async function getConfig(): Promise<AppConfig> {
   const r = await fetch("/api/config", { cache: "no-store" });
@@ -134,17 +145,9 @@ export async function deleteRun(id: string): Promise<void> {
   if (!r.ok) throw new Error("koşu silinemedi");
 }
 
-/**
- * Pipeline'ı POST /api/run ile çalıştırır ve SSE event'lerini onEvent ile akıtır.
- * fetch + ReadableStream ile (EventSource POST desteklemediği için).
- */
-export async function runPipeline(
-  form: FormData,
-  onEvent: (ev: SSEEvent) => void,
-  signal?: AbortSignal,
-): Promise<void> {
-  const resp = await fetch(`${sseBase()}/api/run`, { method: "POST", body: form, signal });
-  if (!resp.ok || !resp.body) throw new Error("pipeline başlatılamadı");
+/** Bir SSE yanıt gövdesini ayrıştırıp her event'i onEvent ile verir (ortak). */
+async function consumeSSE(resp: Response, onEvent: (ev: SSEEvent) => void): Promise<void> {
+  if (!resp.ok || !resp.body) throw new Error("akış başlatılamadı");
   const reader = resp.body.getReader();
   const decoder = new TextDecoder();
   let buf = "";
@@ -166,4 +169,48 @@ export async function runPipeline(
       }
     }
   }
+}
+
+/**
+ * Pipeline'ı POST /api/run ile başlatır ve SSE event'lerini onEvent ile akıtır.
+ * İlk event `__job__` job_id taşır (yenileme sonrası reconnect için saklanmalı).
+ */
+export async function runPipeline(
+  form: FormData,
+  onEvent: (ev: SSEEvent) => void,
+  signal?: AbortSignal,
+): Promise<void> {
+  const resp = await fetch(`${sseBase()}/api/run`, { method: "POST", body: form, signal });
+  await consumeSSE(resp, onEvent);
+}
+
+/** Devam eden (ya da yeni bitmiş) bir job'ın akışına imleçten yeniden bağlan. */
+export async function streamJob(
+  jobId: string,
+  onEvent: (ev: SSEEvent) => void,
+  cursor = 0,
+  signal?: AbortSignal,
+): Promise<void> {
+  const resp = await fetch(`${sseBase()}/api/jobs/${jobId}/stream?cursor=${cursor}`, { signal });
+  await consumeSSE(resp, onEvent);
+}
+
+/** Devam eden koşuların listesi (UI 'çalışıyor' rozeti için). */
+export async function getActiveRuns(): Promise<ActiveRun[]> {
+  const r = await fetch("/api/active-runs", { cache: "no-store" });
+  if (!r.ok) return [];
+  return (await r.json()).runs ?? [];
+}
+
+/** Tek bir job'ın güncel durumu (yenileme sonrası kontrol; 404 → null). */
+export async function getJob(jobId: string): Promise<ActiveRun | null> {
+  const r = await fetch(`/api/jobs/${jobId}`, { cache: "no-store" });
+  if (!r.ok) return null;
+  return r.json();
+}
+
+/** Devam eden koşuyu iptal et. */
+export async function cancelRun(jobId: string): Promise<void> {
+  const r = await fetch(`/api/jobs/${jobId}/cancel`, { method: "POST" });
+  if (!r.ok) throw new Error("koşu iptal edilemedi");
 }

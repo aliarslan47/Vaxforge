@@ -324,13 +324,15 @@ export function MevConstruct({ mev }: { mev: MevData }) {
           <div className="flex flex-wrap gap-1 rounded-xl border border-line bg-ink/40 p-2.5">
             {comps.map((c, i) => {
               const st = compStyle(c);
+              // backend rolü "epitope:MHC-I" biçiminde gönderir (tür role içinde gömülü)
+              const kind = c.kind ?? (c.role.startsWith("epitope:") ? c.role.slice("epitope:".length) : undefined);
               const label = c.role === "adjuvant" ? (c.source ?? "adjuvant")
                 : c.role === "linker" ? c.seq
-                : c.kind ?? "epi";
+                : kind ?? "epi";
               return (
                 <span
                   key={i}
-                  title={`${c.role}${c.kind ? " · " + c.kind : ""}${c.source ? " · " + c.source : ""}\n${c.seq}`}
+                  title={`${c.role}${kind ? " · " + kind : ""}${c.source ? " · " + c.source : ""}\n${c.seq}`}
                   className={cn(
                     "cursor-default rounded-md px-2 py-1 font-mono text-[10px] font-medium ring-1",
                     st.cls, st.ring,

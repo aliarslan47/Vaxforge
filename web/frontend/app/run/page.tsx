@@ -11,6 +11,8 @@ import {
   ChevronRight,
   FileSearch,
   ArrowLeft,
+  StopCircle,
+  Ban,
 } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { Button, Card, Badge, SectionHeading } from "@/components/ui";
@@ -19,14 +21,22 @@ import { useLang } from "@/components/lang-provider";
 import {
   getConfig,
   getRun,
+  getJob,
+  getActiveRuns,
   runPipeline,
+  streamJob,
+  cancelRun,
   AppConfig,
   SSEEvent,
   RunDetail,
+  ActiveRun,
 } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
-type Phase = "idle" | "running" | "done" | "error";
+type Phase = "idle" | "running" | "done" | "error" | "cancelled";
+
+// Devam eden koşunun job_id'si — sayfa yenilense bile reconnect için saklanır.
+const ACTIVE_JOB_KEY = "vf_active_job";
 
 export default function RunPage() {
   const { t, lang } = useLang();
@@ -43,10 +53,56 @@ export default function RunPage() {
   const [progress, setProgress] = useState(0);
   const [errorMsg, setErrorMsg] = useState("");
   const [runId, setRunId] = useState<string | null>(null);
+  const [jobId, setJobId] = useState<string | null>(null);
+  const [cancelling, setCancelling] = useState(false);
+  const [activeRuns, setActiveRuns] = useState<ActiveRun[]>([]);
   const [detail, setDetail] = useState<RunDetail | null>(null);
   const consoleRef = useRef<HTMLDivElement>(null);
   const totalRef = useRef(7);
+  const doneRef = useRef(0);
   const abortRef = useRef<AbortController | null>(null);
+
+  // Tek yerden event işleme — hem yeni koşu (POST) hem reconnect (stream) kullanır.
+  const handleEvent = useCallback((ev: SSEEvent) => {
+    if (ev.phase === "__ping__") return;               // keepalive
+    if (ev.phase === "__job__") {
+      const jid = ev.data?.job_id;
+      if (jid) {
+        setJobId(jid);
+        try { localStorage.setItem(ACTIVE_JOB_KEY, jid); } catch {}
+      }
+      return;
+    }
+    if (ev.phase === "__plan__") {
+      totalRef.current = ev.data?.total ?? 7;
+    } else if (ev.phase === "__done__") {
+      setProgress(1);
+      const id = ev.data?.run_id;
+      if (id) {
+        setRunId(id);
+        getRun(id).then(setDetail).catch(() => {});
+      }
+      setPhase("done");
+      try { localStorage.removeItem(ACTIVE_JOB_KEY); } catch {}
+      return;
+    } else if (ev.phase === "__error__") {
+      setErrorMsg(ev.msg);
+      setPhase("error");
+      try { localStorage.removeItem(ACTIVE_JOB_KEY); } catch {}
+      return;
+    } else if (ev.phase === "__cancelled__") {
+      setEvents((prev) => [...prev, ev]);
+      setPhase("cancelled");
+      setCancelling(false);
+      try { localStorage.removeItem(ACTIVE_JOB_KEY); } catch {}
+      return;
+    }
+    setEvents((prev) => [...prev, ev]);
+    if (ev.status === "done" || ev.status === "deferred") {
+      doneRef.current += 1;
+      setProgress(Math.min(0.98, doneRef.current / totalRef.current));
+    }
+  }, []);
 
   useEffect(() => {
     getConfig()
@@ -58,6 +114,53 @@ export default function RunPage() {
       })
       .catch(() => {});
   }, []);
+
+  // Bir job'a bağlan: durumuna göre sonuç/hata/iptal göster ya da canlı akışa gir.
+  const attachToJob = useCallback(async (jid: string) => {
+    const st = await getJob(jid);
+    if (!st) { try { localStorage.removeItem(ACTIVE_JOB_KEY); } catch {} return; }
+    if (st.status === "done" && st.run_id) {
+      setJobId(jid); setRunId(st.run_id); setPhase("done");
+      getRun(st.run_id).then(setDetail).catch(() => {});
+      try { localStorage.removeItem(ACTIVE_JOB_KEY); } catch {}
+      return;
+    }
+    if (st.status === "error") {
+      setJobId(jid); setPhase("error"); setErrorMsg(st.msg ?? "hata");
+      try { localStorage.removeItem(ACTIVE_JOB_KEY); } catch {}
+      return;
+    }
+    if (st.status === "cancelled") {
+      setPhase("cancelled");
+      try { localStorage.removeItem(ACTIVE_JOB_KEY); } catch {}
+      return;
+    }
+    // running → akışa baştan yeniden bağlan (konsol event'leri replay edilir)
+    setJobId(jid); setPhase("running"); setEvents([]); setDetail(null); doneRef.current = 0;
+    try { localStorage.setItem(ACTIVE_JOB_KEY, jid); } catch {}
+    const ac = new AbortController();
+    abortRef.current = ac;
+    try {
+      await streamJob(jid, handleEvent, 0, ac.signal);
+    } catch { /* abort/bağlantı — koşu backend'de sürüyor */ }
+  }, [handleEvent]);
+
+  // Yenileme sonrası kurtarma: kayıtlı bir aktif job varsa akışına yeniden bağlan.
+  useEffect(() => {
+    let jid: string | null = null;
+    try { jid = localStorage.getItem(ACTIVE_JOB_KEY); } catch {}
+    if (jid) attachToJob(jid);
+  }, [attachToJob]);
+
+  // Sunucudaki devam eden koşuları göster (boştayken periyodik yokla).
+  useEffect(() => {
+    if (phase !== "idle") { setActiveRuns([]); return; }
+    let stop = false;
+    const poll = () => getActiveRuns().then((r) => { if (!stop) setActiveRuns(r); }).catch(() => {});
+    poll();
+    const t = setInterval(poll, 5000);
+    return () => { stop = true; clearInterval(t); };
+  }, [phase]);
 
   useEffect(() => {
     consoleRef.current?.scrollTo({ top: consoleRef.current.scrollHeight, behavior: "smooth" });
@@ -83,7 +186,9 @@ export default function RunPage() {
     setErrorMsg("");
     setDetail(null);
     setRunId(null);
-    let done = 0;
+    setJobId(null);
+    setCancelling(false);
+    doneRef.current = 0;
 
     const form = new FormData();
     form.append("file", file);
@@ -97,38 +202,24 @@ export default function RunPage() {
     abortRef.current = ac;
 
     try {
-      await runPipeline(
-        form,
-        (ev) => {
-          if (ev.phase === "__plan__") {
-            totalRef.current = ev.data?.total ?? 7;
-          } else if (ev.phase === "__done__") {
-            setProgress(1);
-            const id = ev.data?.run_id;
-            if (id) {
-              setRunId(id);
-              getRun(id).then(setDetail).catch(() => {});
-            }
-            setPhase("done");
-            return;
-          } else if (ev.phase === "__error__") {
-            setErrorMsg(ev.msg);
-            setPhase("error");
-            return;
-          }
-          setEvents((prev) => [...prev, ev]);
-          if (ev.status === "done" || ev.status === "deferred") {
-            done += 1;
-            setProgress(Math.min(0.98, done / totalRef.current));
-          }
-        },
-        ac.signal,
-      );
+      await runPipeline(form, handleEvent, ac.signal);
     } catch (e: any) {
       if (e?.name !== "AbortError") {
         setErrorMsg(e?.message ?? "bağlantı hatası");
         setPhase("error");
       }
+    }
+  };
+
+  // Koşuyu sonlandır: backend job'ı iptal eder (alt-süreçleri öldürür); __cancelled__
+  // event'i akıştan gelince arayüz 'iptal edildi' durumuna geçer.
+  const cancel = async () => {
+    if (!jobId || cancelling) return;
+    setCancelling(true);
+    try {
+      await cancelRun(jobId);
+    } catch {
+      setCancelling(false);
     }
   };
 
@@ -303,10 +394,68 @@ export default function RunPage() {
                 </>
               )}
             </Button>
+
+            {/* Koşu devam ederken: sonlandır butonu */}
+            {phase === "running" && jobId && (
+              <button
+                onClick={cancel}
+                disabled={cancelling}
+                className={cn(
+                  "flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium transition cursor-pointer",
+                  cancelling
+                    ? "border-line text-fg-faint"
+                    : "border-danger/40 text-danger hover:bg-danger/10",
+                )}
+              >
+                {cancelling ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    {lang === "tr" ? "Sonlandırılıyor…" : "Stopping…"}
+                  </>
+                ) : (
+                  <>
+                    <StopCircle className="h-4 w-4" />
+                    {lang === "tr" ? "Koşuyu sonlandır" : "Stop run"}
+                  </>
+                )}
+              </button>
+            )}
           </div>
 
           {/* ---- Sağ: konsol + sonuçlar ---- */}
           <div className="space-y-6">
+            {/* Devam eden koşu(lar): sunucu tarafında çalışan işleri göster + bağlan */}
+            {phase === "idle" && activeRuns.length > 0 && (
+              <Card className="p-4">
+                <div className="flex items-center gap-2 text-sm font-medium text-fg">
+                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  {lang === "tr"
+                    ? `${activeRuns.length} koşu devam ediyor`
+                    : `${activeRuns.length} run in progress`}
+                </div>
+                <div className="mt-3 space-y-2">
+                  {activeRuns.map((r) => (
+                    <button
+                      key={r.job_id}
+                      onClick={() => attachToJob(r.job_id)}
+                      className="flex w-full items-center justify-between gap-3 rounded-lg border border-line bg-surface/40 px-3 py-2 text-left transition hover:border-primary/40 cursor-pointer"
+                    >
+                      <span className="min-w-0">
+                        <span className="block truncate text-[13px] text-fg">{r.filename}</span>
+                        <span className="block truncate font-mono text-[11px] text-fg-faint">
+                          {r.phase ?? "…"} · {Math.round(r.elapsed)}s
+                        </span>
+                      </span>
+                      <span className="flex shrink-0 items-center gap-1 text-xs font-medium text-primary">
+                        {lang === "tr" ? "Bağlan" : "Attach"}
+                        <ChevronRight className="h-3.5 w-3.5" />
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </Card>
+            )}
+
             {phase === "idle" && !detail && (
               <Card className="flex min-h-[300px] flex-col items-center justify-center p-10 text-center">
                 <FileSearch className="h-10 w-10 text-fg-faint" />
@@ -314,13 +463,14 @@ export default function RunPage() {
               </Card>
             )}
 
-            {(phase === "running" || phase === "error" || (phase === "done" && events.length > 0)) && (
+            {(phase === "running" || phase === "error" || phase === "cancelled" || (phase === "done" && events.length > 0)) && (
               <Card className="overflow-hidden">
                 <div className="flex items-center justify-between border-b border-line px-4 py-3">
                   <div className="flex items-center gap-2 text-sm font-medium text-fg">
                     {phase === "running" && <Loader2 className="h-4 w-4 animate-spin text-primary" />}
                     {phase === "done" && <CheckCircle2 className="h-4 w-4 text-bio-soft" />}
                     {phase === "error" && <XCircle className="h-4 w-4 text-danger" />}
+                    {phase === "cancelled" && <Ban className="h-4 w-4 text-warn" />}
                     {t("run_console")}
                   </div>
                   <span className="tabular font-mono text-xs text-fg-faint">
@@ -352,6 +502,13 @@ export default function RunPage() {
                   {phase === "error" && (
                     <div className="mt-2 rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-[13px] text-danger">
                       {errorMsg}
+                    </div>
+                  )}
+                  {phase === "cancelled" && (
+                    <div className="mt-2 rounded-lg border border-warn/30 bg-warn/10 px-3 py-2 text-[13px] text-warn">
+                      {lang === "tr"
+                        ? "Koşu sonlandırıldı. İstediğiniz zaman yeni bir koşu başlatabilirsiniz."
+                        : "Run stopped. You can start a new run anytime."}
                     </div>
                   )}
                 </div>
