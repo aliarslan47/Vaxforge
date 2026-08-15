@@ -401,6 +401,38 @@ function verdictStyle(v: string) {
   return VERDICT_STYLE[v] ?? { cls: "text-fg-muted bg-white/5 border-line", dot: "bg-fg-muted" };
 }
 
+function AntibodyChart({ curve }: { curve: { days: number[]; ab: number[] } }) {
+  const { t } = useLang();
+  const days = curve?.days ?? [];
+  const ab = curve?.ab ?? [];
+  if (days.length < 2) return null;
+  const W = 320, H = 96, padL = 4, padR = 6, padT = 8, padB = 15;
+  const xmax = days[days.length - 1] || 1;
+  const ymax = Math.max(1, ...ab) * 1.06;
+  const X = (d: number) => padL + (d / xmax) * (W - padL - padR);
+  const Y = (v: number) => padT + (1 - v / ymax) * (H - padT - padB);
+  const pts = days.map((d, i) => `${X(d).toFixed(1)},${Y(ab[i]).toFixed(1)}`).join(" ");
+  const area = `${X(0).toFixed(1)},${H - padB} ${pts} ${X(xmax).toFixed(1)},${H - padB}`;
+  return (
+    <div className="mt-3 text-primary">
+      <div className="mb-1 text-[11px] uppercase tracking-wide text-fg-faint">{t("immuno_curve")}</div>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" preserveAspectRatio="none" style={{ height: 92 }}>
+        <defs>
+          <linearGradient id="abfill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="currentColor" stopOpacity="0.30" />
+            <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <line x1={padL} y1={H - padB} x2={W - padR} y2={H - padB} stroke="currentColor" strokeOpacity="0.15" />
+        <polygon points={area} fill="url(#abfill)" />
+        <polyline points={pts} fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+        <text x={padL} y={H - 3} fontSize="8" fill="currentColor" fillOpacity="0.45">0</text>
+        <text x={W - padR} y={H - 3} fontSize="8" textAnchor="end" fill="currentColor" fillOpacity="0.45">{Math.round(xmax)} {t("immuno_day")}</text>
+      </svg>
+    </div>
+  );
+}
+
 export function ImmunogenicityCard({ imm }: { imm: Immunogenicity }) {
   const { t } = useLang();
   const hosts = imm.per_host ?? [];
@@ -452,6 +484,7 @@ export function ImmunogenicityCard({ imm }: { imm: Immunogenicity }) {
                       ))}
                     </ul>
                   )}
+                  {h.curve && <AntibodyChart curve={h.curve} />}
                 </div>
               );
             })}

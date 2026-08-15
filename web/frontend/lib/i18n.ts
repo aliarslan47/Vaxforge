@@ -106,6 +106,8 @@ export const STR: Dict = {
   immuno_v_olur: { tr: "OLUR", en: "WORKS" },
   immuno_v_zayif: { tr: "ZAYIF", en: "WEAK" },
   immuno_v_olmaz: { tr: "OLMAZ", en: "FAILS" },
+  immuno_curve: { tr: "Simüle antikor yanıtı (bağıl, tepe=1)", en: "Simulated antibody response (relative, peak=1)" },
+  immuno_day: { tr: "gün", en: "day" },
 
   // MEV konstrukt
   mev_title: { tr: "Çok-epitoplu aşı konstruktu (MEV)", en: "Multi-epitope vaccine (MEV) construct" },

@@ -101,6 +101,7 @@ export interface ImmunogenicityHost {
   peak_antibody: number;
   reasons: string[];
   species_calibrated?: boolean;
+  curve?: { days: number[]; ab: number[] };
 }
 export interface Immunogenicity {
   tool: string; // "netmhcpan" | "none"
