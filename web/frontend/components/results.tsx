@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Download, FileText, FileSpreadsheet, FileCode2, FileDown, Search, Syringe, Globe2, ShieldCheck } from "lucide-react";
-import { RunDetail, Candidate, MevData, Immunogenicity, fileUrl } from "@/lib/api";
+import { RunDetail, Candidate, MevData, Immunogenicity, ImmunogenicityHost, fileUrl } from "@/lib/api";
 import { useLang } from "./lang-provider";
 import { Card, Badge } from "./ui";
 import { cn } from "@/lib/utils";
@@ -401,34 +401,85 @@ function verdictStyle(v: string) {
   return VERDICT_STYLE[v] ?? { cls: "text-fg-muted bg-white/5 border-line", dot: "bg-fg-muted" };
 }
 
-function AntibodyChart({ curve }: { curve: { days: number[]; ab: number[] } }) {
+// izotip → renk (IgM erken/mavi, IgG'ler yeşil-mor tonları, IgA/IgE ayrı)
+const ISO_COLOR: Record<string, string> = {
+  IgM: "#38bdf8", IgG: "#34d399", IgG1: "#34d399", IgG2: "#a78bfa", IgG2a: "#a78bfa",
+  IgG3: "#f59e0b", IgA: "#f472b6", IgE: "#fb7185", IgY: "#34d399", IgGa: "#34d399",
+  IgGb: "#a78bfa", IgGT: "#f59e0b",
+};
+const isoColor = (iso: string) => ISO_COLOR[iso] ?? "#94a3b8";
+
+function IsotypeChart({ curve }: { curve: { days: number[]; isotypes: Record<string, number[]> } }) {
   const { t } = useLang();
   const days = curve?.days ?? [];
-  const ab = curve?.ab ?? [];
-  if (days.length < 2) return null;
-  const W = 320, H = 96, padL = 4, padR = 6, padT = 8, padB = 15;
+  const isotypes = curve?.isotypes ?? {};
+  const keys = Object.keys(isotypes);
+  if (days.length < 2 || keys.length === 0) return null;
+  const W = 320, H = 104, padL = 4, padR = 6, padT = 8, padB = 15;
   const xmax = days[days.length - 1] || 1;
-  const ymax = Math.max(1, ...ab) * 1.06;
+  const allY = keys.flatMap((k) => isotypes[k]);
+  const ymax = Math.max(1, ...allY) * 1.06;
   const X = (d: number) => padL + (d / xmax) * (W - padL - padR);
   const Y = (v: number) => padT + (1 - v / ymax) * (H - padT - padB);
-  const pts = days.map((d, i) => `${X(d).toFixed(1)},${Y(ab[i]).toFixed(1)}`).join(" ");
-  const area = `${X(0).toFixed(1)},${H - padB} ${pts} ${X(xmax).toFixed(1)},${H - padB}`;
+  const line = (ys: number[]) => days.map((d, i) => `${X(d).toFixed(1)},${Y(ys[i] ?? 0).toFixed(1)}`).join(" ");
   return (
-    <div className="mt-3 text-primary">
-      <div className="mb-1 text-[11px] uppercase tracking-wide text-fg-faint">{t("immuno_curve")}</div>
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" preserveAspectRatio="none" style={{ height: 92 }}>
-        <defs>
-          <linearGradient id="abfill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="currentColor" stopOpacity="0.30" />
-            <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
-          </linearGradient>
-        </defs>
+    <div className="mt-3">
+      <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+        <span className="text-[11px] uppercase tracking-wide text-fg-faint">{t("immuno_curve")}</span>
+        <span className="flex flex-wrap gap-2">
+          {keys.map((k) => (
+            <span key={k} className="inline-flex items-center gap-1 text-[11px] text-fg-muted">
+              <span className="h-2 w-2 rounded-full" style={{ background: isoColor(k) }} />{k}
+            </span>
+          ))}
+        </span>
+      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" preserveAspectRatio="none" style={{ height: 100 }}>
         <line x1={padL} y1={H - padB} x2={W - padR} y2={H - padB} stroke="currentColor" strokeOpacity="0.15" />
-        <polygon points={area} fill="url(#abfill)" />
-        <polyline points={pts} fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+        {keys.map((k) => (
+          <polyline key={k} points={line(isotypes[k])} fill="none" stroke={isoColor(k)} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+        ))}
         <text x={padL} y={H - 3} fontSize="8" fill="currentColor" fillOpacity="0.45">0</text>
         <text x={W - padR} y={H - 3} fontSize="8" textAnchor="end" fill="currentColor" fillOpacity="0.45">{Math.round(xmax)} {t("immuno_day")}</text>
       </svg>
+      {keys.includes("IgM") === false && (
+        <p className="mt-1 text-[10.5px] leading-snug text-fg-faint">{t("immuno_igm_note")}</p>
+      )}
+    </div>
+  );
+}
+
+const POLAR_STYLE: Record<string, string> = {
+  Th1: "text-sky-400 bg-sky-400/10 border-sky-400/25",
+  Th2: "text-pink-400 bg-pink-400/10 border-pink-400/25",
+  dengeli: "text-fg-muted bg-white/5 border-line",
+};
+const CELL_LABEL: Record<string, string> = { B: "B", Th: "Th", CTL: "CTL", PLB: "Plazma", memoryB: "Hafıza" };
+
+function ImmuneProfile({ profile }: { profile: NonNullable<ImmunogenicityHost["profile"]> }) {
+  const { t } = useLang();
+  const cells = profile.cells ?? {};
+  const active = Object.entries(cells).filter(([, v]) => v > 1);
+  return (
+    <div className="mt-3 space-y-2">
+      <div className="text-[11px] uppercase tracking-wide text-fg-faint">{t("immuno_profile")}</div>
+      <div className="flex flex-wrap items-center gap-2 text-[12px]">
+        <span className={cn("inline-flex items-center gap-1 rounded-md border px-2 py-0.5 font-medium", POLAR_STYLE[profile.polarization] ?? POLAR_STYLE.dengeli)}>
+          {profile.polarization} <span className="opacity-70">({Math.round(profile.th1 * 100)}/{Math.round(profile.th2 * 100)})</span>
+        </span>
+        {profile.dominant_isotype && (
+          <span className="text-fg-muted">{t("immuno_dominant")}: <span className="font-medium text-fg" style={{ color: isoColor(profile.dominant_isotype) }}>{profile.dominant_isotype}</span></span>
+        )}
+      </div>
+      {active.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {active.map(([k, v]) => (
+            <span key={k} className="inline-flex items-center gap-1 rounded-md border border-line bg-white/[0.02] px-2 py-0.5 text-[11px] text-fg-muted">
+              {CELL_LABEL[k] ?? k} <span className="font-mono text-fg">{Math.round(v).toLocaleString()}</span>
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -450,6 +501,12 @@ export function ImmunogenicityCard({ imm }: { imm: Immunogenicity }) {
         </div>
       </div>
 
+      {!toolMissing && (
+        <div className="mt-3 rounded-lg border border-amber-400/25 bg-amber-400/[0.06] px-3 py-2 text-[11.5px] leading-relaxed text-amber-300/90">
+          {t("immuno_disclaimer")}
+        </div>
+      )}
+
       {toolMissing ? (
         <p className="mt-4 text-sm text-fg-muted">{imm.note ?? t("immuno_no_tool")}</p>
       ) : (
@@ -466,6 +523,7 @@ export function ImmunogenicityCard({ imm }: { imm: Immunogenicity }) {
                         {t(`immuno_v_${h.verdict.toLowerCase()}`) || h.verdict}
                       </span>
                       <span className="text-[13px] font-medium text-fg">{h.host_label ?? h.host}</span>
+                      <span className="text-[11px] text-fg-faint">· {t("immuno_screen")}</span>
                     </div>
                     <span className="font-mono text-sm text-fg-muted">
                       {t("immuno_score")}: <span className="text-fg">{Math.round(h.score)}</span>/100
@@ -484,7 +542,8 @@ export function ImmunogenicityCard({ imm }: { imm: Immunogenicity }) {
                       ))}
                     </ul>
                   )}
-                  {h.curve && <AntibodyChart curve={h.curve} />}
+                  {h.profile && <ImmuneProfile profile={h.profile} />}
+                  {h.curve && <IsotypeChart curve={h.curve} />}
                 </div>
               );
             })}

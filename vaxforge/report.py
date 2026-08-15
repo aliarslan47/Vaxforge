@@ -314,6 +314,43 @@ def _mev_section(meta: dict) -> str:
     )
 
 
+def _immuno_section(meta: dict) -> str:
+    """İmmünojenisite — in silico eleme (ImmForge). DÜRÜST etiketli (aşırı-iddia yok)."""
+    imm = meta.get("immunogenicity")
+    if not imm or not imm.get("per_host"):
+        return ""
+    is_en = meta.get("lang", "tr") == "en"
+    ttl = "Immunogenicity — in silico screen (ImmForge)" if is_en else "İmmünojenisite — in silico eleme (ImmForge)"
+    disc = ("Mechanistic engine PREDICTION — not in vivo efficacy, NOT validated. Only the kinetic shape "
+            "was validated on peptide-vaccine data; verdict/isotype/profile are operational (threshold "
+            "WORKS≥60). IgM suppressed by single-step class switching." if is_en
+            else "Mekanistik motor ÖNGÖRÜSÜ — in vivo etkinlik DEĞİL, valide EDİLMEMİŞ. Yalnız kinetik şekil "
+            "peptid-aşısı verisinde doğrulandı; verdict/izotip/profil operasyonel (eşik OLUR≥60). IgM "
+            "tek-adım sınıf değiştirme nedeniyle bastırılmış.")
+    vmap = {"OLUR": ("WORKS" if is_en else "OLUR"), "ZAYIF": ("WEAK" if is_en else "ZAYIF"),
+            "OLMAZ": ("FAILS" if is_en else "OLMAZ")}
+    hdr = (["Host", "Verdict", "Score", "MHC-I", "MHC-II", "Clearance", "Profile", "Ig"] if is_en
+           else ["Konak", "Karar", "Skor", "MHC-I", "MHC-II", "Temizlik", "Profil", "Ig"])
+    trs = ""
+    for ph in imm["per_host"]:
+        pr = ph.get("profile") or {}
+        prof = f"{pr.get('polarization', '—')} ({round(pr.get('th1', 0) * 100)}/{round(pr.get('th2', 0) * 100)})"
+        trs += ("<tr>"
+                f"<td>{ph.get('host_label', ph.get('host', ''))}</td>"
+                f"<td>{vmap.get(ph.get('verdict', ''), ph.get('verdict', ''))}</td>"
+                f"<td>{round(ph.get('score', 0))}/100</td>"
+                f"<td>{ph.get('n_mhci', '')}</td><td>{ph.get('n_mhcii', '')}</td>"
+                f"<td>{round(ph.get('cleared_fraction', 0) * 100)}%</td>"
+                f"<td>{prof}</td><td>{pr.get('dominant_isotype') or '—'}</td></tr>")
+    r0 = imm["per_host"][0].get("reasons") or []
+    reasons_html = ("<p style='font-size:.8rem;color:#555'>· " + " · ".join(r0) + "</p>") if r0 else ""
+    return (
+        f"<h2>🛡️ {ttl}</h2>"
+        f"<p style='font-size:.8rem;background:#fff7e6;border:1px solid #f0c36d;padding:.5rem;border-radius:6px'>⚠ {disc}</p>"
+        "<table><tr>" + "".join(f"<th>{h}</th>" for h in hdr) + f"</tr>{trs}</table>{reasons_html}"
+    )
+
+
 def _html(df: pd.DataFrame, meta: dict, peptides=None) -> str:
     lang = meta.get("lang", "tr")
     thr_rows = "".join(
@@ -333,6 +370,7 @@ def _html(df: pd.DataFrame, meta: dict, peptides=None) -> str:
     )
     iedb_html = _iedb_section(meta, peptides)
     mev_html = _mev_section(meta)
+    immuno_html = _immuno_section(meta)
     popcov = meta.get("population_coverage") or {}
     pop_html = ""
     if popcov:
@@ -392,6 +430,7 @@ summary{{cursor:pointer;font-size:.95rem}}</style></head><body>
 {_type_tables_html(peptides or [], meta)}
 
 {mev_html}
+{immuno_html}
 
 <h2>{t(lang,'rep_thresholds')}</h2>
 <table><tr><th>{t(lang,'col_step')}</th><th>{t(lang,'col_tool')}</th><th>{t(lang,'col_param')}</th><th>{t(lang,'col_value')}</th><th>{t(lang,'col_type')}</th></tr>{thr_rows}</table>

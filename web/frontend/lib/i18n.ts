@@ -106,8 +106,19 @@ export const STR: Dict = {
   immuno_v_olur: { tr: "OLUR", en: "WORKS" },
   immuno_v_zayif: { tr: "ZAYIF", en: "WEAK" },
   immuno_v_olmaz: { tr: "OLMAZ", en: "FAILS" },
-  immuno_curve: { tr: "Simüle antikor yanıtı (bağıl, tepe=1)", en: "Simulated antibody response (relative, peak=1)" },
+  immuno_curve: { tr: "Simüle antikor yanıtı — izotip (bağıl, tepe=1)", en: "Simulated antibody response — isotype (relative, peak=1)" },
   immuno_day: { tr: "gün", en: "day" },
+  immuno_profile: { tr: "İmmün profil (mekanistik motor)", en: "Immune profile (mechanistic engine)" },
+  immuno_dominant: { tr: "Baskın izotip", en: "Dominant isotype" },
+  immuno_disclaimer: {
+    tr: "⚠ Mekanistik motor ÖNGÖRÜSÜ — in vivo etkinlik DEĞİL, valide edilmemiş. Yalnız kinetik ŞEKİL peptid-aşısı verisinde doğrulandı; verdict/izotip/profil operasyonel.",
+    en: "⚠ Mechanistic engine PREDICTION — not in vivo efficacy, not validated. Only the kinetic SHAPE was validated on peptide-vaccine data; verdict/isotype/profile are operational.",
+  },
+  immuno_screen: { tr: "in silico ön-eleme", en: "in silico pre-screen" },
+  immuno_igm_note: {
+    tr: "Not: IgM, motorun tek-adım sınıf değiştirmesi nedeniyle bastırılmış (yapısal sınır) — gerçekte primer yanıt daha IgM-ağırlıklıdır.",
+    en: "Note: IgM is suppressed by the engine's single-step class switching (structural limit) — the real primary response is more IgM-weighted.",
+  },
 
   // MEV konstrukt
   mev_title: { tr: "Çok-epitoplu aşı konstruktu (MEV)", en: "Multi-epitope vaccine (MEV) construct" },

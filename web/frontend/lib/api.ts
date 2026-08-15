@@ -101,7 +101,14 @@ export interface ImmunogenicityHost {
   peak_antibody: number;
   reasons: string[];
   species_calibrated?: boolean;
-  curve?: { days: number[]; ab: number[] };
+  curve?: { days: number[]; isotypes: Record<string, number[]> };
+  profile?: {
+    polarization: string; // Th1 | Th2 | dengeli
+    th1: number;
+    th2: number;
+    dominant_isotype?: string | null;
+    cells: Record<string, number>; // B / Th / CTL / PLB / memoryB (tepe)
+  };
 }
 export interface Immunogenicity {
   tool: string; // "netmhcpan" | "none"

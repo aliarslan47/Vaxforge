@@ -265,20 +265,55 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
         ]
         el.append(tbl(mrows, widths=[5.5*cm, 8.7*cm]))
 
+    # -- İmmünojenisite (ImmForge — in silico eleme; DÜRÜST etiketli)
+    imm = meta.get("immunogenicity")
+    if imm and imm.get("per_host"):
+        is_en = lang == "en"
+        el.append(Paragraph(("2e. Immunogenicity — in silico screen (ImmForge)" if is_en
+                             else "2e. İmmünojenisite — in silico eleme (ImmForge)"), h2))
+        el.append(Paragraph(
+            ("Mechanistic engine PREDICTION — not in vivo efficacy, NOT validated. Only the kinetic "
+             "shape was validated on peptide-vaccine data; verdict/isotype/profile are operational "
+             "(thresholds OLUR/WORKS≥60). IgM suppressed by single-step class switching." if is_en
+             else "Mekanistik motor ÖNGÖRÜSÜ — in vivo etkinlik DEĞİL, valide EDİLMEMİŞ. Yalnız kinetik "
+             "şekil peptid-aşısı verisinde doğrulandı; verdict/izotip/profil operasyonel (eşik OLUR≥60). "
+             "IgM tek-adım sınıf değiştirme nedeniyle bastırılmış (yapısal sınır)."), small))
+        el.append(Spacer(1, 3))
+        vmap = {"OLUR": ("WORKS" if is_en else "OLUR"), "ZAYIF": ("WEAK" if is_en else "ZAYIF"),
+                "OLMAZ": ("FAILS" if is_en else "OLMAZ")}
+        rows = [[("Host" if is_en else "Konak"), ("Verdict" if is_en else "Karar"),
+                 ("Score" if is_en else "Skor"), "MHC-I", "MHC-II",
+                 ("Clearance" if is_en else "Temizlik"), ("Profile" if is_en else "Profil"), "Ig"]]
+        for ph in imm["per_host"]:
+            pr = ph.get("profile") or {}
+            rows.append([
+                P(ph.get("host_label", ph.get("host", ""))),
+                vmap.get(ph.get("verdict", ""), ph.get("verdict", "")),
+                f"{round(ph.get('score', 0))}/100", str(ph.get("n_mhci", "")), str(ph.get("n_mhcii", "")),
+                f"{round(ph.get('cleared_fraction', 0) * 100)}%",
+                P(f"{pr.get('polarization', '—')} ({round(pr.get('th1', 0) * 100)}/{round(pr.get('th2', 0) * 100)})"),
+                pr.get("dominant_isotype") or "—",
+            ])
+        el.append(tbl(rows, widths=[3.0*cm, 1.8*cm, 1.6*cm, 1.3*cm, 1.3*cm, 1.9*cm, 2.5*cm, 1.4*cm]))
+        r0 = (imm["per_host"][0].get("reasons") or [])
+        if r0:
+            el.append(Spacer(1, 2))
+            el.append(Paragraph("· " + " · ".join(r0), small))
+
     # -- Kullanılan eşikler
     el.append(Paragraph("3. "+t(lang,"rep_thresholds"), h2))
     trows = [[t(lang,"col_step"), t(lang,"col_tool"), t(lang,"col_param"), t(lang,"col_value"), t(lang,"col_type")]]
     for r in meta.get("thresholds", []):
-        trows.append([r["step"], r["tool"], r["param"], f"{r['value']} {r['unit']}",
+        trows.append([P(r["step"]), P(r["tool"]), P(r["param"]), P(f"{r['value']} {r['unit']}"),
                       t(lang,"type_hard") if r["hard_filter"] else t(lang,"type_score")])
-    el.append(tbl(trows, widths=[2.6*cm, 3.4*cm, 3.2*cm, 3.4*cm, 1.6*cm]))
+    el.append(tbl(trows, widths=[2.8*cm, 3.6*cm, 3.4*cm, 3.2*cm, 1.8*cm]))
 
     # -- Yöntemler / araçlar (özet tablo)
     el.append(Paragraph("4. "+t(lang,"rep_methods"), h2))
     refs = meta.get("citations") or citations.for_report()
-    mrows = [[t(lang,"col_step"), t(lang,"col_tool"), "Ref"]] + [[r["step"], r["tool"], f"[{i}]"]
+    mrows = [[t(lang,"col_step"), t(lang,"col_tool"), "Ref"]] + [[P(r["step"]), P(r["tool"]), f"[{i}]"]
                                           for i, r in enumerate(refs, 1)]
-    el.append(tbl(mrows, widths=[5*cm, 5*cm, 1.5*cm]))
+    el.append(tbl(mrows, widths=[5.5*cm, 8.1*cm, 1.2*cm]))
     el.append(Spacer(1, 6))
     el.append(Paragraph(t(lang,"pdf_methods_note"), small))
 
