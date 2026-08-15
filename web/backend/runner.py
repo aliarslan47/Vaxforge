@@ -63,6 +63,9 @@ _PIPELINE_STEPS = [
      "metapredict V3", None),
     ("population", "population", "Popülasyon kapsamı", "Population coverage",
      "IEDB Population Coverage", "hesaplanamadı"),
+    ("immunization", "immforge_score", "İn silico immünizasyon (OLUR/OLMAZ)",
+     "In silico immunization (pass/fail)",
+     "ImmForge (ABM+ODE) · NetMHCpan", "atlanır (NetMHCpan yok)"),
 ]
 
 

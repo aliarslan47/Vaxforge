@@ -167,6 +167,25 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
         meta["mev"] = None
         yield _ev("mev", "done", f"MEV atlandı ({type(e).__name__})", {})
 
+    # 6f) İMMÜNİZASYON TESTİ — ImmForge: aday MEV in silico immünize edilir → OLUR/OLMAZ.
+    # Ters aşı bilişimi döngü kapanışı: konak MHC allelleri için GERÇEK NetMHCpan → motor → karar.
+    mev_seq = (meta.get("mev") or {}).get("sequence")
+    if mev_seq:
+        yield _ev("immunization", "running",
+                  "In silico immünizasyon testi (ImmForge · NetMHCpan → motor)…")
+        try:
+            from . import immforge_score
+            verdict = immforge_score.score_construct(mev_seq, hosts)
+            meta["immunogenicity"] = verdict
+            hl = verdict.get("headline") or {"verdict": verdict.get("verdict", "—")}
+            sc = f" (skor {hl['score']:.0f}/100)" if hl.get("score") is not None else ""
+            yield _ev("immunization", "done",
+                      f"İmmünizasyon kararı: {hl.get('verdict', '—')}{sc}", verdict)
+        except Exception as e:  # opsiyonel: pipeline'ı düşürmesin
+            meta["immunogenicity"] = None
+            yield _ev("immunization", "done",
+                      f"İmmünizasyon testi atlandı ({type(e).__name__})", {})
+
     # 7) Rapor
     yield _ev("report", "running", "Rapor ve veri paketi üretiliyor…")
     run_dir = Path(outdir) / f"run_{meta['timestamp'].replace(':', '-')}"

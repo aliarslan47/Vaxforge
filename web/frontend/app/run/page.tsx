@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { Button, Card, Badge, SectionHeading } from "@/components/ui";
-import { FunnelChart, CandidatesTable, DownloadBar, MevConstruct, PopulationCoverage, IedbValidation } from "@/components/results";
+import { FunnelChart, CandidatesTable, DownloadBar, MevConstruct, ImmunogenicityCard, PopulationCoverage, IedbValidation } from "@/components/results";
 import { useLang } from "@/components/lang-provider";
 import {
   getConfig,
@@ -536,6 +536,7 @@ export default function RunPage() {
                 </div>
 
                 {detail.mev && <MevConstruct mev={detail.mev} />}
+                {detail.immunogenicity && <ImmunogenicityCard imm={detail.immunogenicity} />}
                 {(detail as any).population_coverage && <PopulationCoverage pc={(detail as any).population_coverage} />}
                 {(detail as any).iedb_match && <IedbValidation iedb={(detail as any).iedb_match} />}
               </>

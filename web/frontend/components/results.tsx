@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Download, FileText, FileSpreadsheet, FileCode2, FileDown, Search, Syringe, Globe2, ShieldCheck } from "lucide-react";
-import { RunDetail, Candidate, MevData, fileUrl } from "@/lib/api";
+import { RunDetail, Candidate, MevData, Immunogenicity, fileUrl } from "@/lib/api";
 import { useLang } from "./lang-provider";
 import { Card, Badge } from "./ui";
 import { cn } from "@/lib/utils";
@@ -387,6 +387,78 @@ export function MevConstruct({ mev }: { mev: MevData }) {
         {p.allergen && <PropStat label={t("col_allergen")} value={p.allergen.allergenic ? "⚠" : t("mev_nonallergen")} tone={p.allergen.allergenic ? "warn" : "ok"} />}
         {p.toxicity && <PropStat label={t("col_tox")} value={p.toxicity.toxic ? "⚠" : t("mev_nontoxic")} tone={p.toxicity.toxic ? "warn" : "ok"} />}
       </div>
+    </Card>
+  );
+}
+
+// ---------- İmmünojenisite kararı (ImmForge) ----------
+const VERDICT_STYLE: Record<string, { cls: string; dot: string }> = {
+  OLUR: { cls: "text-bio bg-bio/10 border-bio/30", dot: "bg-bio" },
+  ZAYIF: { cls: "text-amber-400 bg-amber-400/10 border-amber-400/30", dot: "bg-amber-400" },
+  OLMAZ: { cls: "text-red-400 bg-red-400/10 border-red-400/30", dot: "bg-red-400" },
+};
+function verdictStyle(v: string) {
+  return VERDICT_STYLE[v] ?? { cls: "text-fg-muted bg-white/5 border-line", dot: "bg-fg-muted" };
+}
+
+export function ImmunogenicityCard({ imm }: { imm: Immunogenicity }) {
+  const { t } = useLang();
+  const hosts = imm.per_host ?? [];
+  const toolMissing = imm.tool === "none" || hosts.length === 0;
+
+  return (
+    <Card className="p-5 sm:p-6">
+      <div className="flex items-center gap-2.5">
+        <span className="grid h-9 w-9 place-items-center rounded-xl bg-primary/10 ring-1 ring-primary/25">
+          <ShieldCheck className="h-5 w-5 text-primary" />
+        </span>
+        <div>
+          <h3 className="font-display text-lg font-semibold text-fg">{t("immuno_title")}</h3>
+          <p className="text-xs text-fg-muted">{t("immuno_sub")}</p>
+        </div>
+      </div>
+
+      {toolMissing ? (
+        <p className="mt-4 text-sm text-fg-muted">{imm.note ?? t("immuno_no_tool")}</p>
+      ) : (
+        <>
+          <div className="mt-4 space-y-3">
+            {hosts.map((h) => {
+              const vs = verdictStyle(h.verdict);
+              return (
+                <div key={h.host} className="rounded-xl border border-line bg-white/[0.02] p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className={cn("inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-sm font-semibold", vs.cls)}>
+                        <span className={cn("h-2 w-2 rounded-full", vs.dot)} />
+                        {t(`immuno_v_${h.verdict.toLowerCase()}`) || h.verdict}
+                      </span>
+                      <span className="text-[13px] font-medium text-fg">{h.host_label ?? h.host}</span>
+                    </div>
+                    <span className="font-mono text-sm text-fg-muted">
+                      {t("immuno_score")}: <span className="text-fg">{Math.round(h.score)}</span>/100
+                    </span>
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[12px] text-fg-muted">
+                    <span>MHC-I: <span className="text-fg">{h.n_mhci}</span></span>
+                    <span>MHC-II: <span className="text-fg">{h.n_mhcii}</span></span>
+                    <span>{t("immuno_clearance")}: <span className="text-fg">{Math.round(h.cleared_fraction * 100)}%</span></span>
+                    {h.species_calibrated === false && <span className="text-amber-400">{t("immuno_proxy")}</span>}
+                  </div>
+                  {h.reasons?.length > 0 && (
+                    <ul className="mt-2 space-y-1 text-[12px] text-fg-muted">
+                      {h.reasons.map((r, i) => (
+                        <li key={i} className="flex gap-1.5"><span className="text-fg-faint">•</span>{r}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          {imm.note && <p className="mt-3 text-[11px] leading-relaxed text-fg-faint">{imm.note}</p>}
+        </>
+      )}
     </Card>
   );
 }

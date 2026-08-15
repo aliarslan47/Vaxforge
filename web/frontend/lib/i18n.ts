@@ -90,6 +90,23 @@ export const STR: Dict = {
   col_tox: { tr: "Toksisite", en: "Toxicity" },
   col_allergen: { tr: "Alerjen", en: "Allergen" },
 
+  // İn silico immünizasyon (ImmForge)
+  immuno_title: { tr: "İn silico immünizasyon kararı (ImmForge)", en: "In silico immunization verdict (ImmForge)" },
+  immuno_sub: {
+    tr: "Aday konstrukt konak MHC allelleri için NetMHCpan'den geçirilip immün motorda simüle edildi.",
+    en: "Candidate run through NetMHCpan for host MHC alleles and simulated in the immune engine.",
+  },
+  immuno_score: { tr: "Skor", en: "Score" },
+  immuno_clearance: { tr: "temizlik", en: "clearance" },
+  immuno_proxy: { tr: "tür proxy (human motoru)", en: "species proxy (human engine)" },
+  immuno_no_tool: {
+    tr: "NetMHCpan/ImmForge bu ortamda kurulu değil — servis sunucusunda çalışır.",
+    en: "NetMHCpan/ImmForge not installed in this environment — runs on the service server.",
+  },
+  immuno_v_olur: { tr: "OLUR", en: "WORKS" },
+  immuno_v_zayif: { tr: "ZAYIF", en: "WEAK" },
+  immuno_v_olmaz: { tr: "OLMAZ", en: "FAILS" },
+
   // MEV konstrukt
   mev_title: { tr: "Çok-epitoplu aşı konstruktu (MEV)", en: "Multi-epitope vaccine (MEV) construct" },
   mev_sub: {
