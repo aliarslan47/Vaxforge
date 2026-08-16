@@ -442,9 +442,7 @@ function IsotypeChart({ curve }: { curve: { days: number[]; isotypes: Record<str
         <text x={padL} y={H - 3} fontSize="8" fill="currentColor" fillOpacity="0.45">0</text>
         <text x={W - padR} y={H - 3} fontSize="8" textAnchor="end" fill="currentColor" fillOpacity="0.45">{Math.round(xmax)} {t("immuno_day")}</text>
       </svg>
-      {keys.includes("IgM") === false && (
-        <p className="mt-1 text-[10.5px] leading-snug text-fg-faint">{t("immuno_igm_note")}</p>
-      )}
+      <p className="mt-1 text-[10.5px] leading-snug text-fg-faint">{t("immuno_igm_note")}</p>
     </div>
   );
 }

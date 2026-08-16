@@ -276,8 +276,9 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
              "shape was validated on peptide-vaccine data; verdict/isotype/profile are operational "
              "(thresholds OLUR/WORKS≥60). IgM suppressed by single-step class switching." if is_en
              else "Mekanistik motor ÖNGÖRÜSÜ — in vivo etkinlik DEĞİL, valide EDİLMEMİŞ. Yalnız kinetik "
-             "şekil peptid-aşısı verisinde doğrulandı; verdict/izotip/profil operasyonel (eşik OLUR≥60). "
-             "IgM tek-adım sınıf değiştirme nedeniyle bastırılmış (yapısal sınır)."), small))
+             "şekil peptid-aşısı verisinde doğrulandı; verdict/profil operasyonel (eşik OLUR≥60). İzotip "
+             "kimlikleri literatür-steering'den (IgM primer→IgG alt-sınıf karışımı); relatif büyüklükler "
+             "operasyonel (Th1/Th2 dengesine bağlı, per-konstrukt valide değil)."), small))
         el.append(Spacer(1, 3))
         vmap = {"OLUR": ("WORKS" if is_en else "OLUR"), "ZAYIF": ("WEAK" if is_en else "ZAYIF"),
                 "OLMAZ": ("FAILS" if is_en else "OLMAZ")}

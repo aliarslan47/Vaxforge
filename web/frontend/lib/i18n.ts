@@ -116,8 +116,8 @@ export const STR: Dict = {
   },
   immuno_screen: { tr: "in silico ön-eleme", en: "in silico pre-screen" },
   immuno_igm_note: {
-    tr: "Not: IgM, motorun tek-adım sınıf değiştirmesi nedeniyle bastırılmış (yapısal sınır) — gerçekte primer yanıt daha IgM-ağırlıklıdır.",
-    en: "Note: IgM is suppressed by the engine's single-step class switching (structural limit) — the real primary response is more IgM-weighted.",
+    tr: "Not: izotip kimlikleri literatür-steering'den (IgM primer → IgG alt-sınıf karışımı); relatif büyüklükler operasyonel (Th1/Th2 dengesine bağlı, per-konstrukt valide değil).",
+    en: "Note: isotype identities are from literature steering (IgM primary → IgG-subclass mix); relative magnitudes are operational (depend on Th1/Th2 balance, not validated per construct).",
   },
 
   // MEV konstrukt
