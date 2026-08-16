@@ -415,13 +415,18 @@ function IsotypeChart({ curve }: { curve: { days: number[]; isotypes: Record<str
   const isotypes = curve?.isotypes ?? {};
   const keys = Object.keys(isotypes);
   if (days.length < 2 || keys.length === 0) return null;
-  const W = 320, H = 104, padL = 4, padR = 6, padT = 8, padB = 15;
+  // Eksenli bilimsel grafik — VERİ DEĞİŞMEZ/EKLENMEZ, yalnız motorun gerçek per-izotip çıktısı
+  // ölçekli okunur. preserveAspectRatio: metin çarpılmasın diye "none" DEĞİL.
+  const W = 600, H = 200, padL = 40, padR = 14, padT = 10, padB = 30;
   const xmax = days[days.length - 1] || 1;
   const allY = keys.flatMap((k) => isotypes[k]);
   const ymax = Math.max(1, ...allY) * 1.06;
   const X = (d: number) => padL + (d / xmax) * (W - padL - padR);
   const Y = (v: number) => padT + (1 - v / ymax) * (H - padT - padB);
   const line = (ys: number[]) => days.map((d, i) => `${X(d).toFixed(1)},${Y(ys[i] ?? 0).toFixed(1)}`).join(" ");
+  const yTicks = [0, 0.5, 1.0].filter((v) => v <= ymax);
+  const xTicks = [0, 0.25, 0.5, 0.75, 1].map((f) => Math.round(xmax * f));
+  const yMid = (padT + (H - padB)) / 2;
   return (
     <div className="mt-3">
       <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
@@ -434,13 +439,25 @@ function IsotypeChart({ curve }: { curve: { days: number[]; isotypes: Record<str
           ))}
         </span>
       </div>
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" preserveAspectRatio="none" style={{ height: 100 }}>
-        <line x1={padL} y1={H - padB} x2={W - padR} y2={H - padB} stroke="currentColor" strokeOpacity="0.15" />
-        {keys.map((k) => (
-          <polyline key={k} points={line(isotypes[k])} fill="none" stroke={isoColor(k)} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ maxHeight: 210 }}>
+        {/* y ızgara + çentik */}
+        {yTicks.map((v) => (
+          <g key={`y${v}`}>
+            <line x1={padL} y1={Y(v)} x2={W - padR} y2={Y(v)} stroke="currentColor" strokeOpacity={v === 0 ? 0.25 : 0.08} />
+            <text x={padL - 6} y={Y(v) + 3.5} fontSize="10" textAnchor="end" fill="currentColor" fillOpacity="0.5">{v}</text>
+          </g>
         ))}
-        <text x={padL} y={H - 3} fontSize="8" fill="currentColor" fillOpacity="0.45">0</text>
-        <text x={W - padR} y={H - 3} fontSize="8" textAnchor="end" fill="currentColor" fillOpacity="0.45">{Math.round(xmax)} {t("immuno_day")}</text>
+        {/* x çentik */}
+        {xTicks.map((d, i) => (
+          <text key={`x${i}`} x={X(d)} y={H - padB + 14} fontSize="10" textAnchor="middle" fill="currentColor" fillOpacity="0.5">{d}</text>
+        ))}
+        {/* eksen etiketleri */}
+        <text x={12} y={yMid} fontSize="10.5" textAnchor="middle" fill="currentColor" fillOpacity="0.6" transform={`rotate(-90 12 ${yMid})`}>{t("immuno_yaxis")}</text>
+        <text x={(padL + W - padR) / 2} y={H - 4} fontSize="10.5" textAnchor="middle" fill="currentColor" fillOpacity="0.6">{t("immuno_day")}</text>
+        {/* izotip çizgileri — motorun GERÇEK çıktısı (rötuşsuz) */}
+        {keys.map((k) => (
+          <polyline key={k} points={line(isotypes[k])} fill="none" stroke={isoColor(k)} strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" />
+        ))}
       </svg>
       <p className="mt-1 text-[10.5px] leading-snug text-fg-faint">{t("immuno_igm_note")}</p>
     </div>

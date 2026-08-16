@@ -108,6 +108,7 @@ export const STR: Dict = {
   immuno_v_olmaz: { tr: "OLMAZ", en: "FAILS" },
   immuno_curve: { tr: "Simüle antikor yanıtı — izotip (bağıl, tepe=1)", en: "Simulated antibody response — isotype (relative, peak=1)" },
   immuno_day: { tr: "gün", en: "day" },
+  immuno_yaxis: { tr: "antikor (bağıl)", en: "antibody (rel.)" },
   immuno_profile: { tr: "İmmün profil (mekanistik motor)", en: "Immune profile (mechanistic engine)" },
   immuno_dominant: { tr: "Baskın izotip", en: "Dominant isotype" },
   immuno_disclaimer: {
