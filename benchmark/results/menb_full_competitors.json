@@ -1,0 +1,31 @@
+{
+  "set": "full_2003_proteome",
+  "n_proteins": 2003,
+  "vaxignml": {
+    "recall": "4/4",
+    "n_candidates": 613,
+    "fold": 3.28,
+    "ranks": {
+      "NadA": 52,
+      "PorA": 29,
+      "NHBA": 59,
+      "fHbp": 150
+    }
+  },
+  "nerve": {
+    "recall": "1/4",
+    "n_candidates": 9,
+    "fold": 62.47,
+    "ranks": {
+      "NadA": "DISCARDED",
+      "PorA": 8,
+      "NHBA": "DISCARDED",
+      "fHbp": "DISCARDED"
+    }
+  },
+  "published_ref": {
+    "NERVE2": 16.57,
+    "Vaxign2_filter": 9.06,
+    "VaxiJen": 3.41
+  }
+}

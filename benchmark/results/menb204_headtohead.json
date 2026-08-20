@@ -1,0 +1,82 @@
+{
+  "pathogen": "MenB (N. meningitidis MC58)",
+  "input": "menb_testset.faa (4 koruyucu + 60 arka plan = 64)",
+  "fairness": "her araç DEFAULT parametre; eşik tuning yok; özdeş girdi",
+  "ground_truth": {
+    "Q9JXV4": "fHbp",
+    "Q9JXK7": "NadA",
+    "Q7DD37": "NHBA(VFDB-)",
+    "P0DH58": "PorA"
+  },
+  "tools": [
+    {
+      "tool": "VaxForge",
+      "n_candidates": 68,
+      "recall": "4/4",
+      "ranks": {
+        "PorA": 1,
+        "NHBA(VFDB-)": 6,
+        "NadA": 8,
+        "fHbp": 3
+      },
+      "recovered": [
+        "NHBA(VFDB-)",
+        "NadA",
+        "PorA",
+        "fHbp"
+      ],
+      "fold_enrichment": 3.12,
+      "fisher_p": 0.01162431514087369,
+      "auc": 0.99,
+      "note": "candidacy skoru; funnel soft-VFDB (NHBA korunur)"
+    },
+    {
+      "tool": "Vaxign-ML",
+      "n_candidates": 59,
+      "recall": "4/4",
+      "ranks": {
+        "PorA": 8,
+        "NHBA(VFDB-)": 6,
+        "NadA": 5,
+        "fHbp": 14
+      },
+      "recovered": [
+        "NHBA(VFDB-)",
+        "NadA",
+        "PorA",
+        "fHbp"
+      ],
+      "fold_enrichment": 3.6363636363636362,
+      "fisher_p": 0.006496347615446356,
+      "auc": 0.970625,
+      "auc_ci": [
+        0.941350341450844,
+        0.9925373134328358
+      ],
+      "note": "protegenicity (XGBoost); pred>=0.5 protective"
+    },
+    {
+      "tool": "NERVE 2.0",
+      "n_candidates": 3,
+      "recall": "1/4",
+      "ranks": {
+        "PorA": 3,
+        "NHBA(VFDB-)": "DISCARDED",
+        "NadA": "DISCARDED",
+        "fHbp": "DISCARDED"
+      },
+      "recovered": [
+        "PorA"
+      ],
+      "fold_enrichment": 25.0,
+      "fisher_p": 0.05795708518982875,
+      "auc": null,
+      "discarded_reasons": {
+        "NHBA(VFDB-)": "loc=Periplasmic adhesin_p=0.3284",
+        "NadA": "loc=OuterMembrane adhesin_p=0.2804",
+        "fHbp": "loc=Unknown adhesin_p=0.385"
+      },
+      "note": "select modülü sert filtreler (localization + adhesin pad>=0.5)"
+    }
+  ]
+}

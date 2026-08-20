@@ -1,0 +1,9 @@
+{
+  "tool": "Vaxign-ML",
+  "pathogen": "rabies",
+  "n_proteins": 5,
+  "G_rank": 4,
+  "G_protegenicity": 89.65,
+  "G_prediction": 1.0,
+  "note": "virus tipi; host seçimi YOK (VaxForge çok-konak avantajı burada oynamaz)"
+}
