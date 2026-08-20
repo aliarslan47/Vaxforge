@@ -12,6 +12,7 @@ glycoprotein G (NP_056796.1). NERVE/Vaxign host seçimi yapamaz → bu kol yaln�
 from __future__ import annotations
 
 import json
+import os
 import sys
 import time
 from itertools import combinations
@@ -28,11 +29,17 @@ from vaxforge.config_loader import ThresholdConfig  # noqa: E402
 from vaxforge.detect import detect  # noqa: E402
 from vaxforge.hosts import HostRegistry  # noqa: E402
 
-PROTEOME = ROOT / "data" / "validation" / "rabies_proteome.faa"
-TAXON = "NCBITaxon:11292"          # Lyssavirus rabies
+# Env-parametrize: aynı çok-konak virüs kolu, farklı virüsler için (VSV/EMCV vb.).
+# Varsayılan = Rabies (geriye dönük uyumlu).
+PROTEOME = Path(os.environ.get("VIRUS_PROTEOME", ROOT / "data" / "validation" / "rabies_proteome.faa"))
+TAXON = os.environ.get("VIRUS_TAXON", "NCBITaxon:11292")          # Lyssavirus rabies
 HOSTS = ["human", "bovine", "mouse", "pig"]
-GROUND_TRUTH = "NP_056796"         # glycoprotein G (ID substring)
-OUTDIR = ROOT / "benchmark" / "results" / "rabies"
+GROUND_TRUTH = os.environ.get("VIRUS_GT", "NP_056796")            # G glikoprotein (ID substring)
+GT_NAME = os.environ.get("VIRUS_GT_NAME", "glycoprotein G")
+GT_ACC = os.environ.get("VIRUS_GT_ACC", "NP_056796.1")
+VIRUS_LABEL = os.environ.get("VIRUS_LABEL", "rabies_proteome.faa (NC_001542, 5 protein)")
+VIRUS_NAME = os.environ.get("VIRUS_NAME", "Rabies")
+OUTDIR = Path(os.environ.get("VIRUS_OUTDIR", ROOT / "benchmark" / "results" / "rabies"))
 
 
 def main() -> int:
@@ -42,10 +49,10 @@ def main() -> int:
     cfg = ThresholdConfig.load()
     hosts = HostRegistry.load()
     det = detect(str(PROTEOME))
-    det.filename = "rabies_proteome.faa (NC_001542, 5 protein)"
+    det.filename = VIRUS_LABEL
     OUTDIR.mkdir(parents=True, exist_ok=True)
 
-    print(f"Rabies × {len(HOSTS)} konak: {', '.join(HOSTS)} · profil=virus · taxon={TAXON}")
+    print(f"{VIRUS_NAME} × {len(HOSTS)} konak: {', '.join(HOSTS)} · profil=virus · taxon={TAXON}")
     t0 = time.time()
     result = None
     for ev in pipeline.run(str(PROTEOME), det, cfg, "virus",
@@ -115,7 +122,7 @@ def main() -> int:
         "runtime_s": round(time.time() - t0, 1),
         "n_input": meta.get("n_input"), "n_funnel": meta.get("n_funnel"),
         "n_candidate_proteins": len(cand),
-        "ground_truth": {"antigen": "glycoprotein G", "accession": "NP_056796.1",
+        "ground_truth": {"antigen": GT_NAME, "accession": GT_ACC,
                          "matched_id": g_id, "produced_candidate": g_produced,
                          "protein_rank": g_rank, "best_candidacy": round(cand.get(g_id, 0.0), 4) if g_produced else None},
         "g_rank_permutation": perm,
@@ -131,7 +138,7 @@ def main() -> int:
                  "Tek antijen (G) → rank istatistiği betimsel. Host seçimi VaxForge'a özgü; "
                  "NERVE (bacterial-only) ve Vaxign bu kolda oynayamaz."),
     }
-    (OUTDIR / "rabies_summary.json").write_text(
+    (OUTDIR / f"{VIRUS_NAME.lower()}_summary.json").write_text(
         json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8")
     import shutil
     for k, v in result["paths"].items():
@@ -141,13 +148,13 @@ def main() -> int:
             pass
 
     print("\n" + "=" * 70)
-    print("VİRÜS KOLU ÖZETİ — Rabies × 4 konak")
+    print(f"VİRÜS KOLU ÖZETİ — {VIRUS_NAME} × 4 konak")
     print("=" * 70)
     print(f"Girdi 5 protein · funnel sonrası {summary['n_funnel']} · aday protein "
           f"{summary['n_candidate_proteins']} · süre {summary['runtime_s']}s")
     gt = summary["ground_truth"]
     mark = "✅" if gt["produced_candidate"] else "❌"
-    print(f"\n{mark} Ground-truth glycoprotein G: rank #{gt['protein_rank']}/"
+    print(f"\n{mark} Ground-truth {GT_NAME}: rank #{gt['protein_rank']}/"
           f"{summary['n_candidate_proteins']} · skor {gt['best_candidacy']}")
     if perm:
         print(f"   G rank permütasyon p={perm['p_value']:.4g} ({perm['caveat'] or 'n=1 betimsel'})")

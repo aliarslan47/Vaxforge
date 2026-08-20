@@ -12,3 +12,12 @@ results/rabies/report.*
 results/rabies/candidates*
 results/rabies/run.json
 results/rabies/top_peptides.fasta
+# Yeni virüs kolları (VSV + EMCV) — yalnız *_summary.json izlenir
+results/vsv/report.*
+results/vsv/candidates*
+results/vsv/run.json
+results/vsv/top_peptides.fasta
+results/emcv/report.*
+results/emcv/candidates*
+results/emcv/run.json
+results/emcv/top_peptides.fasta
