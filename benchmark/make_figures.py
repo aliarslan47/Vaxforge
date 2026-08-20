@@ -71,21 +71,36 @@ def fig2_recall(h204):
 
 
 def fig3_fold_recall(h204, full):
-    """fold-enrichment vs recall — ödünleşim. 204 (dolu) + tam-proteom (içi boş) noktalar."""
-    fig, ax = plt.subplots(figsize=(6.2, 4.4))
+    """fold-enrichment vs recall — ödünleşim. 204 (dolu) + tam-proteom (içi boş) noktalar.
+
+    recall=%100'de üç nokta (VaxForge-204, Vaxign-ML-204, Vaxign-ML-tam) fold ~3.1-3.6'da
+    üst üste biner → etiketler leader-line (ok) ile ayrı köşelere taşınır ki örtüşme olmasın.
+    """
+    fig, ax = plt.subplots(figsize=(6.4, 4.6))
+    # her nokta için etiket ofsetini elle ayarla (örtüşmeyi önle); dar kümedekiler leader-line ile
+    off204 = {"VaxForge": (10, 12), "Vaxign-ML": (10, -20), "NERVE 2.0": (8, 6)}
     for t in TOOLS:
         rec = int(h204[t]["recall"].split("/")[0]) / 4 * 100
         fold = h204[t]["fold_enrichment"]
         ax.scatter(rec, fold, s=130, color=COL[t], label=f"{t} (204)", zorder=3)
-        ax.annotate(t, (rec, fold), textcoords="offset points", xytext=(6, 4), fontsize=8)
-    # tam proteom rakipler
+        dx, dy = off204[t]
+        arrow = dict(arrowstyle="-", color=COL[t], lw=0.7) if abs(dy) > 8 else None
+        ax.annotate(f"{t} (204)", (rec, fold), textcoords="offset points", xytext=(dx, dy),
+                    fontsize=8, color=COL[t], arrowprops=arrow,
+                    ha="left" if dx >= 0 else "right")
+    # tam proteom rakipler (içi boş nokta)
+    offfull = {"Vaxign-ML": (10, -38), "NERVE 2.0": (10, -6)}
     for tool, key in [("Vaxign-ML", "vaxignml"), ("NERVE 2.0", "nerve")]:
         rec = int(full[key]["recall"].split("/")[0]) / 4 * 100
         fold = full[key]["fold"]
         if fold:
             ax.scatter(rec, fold, s=110, facecolors="none", edgecolors=COL[tool], linewidths=2, zorder=3)
-            ax.annotate(f"{tool}\n(tam 2003)", (rec, fold), textcoords="offset points", xytext=(6, -4), fontsize=7)
-    ax.axhline(16.57, ls="--", c="gray", lw=1); ax.text(2, 17.5, "NERVE2 yayınlanmış fold 16.57", fontsize=7, color="gray")
+            dx, dy = offfull[tool]
+            ax.annotate(f"{tool} (tam 2003)", (rec, fold), textcoords="offset points", xytext=(dx, dy),
+                        fontsize=7, color=COL[tool], ha="left",
+                        arrowprops=dict(arrowstyle="-", color=COL[tool], lw=0.7))
+    ax.axhline(16.57, ls="--", c="gray", lw=1); ax.text(2, 18.5, "NERVE2 yayınlanmış fold 16.57", fontsize=7, color="gray")
+    ax.set_xlim(0, 118); ax.set_ylim(0, 70)
     ax.set_xlabel("recall@antijen (%)"); ax.set_ylabel("fold-enrichment")
     ax.set_title("Ödünleşim: yüksek fold ≠ yüksek recall\n(NERVE aşırı-seçici → yüksek fold ama 3 antijen kaçar)", fontsize=9)
     ax.grid(alpha=0.3)

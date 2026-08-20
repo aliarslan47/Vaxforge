@@ -63,7 +63,9 @@ DeLong (AUC karşılaştırma), Jaccard (çok-konak). Küçük-n dürüstlüğü
 - `fig3_fold_vs_recall.png` — fold-vs-recall ödünleşimi (NERVE yüksek-fold/düşük-recall) [kozmetik: alt-sağ etiket örtüşmesi düzeltilebilir]
 - `fig4_multihost_jaccard.png` — rabies G host×host Jaccard (çok-konak) ★
 
-## 5. YAZIM AŞAMASINDA EKLENECEK (kullanıcı kuralı)
+## 5. SEÇİM GEREKÇELERİ & YAZIM AŞAMASI
 Patojen (MenB, rabies) + konak (insan/sığır/fare/domuz) **biyolojik kullanım + seçilim gerekçeleri
-DOI-doğrulanmış makalelerle** desteklenecek. Uydurma DOI YASAK. Ayrıca VaxForge tam-2003 koşusu
-(GPU gelince) flagship fold sayısını tamamlar.
+DOI-doğrulanmış makalelerle** → **`SELECTION_RATIONALE.md`** (2026-08-20; 6 atıf web-doğrulandı:
+Pizza 2000, Giuliani 2006, Cox 1977, Fooks 2017, NERVE2 Conte 2024, Vaxign-ML Ong 2020 — hepsi gerçek
+DOI, uydurma yok). Kalan (opsiyonel/GPU): VaxForge tam-2003 koşusu flagship fold sayısını tamamlar;
+konak-başına ayrı epidemiyolojik atıf yazımda eklenebilir.

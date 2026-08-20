@@ -84,6 +84,13 @@ start_backend() {
 
 start_frontend() {
   free_port "$FRONTEND_PORT"
+  # KÖK NEDEN FİX: `next start` prod build (.next/BUILD_ID) yoksa anında çöker →
+  # sonsuz restart/incident döngüsü (2026-08-18 olayı). Build yoksa önce üret.
+  if [ ! -f "$FE/.next/BUILD_ID" ]; then
+    log "frontend prod build yok — 'npm run build' çalıştırılıyor (ilk sefer yavaş)"
+    (cd "$FE" && npm run build) >>"$LOGS/frontend-build.log" 2>&1 \
+      || { log "⚠ frontend build BAŞARISIZ — bkz logs/frontend-build.log"; incident frontend build_failed "$(tail -30 "$LOGS/frontend-build.log" 2>/dev/null)"; }
+  fi
   log "frontend başlatılıyor (next start :$FRONTEND_PORT)"
   (cd "$FE" && VAXFORGE_API="http://127.0.0.1:$BACKEND_PORT" exec npm run start) \
       >>"$LOGS/frontend.log" 2>&1 &

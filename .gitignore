@@ -3,6 +3,8 @@
 
 # Koşu çıktıları
 outputs/
+# Benchmark pipeline koşu çıktıları (yeniden üretilebilir; küratörlü results/*.json + figures/ izlenir)
+benchmark/results/run_*/
 
 # Python
 __pycache__/
