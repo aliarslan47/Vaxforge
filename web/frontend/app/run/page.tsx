@@ -13,6 +13,8 @@ import {
   ArrowLeft,
   StopCircle,
   Ban,
+  Layers,
+  X,
 } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { Button, Card, Badge, SectionHeading } from "@/components/ui";
@@ -42,6 +44,8 @@ export default function RunPage() {
   const { t, lang } = useLang();
   const [config, setConfig] = useState<AppConfig | null>(null);
   const [file, setFile] = useState<File | null>(null);
+  const [strains, setStrains] = useState<File[]>([]);
+  const [strainDrag, setStrainDrag] = useState(false);
   const [profile, setProfile] = useState("bacteria");
   const [gram, setGram] = useState("negative");
   const [hosts, setHosts] = useState<string[]>([]);
@@ -178,6 +182,17 @@ export default function RunPage() {
   const toggleHost = (name: string) =>
     setHosts((prev) => (prev.includes(name) ? prev.filter((h) => h !== name) : [...prev, name]));
 
+  // Suş dosyaları — mevcut listeye ekler, ada göre yinelenenleri eler.
+  const addStrains = useCallback((fl: FileList | null) => {
+    if (!fl || fl.length === 0) return;
+    setStrains((prev) => {
+      const names = new Set(prev.map((f) => f.name));
+      const next = [...prev];
+      for (const f of Array.from(fl)) if (!names.has(f.name)) next.push(f);
+      return next;
+    });
+  }, []);
+
   const start = async () => {
     if (!file) return;
     setPhase("running");
@@ -197,6 +212,7 @@ export default function RunPage() {
     form.append("gram", profile === "bacteria" ? gram : "");
     form.append("lang", lang);
     form.append("adjuvant", adjuvant);
+    for (const s of strains) form.append("strains", s);
 
     const ac = new AbortController();
     abortRef.current = ac;
@@ -377,6 +393,69 @@ export default function RunPage() {
                 <p className="mt-2 text-[10px] leading-relaxed text-fg-faint">{t("run_adjuvant_hint")}</p>
               </Card>
             )}
+
+            {/* Suş konservasyonu (opsiyonel çok-suş) */}
+            <Card className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="text-xs font-medium uppercase tracking-wide text-fg-faint">
+                  {t("run_strains")}
+                </div>
+                {strains.length > 0 && (
+                  <button
+                    onClick={() => setStrains([])}
+                    className="text-[11px] text-fg-faint transition hover:text-danger cursor-pointer"
+                  >
+                    {t("run_strains_clear")}
+                  </button>
+                )}
+              </div>
+              <label
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setStrainDrag(true);
+                }}
+                onDragLeave={() => setStrainDrag(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setStrainDrag(false);
+                  addStrains(e.dataTransfer.files);
+                }}
+                className={cn(
+                  "mt-2 flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed p-4 text-center transition-colors",
+                  strainDrag ? "border-primary bg-primary/5" : "border-line bg-surface/40 hover:border-primary/40",
+                )}
+              >
+                <input
+                  type="file"
+                  multiple
+                  className="hidden"
+                  accept=".fasta,.fa,.faa,.fna,.gb,.gbk,.genbank,.gbff,.gz"
+                  onChange={(e) => addStrains(e.target.files)}
+                />
+                <Layers className={cn("h-5 w-5", strains.length ? "text-bio-soft" : "text-fg-faint")} />
+                <div className="mt-1.5 text-[12px] text-fg-muted">{t("run_strains_drop")}</div>
+              </label>
+              {strains.length > 0 && (
+                <div className="mt-2 space-y-1">
+                  {strains.map((s) => (
+                    <div
+                      key={s.name}
+                      className="flex items-center justify-between gap-2 rounded-lg border border-line bg-surface/40 px-2.5 py-1.5"
+                    >
+                      <span className="min-w-0 truncate font-mono text-[11px] text-fg">{s.name}</span>
+                      <button
+                        onClick={() => setStrains((prev) => prev.filter((f) => f.name !== s.name))}
+                        className="shrink-0 text-fg-faint transition hover:text-danger cursor-pointer"
+                        aria-label="remove"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <p className="mt-2 text-[10px] leading-relaxed text-fg-faint">{t("run_strains_hint")}</p>
+            </Card>
 
             <Button
               onClick={start}

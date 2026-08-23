@@ -74,6 +74,13 @@ export const STR: Dict = {
   run_done: { tr: "Tamamlandı", en: "Completed" },
   run_error: { tr: "Hata", en: "Error" },
   run_pick: { tr: "Başlamak için bir dosya seçin.", en: "Pick a file to begin." },
+  run_strains: { tr: "Suş konservasyonu (opsiyonel)", en: "Strain conservation (optional)" },
+  run_strains_hint: {
+    tr: "Aynı türün ek suş proteom/genomlarını yükleyin — funnel'dan geçen antijenlerde kalıntı-başı korunmuşluk hesaplanır. Boş bırakılırsa 'hesaplanmadı' olarak raporlanır.",
+    en: "Upload additional strain proteomes/genomes of the same species — per-residue conservation is computed on funnel survivors. If left empty, it is reported as 'not computed'.",
+  },
+  run_strains_drop: { tr: "Suş dosyalarını sürükleyin ya da seçin (çoklu)", en: "Drop strain files or browse (multiple)" },
+  run_strains_clear: { tr: "Temizle", en: "Clear" },
 
   res_flow: { tr: "Eleme akışı", en: "Elimination funnel" },
   res_candidates: { tr: "Sıralı aday peptitler", en: "Ranked candidate peptides" },
