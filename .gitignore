@@ -3,6 +3,8 @@
 
 # Koşu çıktıları
 outputs/
+# Benchmark pipeline koşu çıktıları (yeniden üretilebilir; küratörlü results/*.json + figures/ izlenir)
+benchmark/results/run_*/
 
 # Python
 __pycache__/
@@ -23,3 +25,7 @@ tools/
 # Araç geçici çıktıları (SignalP/TMHMM vb. cwd'ye yazabilir)
 Sequence_*
 plot/
+
+# Benchmark ara indirme dosyaları (repoda yalnız işlenmiş *_proteome.faa tutulur)
+data/validation/*_cds.faa
+data/validation/*.gb

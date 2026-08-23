@@ -89,7 +89,13 @@ def load_extratrees(path: str):
 @functools.lru_cache(maxsize=1)
 def _base() -> str | None:
     """Kurulu ifnepitope2 paketinin kök dizini (model/blast burada)."""
-    spec = importlib.util.find_spec("ifnepitope2.python_scripts")
+    # find_spec, ana paket (ifnepitope2) hiç kurulu değilse ModuleNotFoundError FIRLATIR
+    # (üst-seviye eksik modülde None döner ama alt-modülde fırlatır) → available() bool
+    # dönmeli, çökmemeli: yakala → proxy'ye zarifçe düş.
+    try:
+        spec = importlib.util.find_spec("ifnepitope2.python_scripts")
+    except (ModuleNotFoundError, ValueError, ImportError):
+        return None
     if spec is None or not spec.origin:
         return None
     return os.path.dirname(os.path.dirname(spec.origin))

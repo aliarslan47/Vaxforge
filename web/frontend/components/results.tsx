@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Download, FileText, FileSpreadsheet, FileCode2, FileDown, Search, Syringe, Globe2, ShieldCheck } from "lucide-react";
-import { RunDetail, Candidate, MevData, fileUrl } from "@/lib/api";
+import { RunDetail, Candidate, MevData, Immunogenicity, ImmunogenicityHost, fileUrl } from "@/lib/api";
 import { useLang } from "./lang-provider";
 import { Card, Badge } from "./ui";
 import { cn } from "@/lib/utils";
@@ -387,6 +387,185 @@ export function MevConstruct({ mev }: { mev: MevData }) {
         {p.allergen && <PropStat label={t("col_allergen")} value={p.allergen.allergenic ? "⚠" : t("mev_nonallergen")} tone={p.allergen.allergenic ? "warn" : "ok"} />}
         {p.toxicity && <PropStat label={t("col_tox")} value={p.toxicity.toxic ? "⚠" : t("mev_nontoxic")} tone={p.toxicity.toxic ? "warn" : "ok"} />}
       </div>
+    </Card>
+  );
+}
+
+// ---------- İmmünojenisite kararı (ImmForge) ----------
+const VERDICT_STYLE: Record<string, { cls: string; dot: string }> = {
+  OLUR: { cls: "text-bio bg-bio/10 border-bio/30", dot: "bg-bio" },
+  ZAYIF: { cls: "text-amber-400 bg-amber-400/10 border-amber-400/30", dot: "bg-amber-400" },
+  OLMAZ: { cls: "text-red-400 bg-red-400/10 border-red-400/30", dot: "bg-red-400" },
+};
+function verdictStyle(v: string) {
+  return VERDICT_STYLE[v] ?? { cls: "text-fg-muted bg-white/5 border-line", dot: "bg-fg-muted" };
+}
+
+// izotip → renk (IgM erken/mavi, IgG'ler yeşil-mor tonları, IgA/IgE ayrı)
+const ISO_COLOR: Record<string, string> = {
+  IgM: "#38bdf8", IgG: "#34d399", IgG1: "#34d399", IgG2: "#a78bfa", IgG2a: "#a78bfa",
+  IgG3: "#f59e0b", IgA: "#f472b6", IgE: "#fb7185", IgY: "#34d399", IgGa: "#34d399",
+  IgGb: "#a78bfa", IgGT: "#f59e0b",
+};
+const isoColor = (iso: string) => ISO_COLOR[iso] ?? "#94a3b8";
+
+function IsotypeChart({ curve }: { curve: { days: number[]; isotypes: Record<string, number[]> } }) {
+  const { t } = useLang();
+  const days = curve?.days ?? [];
+  const isotypes = curve?.isotypes ?? {};
+  const keys = Object.keys(isotypes);
+  if (days.length < 2 || keys.length === 0) return null;
+  // Eksenli bilimsel grafik — VERİ DEĞİŞMEZ/EKLENMEZ, yalnız motorun gerçek per-izotip çıktısı
+  // ölçekli okunur. preserveAspectRatio: metin çarpılmasın diye "none" DEĞİL.
+  const W = 600, H = 200, padL = 40, padR = 14, padT = 10, padB = 30;
+  const xmax = days[days.length - 1] || 1;
+  const allY = keys.flatMap((k) => isotypes[k]);
+  const ymax = Math.max(1, ...allY) * 1.06;
+  const X = (d: number) => padL + (d / xmax) * (W - padL - padR);
+  const Y = (v: number) => padT + (1 - v / ymax) * (H - padT - padB);
+  const line = (ys: number[]) => days.map((d, i) => `${X(d).toFixed(1)},${Y(ys[i] ?? 0).toFixed(1)}`).join(" ");
+  const yTicks = [0, 0.5, 1.0].filter((v) => v <= ymax);
+  const xTicks = [0, 0.25, 0.5, 0.75, 1].map((f) => Math.round(xmax * f));
+  const yMid = (padT + (H - padB)) / 2;
+  return (
+    <div className="mt-3">
+      <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+        <span className="text-[11px] uppercase tracking-wide text-fg-faint">{t("immuno_curve")}</span>
+        <span className="flex flex-wrap gap-2">
+          {keys.map((k) => (
+            <span key={k} className="inline-flex items-center gap-1 text-[11px] text-fg-muted">
+              <span className="h-2 w-2 rounded-full" style={{ background: isoColor(k) }} />{k}
+            </span>
+          ))}
+        </span>
+      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ maxHeight: 210 }}>
+        {/* y ızgara + çentik */}
+        {yTicks.map((v) => (
+          <g key={`y${v}`}>
+            <line x1={padL} y1={Y(v)} x2={W - padR} y2={Y(v)} stroke="currentColor" strokeOpacity={v === 0 ? 0.25 : 0.08} />
+            <text x={padL - 6} y={Y(v) + 3.5} fontSize="10" textAnchor="end" fill="currentColor" fillOpacity="0.5">{v}</text>
+          </g>
+        ))}
+        {/* x çentik */}
+        {xTicks.map((d, i) => (
+          <text key={`x${i}`} x={X(d)} y={H - padB + 14} fontSize="10" textAnchor="middle" fill="currentColor" fillOpacity="0.5">{d}</text>
+        ))}
+        {/* eksen etiketleri */}
+        <text x={12} y={yMid} fontSize="10.5" textAnchor="middle" fill="currentColor" fillOpacity="0.6" transform={`rotate(-90 12 ${yMid})`}>{t("immuno_yaxis")}</text>
+        <text x={(padL + W - padR) / 2} y={H - 4} fontSize="10.5" textAnchor="middle" fill="currentColor" fillOpacity="0.6">{t("immuno_day")}</text>
+        {/* izotip çizgileri — motorun GERÇEK çıktısı (rötuşsuz) */}
+        {keys.map((k) => (
+          <polyline key={k} points={line(isotypes[k])} fill="none" stroke={isoColor(k)} strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" />
+        ))}
+      </svg>
+      <p className="mt-1 text-[10.5px] leading-snug text-fg-faint">{t("immuno_igm_note")}</p>
+    </div>
+  );
+}
+
+const POLAR_STYLE: Record<string, string> = {
+  Th1: "text-sky-400 bg-sky-400/10 border-sky-400/25",
+  Th2: "text-pink-400 bg-pink-400/10 border-pink-400/25",
+  dengeli: "text-fg-muted bg-white/5 border-line",
+};
+const CELL_LABEL: Record<string, string> = { B: "B", Th: "Th", CTL: "CTL", PLB: "Plazma", memoryB: "Hafıza" };
+
+function ImmuneProfile({ profile }: { profile: NonNullable<ImmunogenicityHost["profile"]> }) {
+  const { t } = useLang();
+  const cells = profile.cells ?? {};
+  const active = Object.entries(cells).filter(([, v]) => v > 1);
+  return (
+    <div className="mt-3 space-y-2">
+      <div className="text-[11px] uppercase tracking-wide text-fg-faint">{t("immuno_profile")}</div>
+      <div className="flex flex-wrap items-center gap-2 text-[12px]">
+        <span className={cn("inline-flex items-center gap-1 rounded-md border px-2 py-0.5 font-medium", POLAR_STYLE[profile.polarization] ?? POLAR_STYLE.dengeli)}>
+          {profile.polarization} <span className="opacity-70">({Math.round(profile.th1 * 100)}/{Math.round(profile.th2 * 100)})</span>
+        </span>
+        {profile.dominant_isotype && (
+          <span className="text-fg-muted">{t("immuno_dominant")}: <span className="font-medium text-fg" style={{ color: isoColor(profile.dominant_isotype) }}>{profile.dominant_isotype}</span></span>
+        )}
+      </div>
+      {active.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {active.map(([k, v]) => (
+            <span key={k} className="inline-flex items-center gap-1 rounded-md border border-line bg-white/[0.02] px-2 py-0.5 text-[11px] text-fg-muted">
+              {CELL_LABEL[k] ?? k} <span className="font-mono text-fg">{Math.round(v).toLocaleString()}</span>
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function ImmunogenicityCard({ imm }: { imm: Immunogenicity }) {
+  const { t } = useLang();
+  const hosts = imm.per_host ?? [];
+  const toolMissing = imm.tool === "none" || hosts.length === 0;
+
+  return (
+    <Card className="p-5 sm:p-6">
+      <div className="flex items-center gap-2.5">
+        <span className="grid h-9 w-9 place-items-center rounded-xl bg-primary/10 ring-1 ring-primary/25">
+          <ShieldCheck className="h-5 w-5 text-primary" />
+        </span>
+        <div>
+          <h3 className="font-display text-lg font-semibold text-fg">{t("immuno_title")}</h3>
+          <p className="text-xs text-fg-muted">{t("immuno_sub")}</p>
+        </div>
+      </div>
+
+      {!toolMissing && (
+        <div className="mt-3 rounded-lg border border-amber-400/25 bg-amber-400/[0.06] px-3 py-2 text-[11.5px] leading-relaxed text-amber-300/90">
+          {t("immuno_disclaimer")}
+        </div>
+      )}
+
+      {toolMissing ? (
+        <p className="mt-4 text-sm text-fg-muted">{imm.note ?? t("immuno_no_tool")}</p>
+      ) : (
+        <>
+          <div className="mt-4 space-y-3">
+            {hosts.map((h) => {
+              const vs = verdictStyle(h.verdict);
+              return (
+                <div key={h.host} className="rounded-xl border border-line bg-white/[0.02] p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className={cn("inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-sm font-semibold", vs.cls)}>
+                        <span className={cn("h-2 w-2 rounded-full", vs.dot)} />
+                        {t(`immuno_v_${h.verdict.toLowerCase()}`) || h.verdict}
+                      </span>
+                      <span className="text-[13px] font-medium text-fg">{h.host_label ?? h.host}</span>
+                      <span className="text-[11px] text-fg-faint">· {t("immuno_screen")}</span>
+                    </div>
+                    <span className="font-mono text-sm text-fg-muted">
+                      {t("immuno_score")}: <span className="text-fg">{Math.round(h.score)}</span>/100
+                    </span>
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[12px] text-fg-muted">
+                    <span>MHC-I: <span className="text-fg">{h.n_mhci}</span></span>
+                    <span>MHC-II: <span className="text-fg">{h.n_mhcii}</span></span>
+                    <span>{t("immuno_clearance")}: <span className="text-fg">{Math.round(h.cleared_fraction * 100)}%</span></span>
+                    {h.species_calibrated === false && <span className="text-amber-400">{t("immuno_proxy")}</span>}
+                  </div>
+                  {h.reasons?.length > 0 && (
+                    <ul className="mt-2 space-y-1 text-[12px] text-fg-muted">
+                      {h.reasons.map((r, i) => (
+                        <li key={i} className="flex gap-1.5"><span className="text-fg-faint">•</span>{r}</li>
+                      ))}
+                    </ul>
+                  )}
+                  {h.profile && <ImmuneProfile profile={h.profile} />}
+                  {h.curve && <IsotypeChart curve={h.curve} />}
+                </div>
+              );
+            })}
+          </div>
+          {imm.note && <p className="mt-3 text-[11px] leading-relaxed text-fg-faint">{imm.note}</p>}
+        </>
+      )}
     </Card>
   );
 }

@@ -110,6 +110,7 @@ async def run(
     gram: str = Form(""),           # negative | positive | ""
     lang: str = Form("tr"),
     adjuvant: str = Form("beta_defensin"),   # MEV adjuvan anahtarı
+    strains: list[UploadFile] = File(default=[]),  # opsiyonel çok-suş (konservasyon)
 ):
     """Yüklenen dosyayı geçici diske yazar, koşuyu arka-plan job'ı olarak başlatır
     ve o job'ın akışını SSE ile döndürür.
@@ -127,11 +128,22 @@ async def run(
     gram_val = gram.strip() or None
     filename = file.filename or Path(tmp_path).name
 
+    # Opsiyonel çok-suş proteomları (konservasyon). Verilmezse liste boş → dürüstçe
+    # "hesaplanmadı". Her biri geçici diske yazılır (pipeline dosya-yolu bekler).
+    strain_paths: list[str] = []
+    for sf in strains or []:
+        if not sf or not sf.filename:
+            continue
+        ssuf = Path(sf.filename).suffix or ".faa"
+        with tempfile.NamedTemporaryFile(delete=False, suffix=ssuf) as stmp:
+            stmp.write(await sf.read())
+            strain_paths.append(stmp.name)
+
     job = jobs.create_job(filename, profile, tmp_path=tmp_path)
     jobs.start_job(job, {
         "input_path": tmp_path, "filename": filename, "profile": profile,
         "host_names": host_names, "gram": gram_val,
-        "lang": lang, "adjuvant": adjuvant,
+        "lang": lang, "adjuvant": adjuvant, "strain_paths": strain_paths,
     })
 
     def event_stream():

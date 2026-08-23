@@ -192,6 +192,33 @@ STRINGS: dict[str, dict[str, str]] = {
                                  "bu prototipte çıkarılmıştır; odak aday-belirlemedir.",
                            "en": "GPU-dependent structural steps (AlphaFold peptide-MHC, molecular dynamics) "
                                  "are removed in this prototype; the focus is candidate identification."},
+    "strain_hint":        {"tr": "Konservasyon (opsiyonel): ek suş proteom(lar)ı — çok-suş FASTA",
+                           "en": "Conservation (optional): extra strain proteome(s) — multi-strain FASTA"},
+    "pdf_bio_limits_title": {"tr": "Biyolojik kapsam ve sınırlamalar", "en": "Biological scope and limitations"},
+    "pdf_bcell_caveat":   {"tr": "B-hücre epitop tahmini yalnız LİNEER'dir (BepiPred-3.0). B-hücre "
+                                 "epitoplarının ~%90'ı süreksiz/konformasyoneldir (Michalik ve ark. 2016); "
+                                 "yapı-tabanlı konformasyonel tahmin (DiscoTope-3), AlphaFold/GPU adımı "
+                                 "canlandığında eklenecektir. Final ürün lineer-peptit MEV olduğundan bu "
+                                 "sınır konstruktu değil, tam-protein antijen sıralamasını etkiler.",
+                           "en": "B-cell epitope prediction is LINEAR only (BepiPred-3.0). ~90% of B-cell "
+                                 "epitopes are discontinuous/conformational (Michalik et al. 2016); "
+                                 "structure-based conformational prediction (DiscoTope-3) will be added when "
+                                 "the AlphaFold/GPU step is live. As the final product is a linear-peptide MEV, "
+                                 "this limitation affects whole-protein antigen ranking, not the construct."},
+    "pdf_cons_computed":  {"tr": "Suş konservasyonu: {n} suş üzerinden hesaplandı; {c} aday antijen ≥%{m} "
+                                 "korunmuş (geniş-suş koruması için yüksek istenir).",
+                           "en": "Strain conservation: computed over {n} strains; {c} candidate antigens "
+                                 "≥{m}% conserved (high is preferred for broad-strain protection)."},
+    "pdf_cons_skipped":   {"tr": "Suş konservasyonu: ek suş proteomu verilmediği için hesaplanmadı "
+                                 "(uydurma yok). Çok-suş girdisi verilirse korunmuşluk skoru devreye girer.",
+                           "en": "Strain conservation: not computed (no extra strain proteomes provided). "
+                                 "Providing multi-strain input enables the conservation score."},
+    "pdf_mimicry_note":   {"tr": "Moleküler mimikri: {n} aday epitop konağın kendi proteomundaki bir 9-mer'e "
+                                 "birebir uydu (otoimmünite/tolerans riski) — YUMUŞAK işaret (elenmedi, skor "
+                                 "×0.9). Protein-seviyesi konak homolojisi funnel'da zaten sert filtredir.",
+                           "en": "Molecular mimicry: {n} candidate epitopes exactly match a 9-mer in the "
+                                 "host's own proteome (autoimmunity/tolerance risk) — SOFT flag (not removed, "
+                                 "score ×0.9). Protein-level host homology is already a hard filter in the funnel."},
     "pop_text_pdf":       {"tr": "Aday epitop setinin, bir bireyin en az bir epitop-bağlayan allele sahip "
                                  "olma olasılığını (%) IEDB HLA frekanslarından hesaplar. Gerçek frekans "
                                  "verisi yalnız insan HLA için mevcuttur; diğer konaklar dürüstçe atlanır.",

@@ -1,0 +1,23 @@
+# Klonlanan/indirilen büyük araçlar (NERVE repo + BLAST DB'leri, Vaxign wrapper) — üst tools/ politikasıyla aynı
+tools/
+# Loglar + önbellek
+*.log
+__pycache__/
+# Ham araç çıktı dizinleri (büyük tsv/xlsx/pdf); repoda yalnız özet JSON + figür tutulur
+results/vaxignml_menb/
+results/vaxignml_menb204/
+results/vaxignml_menb_full/
+results/vaxignml_rabies/
+results/rabies/report.*
+results/rabies/candidates*
+results/rabies/run.json
+results/rabies/top_peptides.fasta
+# Yeni virüs kolları (VSV + EMCV) — yalnız *_summary.json izlenir
+results/vsv/report.*
+results/vsv/candidates*
+results/vsv/run.json
+results/vsv/top_peptides.fasta
+results/emcv/report.*
+results/emcv/candidates*
+results/emcv/run.json
+results/emcv/top_peptides.fasta

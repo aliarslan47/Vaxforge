@@ -74,6 +74,13 @@ export const STR: Dict = {
   run_done: { tr: "Tamamlandı", en: "Completed" },
   run_error: { tr: "Hata", en: "Error" },
   run_pick: { tr: "Başlamak için bir dosya seçin.", en: "Pick a file to begin." },
+  run_strains: { tr: "Suş konservasyonu (opsiyonel)", en: "Strain conservation (optional)" },
+  run_strains_hint: {
+    tr: "Aynı türün ek suş proteom/genomlarını yükleyin — funnel'dan geçen antijenlerde kalıntı-başı korunmuşluk hesaplanır. Boş bırakılırsa 'hesaplanmadı' olarak raporlanır.",
+    en: "Upload additional strain proteomes/genomes of the same species — per-residue conservation is computed on funnel survivors. If left empty, it is reported as 'not computed'.",
+  },
+  run_strains_drop: { tr: "Suş dosyalarını sürükleyin ya da seçin (çoklu)", en: "Drop strain files or browse (multiple)" },
+  run_strains_clear: { tr: "Temizle", en: "Clear" },
 
   res_flow: { tr: "Eleme akışı", en: "Elimination funnel" },
   res_candidates: { tr: "Sıralı aday peptitler", en: "Ranked candidate peptides" },
@@ -89,6 +96,37 @@ export const STR: Dict = {
   col_cover: { tr: "Konak kaps.", en: "Host cov." },
   col_tox: { tr: "Toksisite", en: "Toxicity" },
   col_allergen: { tr: "Alerjen", en: "Allergen" },
+
+  // İn silico immünizasyon (ImmForge)
+  immuno_title: { tr: "İn silico immünizasyon kararı (ImmForge)", en: "In silico immunization verdict (ImmForge)" },
+  immuno_sub: {
+    tr: "Aday konstrukt konak MHC allelleri için NetMHCpan'den geçirilip immün motorda simüle edildi.",
+    en: "Candidate run through NetMHCpan for host MHC alleles and simulated in the immune engine.",
+  },
+  immuno_score: { tr: "Skor", en: "Score" },
+  immuno_clearance: { tr: "temizlik", en: "clearance" },
+  immuno_proxy: { tr: "tür proxy (human motoru)", en: "species proxy (human engine)" },
+  immuno_no_tool: {
+    tr: "NetMHCpan/ImmForge bu ortamda kurulu değil — servis sunucusunda çalışır.",
+    en: "NetMHCpan/ImmForge not installed in this environment — runs on the service server.",
+  },
+  immuno_v_olur: { tr: "OLUR", en: "WORKS" },
+  immuno_v_zayif: { tr: "ZAYIF", en: "WEAK" },
+  immuno_v_olmaz: { tr: "OLMAZ", en: "FAILS" },
+  immuno_curve: { tr: "Simüle antikor yanıtı — izotip (bağıl, tepe=1)", en: "Simulated antibody response — isotype (relative, peak=1)" },
+  immuno_day: { tr: "gün", en: "day" },
+  immuno_yaxis: { tr: "antikor (bağıl)", en: "antibody (rel.)" },
+  immuno_profile: { tr: "İmmün profil (mekanistik motor)", en: "Immune profile (mechanistic engine)" },
+  immuno_dominant: { tr: "Baskın izotip", en: "Dominant isotype" },
+  immuno_disclaimer: {
+    tr: "⚠ Mekanistik motor ÖNGÖRÜSÜ — in vivo etkinlik DEĞİL, valide edilmemiş. Yalnız kinetik ŞEKİL peptid-aşısı verisinde doğrulandı; verdict/izotip/profil operasyonel.",
+    en: "⚠ Mechanistic engine PREDICTION — not in vivo efficacy, not validated. Only the kinetic SHAPE was validated on peptide-vaccine data; verdict/isotype/profile are operational.",
+  },
+  immuno_screen: { tr: "in silico ön-eleme", en: "in silico pre-screen" },
+  immuno_igm_note: {
+    tr: "Not: izotip kimlikleri literatür-steering'den (IgM primer → IgG alt-sınıf karışımı); relatif büyüklükler operasyonel (Th1/Th2 dengesine bağlı, per-konstrukt valide değil).",
+    en: "Note: isotype identities are from literature steering (IgM primary → IgG-subclass mix); relative magnitudes are operational (depend on Th1/Th2 balance, not validated per construct).",
+  },
 
   // MEV konstrukt
   mev_title: { tr: "Çok-epitoplu aşı konstruktu (MEV)", en: "Multi-epitope vaccine (MEV) construct" },

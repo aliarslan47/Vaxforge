@@ -189,6 +189,18 @@ def candidate_rows(p, thr: dict) -> list[dict]:
         rows.append(_row("Virülans (VFDB — skorlama, kapı değil)", f"{vir} ({ev})",
                          "bilgi (sert filtre DEĞİL)", NA,
                          m.get("method_discovery", ""), kind="skor"))
+    # Suş konservasyonu (yalnız kullanıcı ek suş verirse; yoksa dürüstçe hesaplanmadı)
+    cons = m.get("conservation_percent")
+    cmeth = m.get("method_conservation", "")
+    if cons is not None:
+        c = _num(gv("conservation", "min_percent"))
+        st = (PASS if cons >= c else FAIL) if c is not None else NA
+        ep = m.get("epitope_conservation")
+        val = f"%{cons}" + (f" (epitop %{round(ep*100,1)})" if ep is not None else "")
+        rows.append(_row("Suş konservasyonu (MSA)", val, f"≥ %{c}", st, cmeth, kind="skor"))
+    elif cmeth:
+        rows.append(_row("Suş konservasyonu (MSA)", "hesaplanmadı", "≥ %80 (bilgi)", NA,
+                         cmeth, kind="skor"))
 
     # ---- Peptit-seviyesi ---------------------------------------------------
     if p.kind == "MHC-I":
@@ -250,6 +262,14 @@ def candidate_rows(p, thr: dict) -> list[dict]:
         st = (PASS if v <= c else FAIL) if (v is not None and c is not None) else NA
         rows.append(_row("Toksisite (ToxinPred2)", v, f"≤ {c}", st,
                          p.methods.get("toxicity", ""), hard=True))
+    # Moleküler mimikri (YUMUŞAK — elemez; otoimmünite uyarısı + skor ×0.9)
+    if "self_mimicry" in m:
+        sm = bool(m.get("self_mimicry"))
+        host = m.get("self_mimicry_host", ""); match = m.get("self_mimicry_match", "")
+        val = (f"⚠️ konak self eşleşme [{host}: {match}]" if sm else "temiz")
+        rows.append(_row("Moleküler mimikri (konak self 9-mer)", val,
+                         "self-eşleşme yok (yumuşak)", NA if sm else PASS,
+                         p.methods.get("self_mimicry", ""), kind="skor"))
 
     # ---- IEDB literatür/bilinen-epitop eşleşmesi (pozitif kontrol, bilgilendirici) ----
     ie = m.get("iedb")

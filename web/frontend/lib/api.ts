@@ -90,12 +90,42 @@ export interface MevData {
   properties?: Record<string, any>;
   citation_keys?: string[];
 }
+export interface ImmunogenicityHost {
+  host: string;
+  host_label?: string;
+  verdict: string; // OLUR | ZAYIF | OLMAZ
+  score: number;
+  n_mhci: number;
+  n_mhcii: number;
+  cleared_fraction: number;
+  peak_antibody: number;
+  reasons: string[];
+  species_calibrated?: boolean;
+  curve?: { days: number[]; isotypes: Record<string, number[]> };
+  profile?: {
+    polarization: string; // Th1 | Th2 | dengeli
+    th1: number;
+    th2: number;
+    dominant_isotype?: string | null;
+    cells: Record<string, number>; // B / Th / CTL / PLB / memoryB (tepe)
+  };
+}
+export interface Immunogenicity {
+  tool: string; // "netmhcpan" | "none"
+  verdict?: string; // ARAÇ_YOK durumunda üst-seviye
+  bepipred?: boolean;
+  n_bepitopes?: number;
+  headline?: { verdict: string; score?: number; host?: string };
+  per_host?: ImmunogenicityHost[];
+  note?: string;
+}
 export interface RunDetail {
   input?: string;
   profile?: string;
   timestamp?: string;
   candidates?: Candidate[];
   mev?: MevData;
+  immunogenicity?: Immunogenicity;
   population_coverage?: any;
   iedb_match?: any;
   [key: string]: unknown;

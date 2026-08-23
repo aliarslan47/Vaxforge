@@ -15,8 +15,8 @@ from __future__ import annotations
 from datetime import datetime
 from pathlib import Path
 
-from . import (citations, discovery, epitope, funnel, iedb_match, ingest, mev,
-               population, report, scoring, survival)
+from . import (citations, conservation, discovery, epitope, funnel, iedb_match,
+               ingest, mev, mimicry, population, report, scoring, survival)
 from .config_loader import ThresholdConfig, flatten_for_report
 from .detect import Detection
 from .hosts import HostRegistry
@@ -32,7 +32,8 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
         overrides: dict | None = None, has_gpu: bool = False,
         outdir: str | Path = "outputs", host_registry: HostRegistry | None = None,
         organism_taxon: str | None = None, gram: str | None = None,
-        lang: str = "tr", adjuvant: str = "beta_defensin"):
+        lang: str = "tr", adjuvant: str = "beta_defensin",
+        strain_paths: list[str] | None = None):
     resolved = cfg.resolve(profile, overrides)
     steps = build_plan(det, has_gpu=has_gpu)
     reg = host_registry or HostRegistry.load()
@@ -88,6 +89,24 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
         yield _ev("__error__", "error", "Huniden aday çıkmadı.")
         return
 
+    # 3b) Konservasyon — suşlar arası korunmuşluk (yalnız kullanıcı ek suş verirse).
+    # Yalnız funnel-survivor adaylarda; diamond ortolog + BLOSUM62 hizalama (hafif).
+    cons_min = float(resolved["conservation"].params["min_percent"].value) \
+        if "conservation" in resolved else 80.0
+    if conservation.available(strain_paths):
+        yield _ev("conservation", "running",
+                  f"Suş konservasyonu ({len(strain_paths)} suş) hesaplanıyor…")
+        proteins, csum = conservation.run(proteins, strain_paths, min_percent=cons_min)
+        meta["conservation"] = csum
+        yield _ev("conservation", "done",
+                  f"{csum.get('n_conserved', 0)}/{len(proteins)} aday ≥%{cons_min} korunmuş "
+                  f"({csum.get('n_strains', 0)} suş)", csum)
+    else:
+        proteins, csum = conservation.run(proteins, strain_paths, min_percent=cons_min)
+        meta["conservation"] = csum
+        yield _ev("conservation", "done",
+                  "Konservasyon hesaplanmadı (suş verisi verilmedi)", csum)
+
     # 4) Epitope + çok-KONAKLI MHC (I + II)
     host_lbls = ", ".join(h.label for h in hosts) or "—"
     yield _ev("epitope", "running", f"B/T-hücre epitop tahmini · konaklar: {host_lbls}")
@@ -116,6 +135,25 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
     yield _ev("survival_toxicity", "done",
               f"Toksisite ({ssum['toksisite']}): {ssum['alerjenite_sonrasi']} → "
               f"{ssum['toksisite_sonrasi']} peptit ({ssum['toksik_elenen']} toksik elendi)", ssum)
+
+    # 5b) Moleküler mimikri — epitop-seviyesi konak self-eşleşmesi (YUMUŞAK: elemez,
+    # işaretler + skorda hafif ceza). Protein-seviyesi homoloji funnel'da zaten sert.
+    mim_k = int(resolved["molecular_mimicry"].params["k"].value) \
+        if "molecular_mimicry" in resolved else 9
+    mim = mimicry.predict([p.seq for p in peptides], [h.name for h in hosts], k=mim_k)
+    n_mim = 0
+    for p in peptides:
+        d = mim.get(p.seq)
+        if d:
+            p.metrics["self_mimicry"] = d["self_match"]
+            p.metrics["self_mimicry_host"] = d["host"]
+            p.metrics["self_mimicry_match"] = d["match"]
+            p.methods["self_mimicry"] = f"konak self {mim_k}-mer tam eşleşme"
+            if d["self_match"]:
+                n_mim += 1
+    yield _ev("mimicry", "done",
+              f"Moleküler mimikri taraması: {n_mim}/{len(peptides)} peptit konak self "
+              f"{mim_k}-mer eşleşmesi (yumuşak uyarı)", {"n_flagged": n_mim, "k": mim_k})
 
     # 6b) Scoring
     yield _ev("scoring", "running", "Adaylık puanı hesaplanıyor…")
@@ -166,6 +204,25 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
     except Exception as e:  # MEV opsiyonel: hata pipeline'ı düşürmesin
         meta["mev"] = None
         yield _ev("mev", "done", f"MEV atlandı ({type(e).__name__})", {})
+
+    # 6f) İMMÜNİZASYON TESTİ — ImmForge: aday MEV in silico immünize edilir → OLUR/OLMAZ.
+    # Ters aşı bilişimi döngü kapanışı: konak MHC allelleri için GERÇEK NetMHCpan → motor → karar.
+    mev_seq = (meta.get("mev") or {}).get("sequence")
+    if mev_seq:
+        yield _ev("immunization", "running",
+                  "In silico immünizasyon testi (ImmForge · NetMHCpan → motor)…")
+        try:
+            from . import immforge_score
+            verdict = immforge_score.score_construct(mev_seq, hosts)
+            meta["immunogenicity"] = verdict
+            hl = verdict.get("headline") or {"verdict": verdict.get("verdict", "—")}
+            sc = f" (skor {hl['score']:.0f}/100)" if hl.get("score") is not None else ""
+            yield _ev("immunization", "done",
+                      f"İmmünizasyon kararı: {hl.get('verdict', '—')}{sc}", verdict)
+        except Exception as e:  # opsiyonel: pipeline'ı düşürmesin
+            meta["immunogenicity"] = None
+            yield _ev("immunization", "done",
+                      f"İmmünizasyon testi atlandı ({type(e).__name__})", {})
 
     # 7) Rapor
     yield _ev("report", "running", "Rapor ve veri paketi üretiliyor…")

@@ -193,6 +193,20 @@ with _s_col:
         if st.button(f"{_emoji} {t(lang, _key)}", key=f"smp_{_path}", use_container_width=True):
             st.session_state["sample"] = _path
 
+# Opsiyonel: suşlar-arası konservasyon için ek suş proteomları (çok-suş).
+# Verilmezse konservasyon dürüstçe "hesaplanmadı" (uydurma yok).
+strain_uploads = st.file_uploader(
+    t(lang, "strain_hint"),
+    type=["fasta", "fa", "faa", "fna", "gz"], accept_multiple_files=True,
+    help="Aynı patojenin başka suşlarının proteom FASTA'ları. Aday antijenler bunlara "
+         "hizalanıp kalıntı-başı korunmuşluk hesaplanır (geniş-suş koruması). Boş bırakılabilir.",
+)
+strain_paths: list[str] = []
+for _sf in strain_uploads or []:
+    with tempfile.NamedTemporaryFile(delete=False, suffix=Path(_sf.name).suffix or ".faa") as _st:
+        _st.write(_sf.getbuffer())
+        strain_paths.append(_st.name)
+
 # Girdiyi çöz: yüklenen dosya öncelikli, yoksa seçilen örnek
 input_path = input_name = None
 if uploaded is not None:
@@ -319,7 +333,8 @@ if st.button(t(lang,"run_start"), type="primary"):
         for ev in pipeline.run(input_path, det, CFG, profile,
                                host_names=selected_hosts, overrides=overrides,
                                has_gpu=has_gpu, outdir="outputs", host_registry=HOSTS,
-                               organism_taxon=organism_taxon, gram=gram, lang=lang):
+                               organism_taxon=organism_taxon, gram=gram, lang=lang,
+                               strain_paths=strain_paths):
             ph, stt, msg = ev["phase"], ev["status"], ev["msg"]
             if ph == "__result__":
                 result = ev["data"]

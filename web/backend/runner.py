@@ -63,6 +63,9 @@ _PIPELINE_STEPS = [
      "metapredict V3", None),
     ("population", "population", "Popülasyon kapsamı", "Population coverage",
      "IEDB Population Coverage", "hesaplanamadı"),
+    ("immunization", "immforge_score", "İn silico immünizasyon (OLUR/OLMAZ)",
+     "In silico immunization (pass/fail)",
+     "ImmForge (ABM+ODE) · NetMHCpan", "atlanır (NetMHCpan yok)"),
 ]
 
 
@@ -236,7 +239,8 @@ def get_run_file(run_id: str, name: str) -> Path | None:
 
 def run_pipeline(input_path: str, filename: str, profile: str,
                  host_names: list[str] | None, gram: str | None,
-                 lang: str = "tr", adjuvant: str = "beta_defensin") -> Iterator[dict]:
+                 lang: str = "tr", adjuvant: str = "beta_defensin",
+                 strain_paths: list[str] | None = None) -> Iterator[dict]:
     """pipeline.run() generator'ını sarar; her event'i dict olarak yield eder.
 
     Streamlit app.py:319-322 ile aynı çağrı. Son event `__result__` yerine
@@ -273,6 +277,7 @@ def run_pipeline(input_path: str, filename: str, profile: str,
         host_names=host_names or None, overrides={},
         has_gpu=False, outdir=str(OUTPUTS), host_registry=HOSTS,
         organism_taxon=None, gram=gram_val, lang=lang, adjuvant=adjuvant,
+        strain_paths=strain_paths or None,
     ):
         phase = ev["phase"]
         if phase == "__result__":

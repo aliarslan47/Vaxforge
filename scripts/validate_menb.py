@@ -24,16 +24,30 @@ sys.path.insert(0, str(ROOT))
 
 from Bio import SeqIO  # noqa: E402
 
-from vaxforge import pipeline  # noqa: E402
+from vaxforge import discovery, ingest, pipeline  # noqa: E402
 from vaxforge.config_loader import ThresholdConfig  # noqa: E402
 from vaxforge.detect import detect  # noqa: E402
 from vaxforge.hosts import HostRegistry  # noqa: E402
 
+# Kıyas pipeline'larının YAYINLANMIŞ fold-enrichment değerleri (bkz
+# vaxforge-benchmark-targets: NERVE2 PMC11654298, Vaxign2 NAR, VaxiJen).
+# NOT: bunlar TAM proteom üzerinde raporlanmış literatür değerleri; bizim
+# downsample (64 protein) fold'umuzla birebir kıyaslanamaz — bağlam için.
+REFERENCE_FOLD_ENRICHMENT = {
+    "NERVE2 (2024, tam proteom, yayınlanmış)": 16.57,
+    "Vaxign2-filtre (2021, yayınlanmış)": 9.06,
+    "VaxiJen baseline (yayınlanmış)": 3.41,
+}
+NHBA_ACC = "Q7DD37"  # kilit deney: VFDB-negatif gerçek yüzey antijeni
+
+import os  # noqa: E402
+
 PROTEOME = ROOT / "data" / "validation" / "menb_mc58_proteome.faa"
-TESTSET = ROOT / "data" / "validation" / "menb_testset.faa"
+# Env ile override: genişletilmiş flagship set (204) için ayrı yol/outdir.
+TESTSET = Path(os.environ.get("MENB_TESTSET", ROOT / "data" / "validation" / "menb_testset.faa"))
 TAXON = "NCBITaxon:487"          # Neisseria meningitidis (tür seviyesi, IEDB)
-OUTDIR = ROOT / "outputs" / "validation_menb"
-N_BACKGROUND = 60
+OUTDIR = Path(os.environ.get("MENB_OUTDIR", ROOT / "outputs" / "validation_menb"))
+N_BACKGROUND = int(os.environ.get("MENB_N_BACKGROUND", "60"))
 SEED = 42
 
 # Bexsero'nun bilinen koruyucu antijenleri (UniProt aksesyon -> etiket).
@@ -76,6 +90,17 @@ def main() -> int:
     hosts = HostRegistry.load()
     det = detect(str(TESTSET))
     det.filename = f"menb_testset.faa ({len(PROTECTIVE)} koruyucu + {N_BACKGROUND} arka plan)"
+
+    # --- KİLİT DENEY altyapısı: koruyucu antijenlerin VFDB durumu ---
+    # discovery artık ELEME değil SKORLAMA (VFDB hard→soft, 2026-07-10). Gerçek
+    # yüzey antijeni NHBA VFDB'ye vurmaz; eski sürümde sert kapı onu elerdi, yeni
+    # sürümde funnel'dan geçmeli. Her koruyucu antijenin vf_hit'ini bağımsız bir
+    # discovery çağrısıyla saptayıp, aday üretimiyle çapraz kontrol ederiz.
+    resolved = cfg.resolve("bacteria")
+    prot_records = [p for p in ingest.load_proteins(str(TESTSET), det)
+                    if p.id in protective_accs]
+    discovery.run(prot_records, resolved["discovery_vfdb"], profile="bacteria")
+    vfdb_status = {p.id: bool(p.annotations.get("vf_hit")) for p in prot_records}
 
     print(f"Test seti: {n_total} protein ({len(PROTECTIVE)} koruyucu antijen + "
           f"{N_BACKGROUND} arka plan) · profil=bacteria · konak=human · taxon={TAXON}")
@@ -127,14 +152,37 @@ def main() -> int:
     for acc, lbl in PROTECTIVE.items():
         in_input = acc in labels
         produced = acc in cand_accs
+        vf = vfdb_status.get(acc)
+        if produced and vf is False:
+            interp = "VFDB-negatif ama funnel'dan GEÇTİ → soft-filter doğrulandı"
+        elif produced and vf is True:
+            interp = "VFDB-pozitif, aday üretti"
+        elif not produced:
+            interp = "aday üretmedi (funnel'da elendi)"
+        else:
+            interp = None
         prot_rows.append({
             "accession": acc, "antigen": lbl,
             "in_testset": in_input,
+            "vfdb_hit": vf,
             "produced_candidate": produced,
             "best_candidacy": round(cand_proteins.get(acc, 0.0), 4) if produced else None,
             "protein_rank": rank_of.get(acc),
             "n_candidate_proteins": len(cand_accs),
+            "interpretation": interp,
         })
+
+    # kilit deney sonucu: NHBA VFDB-negatif OLMASINA RAĞMEN aday üretti mi?
+    nhba_vf = vfdb_status.get(NHBA_ACC)
+    nhba_produced = NHBA_ACC in cand_accs
+    nhba_key_experiment = {
+        "accession": NHBA_ACC, "antigen": PROTECTIVE.get(NHBA_ACC),
+        "vfdb_hit": nhba_vf, "produced_candidate": nhba_produced,
+        "passed": (nhba_vf is False and nhba_produced),
+        "note": ("VFDB-negatif → GEÇTİ: hard→soft düzeltmesi doğrulandı"
+                 if (nhba_vf is False and nhba_produced)
+                 else "beklenen soft-filter davranışı gözlenmedi — incele"),
+    }
 
     im = meta.get("iedb_match", {})
     summary = {
@@ -146,9 +194,15 @@ def main() -> int:
         "n_discovery": meta.get("n_discovery"),
         "n_funnel": meta.get("n_funnel"),
         "n_candidate_proteins": len(cand_accs),
+        "recall_at_antigen": f"{len(prot_in_cand)}/{len(protective_accs)}",
         "protective_producing_candidates": sorted(prot_in_cand),
         "background_producing_candidates": len(bg_in_cand),
         "fold_enrichment": fold,
+        "reference_fold_enrichment_published": REFERENCE_FOLD_ENRICHMENT,
+        "fold_enrichment_caveat": ("bizim fold 64-protein downsample üzerinde; "
+                                   "referanslar TAM proteom yayınlanmış değerler — "
+                                   "birebir kıyaslanamaz, yalnız bağlam"),
+        "nhba_key_experiment": nhba_key_experiment,
         "protective_detail": prot_rows,
         "iedb_source": im.get("source"),
         "iedb_matched_candidates": im.get("n_matched"),
@@ -171,16 +225,25 @@ def main() -> int:
     print(f"Test seti: {n_total} protein  ·  keşif sonrası: {summary['n_discovery']}  ·  "
           f"huni sonrası: {summary['n_funnel']}  ·  aday-üreten protein: "
           f"{summary['n_candidate_proteins']}  ·  süre: {summary['runtime_s']}s")
+    print(f"\nRecall@antijen: {summary['recall_at_antigen']}  ·  "
+          f"aday-üreten protein: {len(cand_accs)}")
     print(f"\nBilinen koruyucu antijenlerin izi (pipeline onları buldu mu?):")
     for r in prot_rows:
         mark = "✅" if r["produced_candidate"] else "❌"
-        rnk = (f"protein sırası #{r['protein_rank']}/{r['n_candidate_proteins']}, "
-               f"en iyi skor {r['best_candidacy']}") if r["produced_candidate"] else "aday üretmedi (elendi)"
-        print(f"  {mark} {r['antigen']:52s} {rnk}")
+        vf = {True: "VFDB+", False: "VFDB−", None: "VFDB?"}[r["vfdb_hit"]]
+        rnk = (f"sıra #{r['protein_rank']}/{r['n_candidate_proteins']}, "
+               f"skor {r['best_candidacy']}") if r["produced_candidate"] else "aday üretmedi (elendi)"
+        print(f"  {mark} [{vf}] {r['antigen']:50s} {rnk}")
+    ke = summary["nhba_key_experiment"]
+    ke_mark = "✅ KİLİT DENEY GEÇTİ" if ke["passed"] else "⚠️ KİLİT DENEY"
+    print(f"\n{ke_mark}: NHBA (VFDB-negatif gerçek yüzey antijeni) — {ke['note']}")
     print(f"\nFold-enrichment (koruyucu aday-oranı / arka plan aday-oranı): "
           f"{summary['fold_enrichment']}")
     print(f"  koruyucu aday üreten : {len(prot_in_cand)}/{len(protective_accs)}")
     print(f"  arka plan aday üreten: {len(bg_in_cand)}/{len(bg_accs)}")
+    print(f"  [bağlam — yayınlanmış tam-proteom fold'ları, birebir kıyas DEĞİL]:")
+    for name, val in REFERENCE_FOLD_ENRICHMENT.items():
+        print(f"     {name}: {val}")
     print(f"IEDB (taxon {TAXON}) eşleşen aday: {summary['iedb_matched_candidates']}")
     print(f"\nÇıktılar: {OUTDIR}/  (validation_summary.json + rapor paketi)")
     return 0
