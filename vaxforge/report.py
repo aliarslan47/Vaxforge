@@ -37,6 +37,10 @@ def _candidates_df(peptides: list[Peptide], lang: str = "tr") -> pd.DataFrame:
             "bcell_score": p.metrics.get("bcell_score"),
             "immunogenicity": p.metrics.get("immunogenicity"),
             "processing_norm": p.metrics.get("processing_norm"),
+            "conservation_percent": p.metrics.get("conservation_percent"),
+            "epitope_conservation": p.metrics.get("epitope_conservation"),
+            "self_mimicry": p.metrics.get("self_mimicry"),
+            "self_mimicry_host": p.metrics.get("self_mimicry_host"),
             "anchor_residues": ";".join(f"{k}={v}" for k, v in
                                         (p.metrics.get("anchor_residues") or {}).items()),
             "allele_anchor_motif": ";".join(f"{k}∈{{{','.join(v)}}}" for k, v in

@@ -35,6 +35,10 @@ def _components(p: Peptide) -> dict[str, float]:
         comp["antigenicity"] = max(comp.get("antigenicity", 0), float(m.get("bcell_score", 0)))
     if m.get("coverage_frac") is not None:
         comp["organism_coverage"] = float(m["coverage_frac"])
+    # Suş konservasyonu (yalnız kullanıcı ek suş verdiyse hesaplanır → varsa bileşen).
+    # Epitop-penceresi korunmuşluğu (0-1); korunmuş epitop = geniş koruma → yüksek istenir.
+    if m.get("epitope_conservation") is not None:
+        comp["conservation"] = float(m["epitope_conservation"])
     return comp
 
 
@@ -58,6 +62,11 @@ def score(peptides: list[Peptide], weights: dict[str, float]) -> list[Peptide]:
             continue
         wsum = sum(weights.get(k, 0) for k in comp) or 1.0
         val = sum(weights.get(k, 0) * v for k, v in comp.items()) / wsum
+        # Moleküler mimikri: yumuşak ceza (ELEME YOK) — konak self-eşleşen epitop
+        # otoimmünite riski taşır (Vaccine Design Ch4); skoru ×0.9 ile düşürülür.
+        if p.metrics.get("self_mimicry"):
+            val *= 0.9
+            p.notes.append("moleküler mimikri (konak self eşleşme) → skor ×0.9")
         p.candidacy = round(val, 4)
         p.metrics["score_components"] = comp
     peptides.sort(key=lambda x: x.candidacy, reverse=True)

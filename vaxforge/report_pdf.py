@@ -318,6 +318,20 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
     el.append(Spacer(1, 6))
     el.append(Paragraph(t(lang,"pdf_methods_note"), small))
 
+    # -- Biyolojik kapsam ve dürüst sınırlamalar (konformasyonel B / konservasyon / mimikri)
+    el.append(Spacer(1, 6))
+    el.append(Paragraph("<b>"+t(lang,"pdf_bio_limits_title")+"</b>", small))
+    el.append(Paragraph("• "+t(lang,"pdf_bcell_caveat"), small))
+    cons = meta.get("conservation") or {}
+    if cons.get("computed"):
+        el.append(Paragraph("• "+t(lang,"pdf_cons_computed").format(
+            n=cons.get("n_strains", 0), c=cons.get("n_conserved", 0),
+            m=cons.get("min_percent", 80)), small))
+    else:
+        el.append(Paragraph("• "+t(lang,"pdf_cons_skipped"), small))
+    n_mim = sum(1 for p in peptides if p.metrics.get("self_mimicry"))
+    el.append(Paragraph("• "+t(lang,"pdf_mimicry_note").format(n=n_mim), small))
+
     # -- IEDB literatür/bilinen-epitop taraması + validasyon recall'ü
     im = meta.get("iedb_match")
     if im:

@@ -203,10 +203,21 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
             for k in ("localization", "tm_helices", "signalp", "human_homology",
                       "antigenicity_raw", "antigenicity_category", "virulence",
                       "vf_identity", "vf_keyword", "vf_hit",
+                      "conservation_percent", "conservation_entropy_mean",
+                      "conservation_n_orthologs",
                       "method_localization", "method_tm", "method_signalp",
-                      "method_human_homology", "method_antigenicity", "method_discovery"):
+                      "method_human_homology", "method_antigenicity", "method_discovery",
+                      "method_conservation"):
                 if k in pr.annotations:
                     p.metrics[k] = pr.annotations[k]
+            # Epitop-penceresi konservasyonu: kaynak profilinin [start, start+len]
+            # ortalaması (0-1). Skorlama bileşeni + rapor. Profil yoksa (suş yok) None.
+            prof = pr.annotations.get("conservation_profile")
+            if prof:
+                a, b = p.start, min(len(prof), p.start + len(p.seq))
+                if b > a:
+                    win = prof[a:b]
+                    p.metrics["epitope_conservation"] = round(sum(win) / len(win), 3)
         peptides += made
 
     # IFN-γ (HTL/Th1): MHC-II peptitleri için TEK batch (model bir kez yüklenir).

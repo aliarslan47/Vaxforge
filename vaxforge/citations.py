@@ -120,6 +120,12 @@ CITATIONS = [
     ("MEV — çözünürlük (scaled solubility)", "Protein-Sol (Hebditch et al. 2017)",
      "Hebditch M, Carballo-Amador MA, Charonis S, Curtis R, Warwicker J. Protein-Sol: a web tool for predicting protein solubility from sequence. Bioinformatics. 2017;33(19):3098-3100. (ölçekli çözünürlük; >0.45 çözünür).",
      "10.1093/bioinformatics/btx345"),
+    ("B-hücre epitop — kapsam/sınır (lineer vs konformasyonel) + otoimmün epitop", "Michalik et al. 2016",
+     "Michalik M, Djahanshiri B, Leo JC, Linke D. Reverse Vaccinology: The Pathway from Genomes and Epitope Predictions to Tailored Recombinant Vaccines. In: Vaccine Design (Methods Mol Biol vol. 1403). Springer; 2016. p. 87-106. (B-hücre epitoplarının ~%90'ı süreksiz/konformasyonel; otoimmün çapraz-reaktif epitoplar konstruktan çıkarılmalı).",
+     "10.1007/978-1-4939-3387-7_4"),
+    ("Konservasyon — gerekçe (antijenik varyasyon, geniş-suş koruması)", "Green et al. 2016",
+     "Green LR, Eiden J, Hao L, Jones T, Perez J, McNeil LK, Jansen KU, Anderson AS. Approach to the Discovery, Development, and Evaluation of a Novel Neisseria meningitidis Serogroup B Vaccine. In: Vaccine Design (Methods Mol Biol vol. 1403). Springer; 2016. p. 445-469. (aday antijenlerin antijenik varyasyonu + geniş dolaşan-suş kapsamı karakterize edilmeli).",
+     "10.1007/978-1-4939-3387-7_25"),
 ]
 
 
