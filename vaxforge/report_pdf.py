@@ -60,6 +60,42 @@ def _chart(peptides, path: Path, lang: str = "tr") -> bool:
     return True
 
 
+# İzotip renkleri — frontend ISO_COLOR ile birebir aynı (görsel tutarlılık).
+_ISO_COLOR = {
+    "IgM": "#38bdf8", "IgG": "#34d399", "IgG1": "#34d399", "IgG2": "#a78bfa",
+    "IgG2a": "#a78bfa", "IgG3": "#f59e0b", "IgA": "#f472b6", "IgE": "#fb7185",
+    "IgY": "#34d399", "IgGa": "#34d399", "IgGb": "#a78bfa", "IgGT": "#f59e0b",
+}
+
+
+def _isotype_chart(curve: dict, path: Path, lang: str = "tr") -> bool:
+    """Konağın simüle izotip-bazlı antikor yanıt eğrisini çizer (tepe=1 normalize).
+
+    Veri run çıktısında zaten var (immunogenicity.per_host[i].curve); frontend
+    kartıyla aynı grafiği PDF'e taşır.
+    """
+    days = (curve or {}).get("days") or []
+    isotypes = (curve or {}).get("isotypes") or {}
+    if len(days) < 2 or not isotypes:
+        return False
+    fig, ax = plt.subplots(figsize=(7.2, 2.6))
+    for iso, ys in isotypes.items():
+        if not ys:
+            continue
+        ax.plot(days[:len(ys)], ys, label=iso, color=_ISO_COLOR.get(iso, "#94a3b8"),
+                linewidth=1.8, solid_joinstyle="round")
+    ax.set_xlabel(t(lang, "pdf_immuno_day"), fontsize=8)
+    ax.set_ylabel(t(lang, "pdf_immuno_relab"), fontsize=8)
+    ax.set_title(t(lang, "pdf_immuno_curve"), fontsize=9)
+    ax.set_ylim(bottom=0)
+    ax.tick_params(labelsize=7)
+    ax.legend(fontsize=7, loc="upper right", ncol=2, frameon=False)
+    fig.tight_layout()
+    fig.savefig(path, dpi=150)
+    plt.close(fig)
+    return True
+
+
 def build(outdir: Path, peptides, meta: dict) -> Path:
     outdir = Path(outdir)
     lang = meta.get("lang", "tr")
@@ -104,6 +140,7 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
 
     # -- Grafik
     chart = outdir / "_chart.png"
+    _imm_charts: list[Path] = []   # 2e izotip-eğrisi geçici görselleri (sonda silinir)
     if _chart(peptides, chart, lang):
         el.append(Spacer(1, 8))
         el.append(Image(str(chart), width=15 * cm, height=6.6 * cm))
@@ -273,12 +310,15 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
                              else "2e. İmmünojenisite — in silico eleme (ImmForge)"), h2))
         el.append(Paragraph(
             ("Mechanistic engine PREDICTION — not in vivo efficacy, NOT validated. Only the kinetic "
-             "shape was validated on peptide-vaccine data; verdict/isotype/profile are operational "
-             "(thresholds OLUR/WORKS≥60). IgM suppressed by single-step class switching." if is_en
-             else "Mekanistik motor ÖNGÖRÜSÜ — in vivo etkinlik DEĞİL, valide EDİLMEMİŞ. Yalnız kinetik "
-             "şekil peptid-aşısı verisinde doğrulandı; verdict/profil operasyonel (eşik OLUR≥60). İzotip "
-             "kimlikleri literatür-steering'den (IgM primer→IgG alt-sınıf karışımı); relatif büyüklükler "
-             "operasyonel (Th1/Th2 dengesine bağlı, per-konstrukt valide değil)."), small))
+             "shape was validated on peptide-vaccine data; the verdict/isotype/profile are operational "
+             "(threshold WORKS≥60). Isotype identities come from literature steering (primary IgM→IgG "
+             "subclass mixture); relative magnitudes are operational (depend on the Th1/Th2 balance, "
+             "not validated per construct)." if is_en
+             else "Mekanistik motor ÖNGÖRÜSÜDÜR — in vivo etkinlik DEĞİL, valide EDİLMEMİŞTİR. Yalnızca "
+             "kinetik şekil, peptit-aşısı verisiyle doğrulanmıştır; karar/profil operasyoneldir "
+             "(eşik: OLUR≥60). İzotip kimlikleri literatür yönlendirmesinden gelir (birincil IgM→IgG "
+             "alt-sınıf karışımı); göreli büyüklükler operasyoneldir (Th1/Th2 dengesine bağlıdır, "
+             "konstrukt başına valide edilmemiştir)."), small))
         el.append(Spacer(1, 3))
         vmap = {"OLUR": ("WORKS" if is_en else "OLUR"), "ZAYIF": ("WEAK" if is_en else "ZAYIF"),
                 "OLMAZ": ("FAILS" if is_en else "OLMAZ")}
@@ -300,42 +340,24 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
         if r0:
             el.append(Spacer(1, 2))
             el.append(Paragraph("· " + " · ".join(r0), small))
+        # Simüle antikor yanıt eğrisi — her konak için (frontend kartıyla aynı grafik).
+        for hi, ph in enumerate(imm["per_host"]):
+            icurve = outdir / f"_immchart_{hi}.png"
+            if _isotype_chart(ph.get("curve") or {}, icurve, lang):
+                el.append(Spacer(1, 4))
+                el.append(Paragraph(
+                    f"<b>{ph.get('host_label', ph.get('host', ''))}</b>", small))
+                el.append(Image(str(icurve), width=13 * cm, height=4.7 * cm))
+                _imm_charts.append(icurve)
 
-    # -- Kullanılan eşikler
-    el.append(Paragraph("3. "+t(lang,"rep_thresholds"), h2))
-    trows = [[t(lang,"col_step"), t(lang,"col_tool"), t(lang,"col_param"), t(lang,"col_value"), t(lang,"col_type")]]
-    for r in meta.get("thresholds", []):
-        trows.append([P(r["step"]), P(r["tool"]), P(r["param"]), P(f"{r['value']} {r['unit']}"),
-                      t(lang,"type_hard") if r["hard_filter"] else t(lang,"type_score")])
-    el.append(tbl(trows, widths=[2.8*cm, 3.6*cm, 3.4*cm, 3.2*cm, 1.8*cm]))
-
-    # -- Yöntemler / araçlar (özet tablo)
-    el.append(Paragraph("4. "+t(lang,"rep_methods"), h2))
+    # refs bir kez hesaplanır — hem Referanslar hem Yöntemler tablosu kullanır.
+    # SIRA (kullanıcı kuralı): Eşikler + Yöntemler DAİMA kaynaklardan SONRA gelir.
     refs = meta.get("citations") or citations.for_report()
-    mrows = [[t(lang,"col_step"), t(lang,"col_tool"), "Ref"]] + [[P(r["step"]), P(r["tool"]), f"[{i}]"]
-                                          for i, r in enumerate(refs, 1)]
-    el.append(tbl(mrows, widths=[5.5*cm, 8.1*cm, 1.2*cm]))
-    el.append(Spacer(1, 6))
-    el.append(Paragraph(t(lang,"pdf_methods_note"), small))
-
-    # -- Biyolojik kapsam ve dürüst sınırlamalar (konformasyonel B / konservasyon / mimikri)
-    el.append(Spacer(1, 6))
-    el.append(Paragraph("<b>"+t(lang,"pdf_bio_limits_title")+"</b>", small))
-    el.append(Paragraph("• "+t(lang,"pdf_bcell_caveat"), small))
-    cons = meta.get("conservation") or {}
-    if cons.get("computed"):
-        el.append(Paragraph("• "+t(lang,"pdf_cons_computed").format(
-            n=cons.get("n_strains", 0), c=cons.get("n_conserved", 0),
-            m=cons.get("min_percent", 80)), small))
-    else:
-        el.append(Paragraph("• "+t(lang,"pdf_cons_skipped"), small))
-    n_mim = sum(1 for p in peptides if p.metrics.get("self_mimicry"))
-    el.append(Paragraph("• "+t(lang,"pdf_mimicry_note").format(n=n_mim), small))
 
     # -- IEDB literatür/bilinen-epitop taraması + validasyon recall'ü
     im = meta.get("iedb_match")
     if im:
-        el.append(Paragraph("5. "+t(lang,"iedb_title"), h2))
+        el.append(Paragraph("3. "+t(lang,"iedb_title"), h2))
         if not im.get("available"):
             el.append(Paragraph(im.get("note", t(lang,"iedb_unavail")), small))
         else:
@@ -372,7 +394,7 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
     # -- Popülasyon kapsamı (IEDB)
     popcov = meta.get("population_coverage") or {}
     if popcov:
-        el.append(Paragraph("6. "+t(lang,"pop_title"), h2))
+        el.append(Paragraph("4. "+t(lang,"pop_title"), h2))
         el.append(Paragraph(t(lang,"pop_text_pdf"), small))
         areas = popcov.get("areas", [])
         for hname, he in popcov.get("hosts", {}).items():
@@ -392,13 +414,45 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
                 el.append(tbl(prows))
 
     # -- Referanslar (tam atıflar)
-    el.append(Paragraph("7. "+t(lang,"rep_references"), h2))
+    el.append(Paragraph("5. "+t(lang,"rep_references"), h2))
     for i, r in enumerate(refs, 1):
         doi = r["doi"]
         link = doi if doi.startswith("http") else f"https://doi.org/{doi}"
         el.append(Paragraph(f'[{i}] {r["citation"]} <font color="#1565c0">{link}</font>', small))
         el.append(Spacer(1, 2))
 
+    # -- Kullanılan eşikler (tekrarlanabilirlik) — DAİMA kaynaklardan sonra
+    el.append(Paragraph("6. "+t(lang,"rep_thresholds"), h2))
+    trows = [[t(lang,"col_step"), t(lang,"col_tool"), t(lang,"col_param"), t(lang,"col_value"), t(lang,"col_type")]]
+    for r in meta.get("thresholds", []):
+        trows.append([P(r["step"]), P(r["tool"]), P(r["param"]), P(f"{r['value']} {r['unit']}"),
+                      t(lang,"type_hard") if r["hard_filter"] else t(lang,"type_score")])
+    el.append(tbl(trows, widths=[2.8*cm, 3.6*cm, 3.4*cm, 3.2*cm, 1.8*cm]))
+
+    # -- Kullanılan yöntemler ve araçlar (özet tablo) — DAİMA kaynaklardan sonra
+    el.append(Paragraph("7. "+t(lang,"rep_methods"), h2))
+    mrows = [[t(lang,"col_step"), t(lang,"col_tool"), "Ref"]] + [[P(r["step"]), P(r["tool"]), f"[{i}]"]
+                                          for i, r in enumerate(refs, 1)]
+    el.append(tbl(mrows, widths=[5.5*cm, 8.1*cm, 1.2*cm]))
+    el.append(Spacer(1, 6))
+    el.append(Paragraph(t(lang,"pdf_methods_note"), small))
+
+    # -- Biyolojik kapsam ve dürüst sınırlamalar (konformasyonel B / konservasyon / mimikri)
+    el.append(Spacer(1, 6))
+    el.append(Paragraph("<b>"+t(lang,"pdf_bio_limits_title")+"</b>", small))
+    el.append(Paragraph("• "+t(lang,"pdf_bcell_caveat"), small))
+    cons = meta.get("conservation") or {}
+    if cons.get("computed"):
+        el.append(Paragraph("• "+t(lang,"pdf_cons_computed").format(
+            n=cons.get("n_strains", 0), c=cons.get("n_conserved", 0),
+            m=cons.get("min_percent", 80)), small))
+    else:
+        el.append(Paragraph("• "+t(lang,"pdf_cons_skipped"), small))
+    n_mim = sum(1 for p in peptides if p.metrics.get("self_mimicry"))
+    el.append(Paragraph("• "+t(lang,"pdf_mimicry_note").format(n=n_mim), small))
+
     doc.build(el)
     chart.unlink(missing_ok=True)
+    for ic in _imm_charts:
+        ic.unlink(missing_ok=True)
     return out

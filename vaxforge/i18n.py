@@ -194,6 +194,10 @@ STRINGS: dict[str, dict[str, str]] = {
                                  "are removed in this prototype; the focus is candidate identification."},
     "strain_hint":        {"tr": "Konservasyon (opsiyonel): ek suş proteom(lar)ı — çok-suş FASTA",
                            "en": "Conservation (optional): extra strain proteome(s) — multi-strain FASTA"},
+    "pdf_immuno_curve":   {"tr": "Simüle antikor yanıtı — izotip (bağıl, tepe = 1)",
+                           "en": "Simulated antibody response — isotype (relative, peak = 1)"},
+    "pdf_immuno_day":     {"tr": "gün", "en": "day"},
+    "pdf_immuno_relab":   {"tr": "bağıl antikor düzeyi", "en": "relative antibody level"},
     "pdf_bio_limits_title": {"tr": "Biyolojik kapsam ve sınırlamalar", "en": "Biological scope and limitations"},
     "pdf_bcell_caveat":   {"tr": "B-hücre epitop tahmini yalnız LİNEER'dir (BepiPred-3.0). B-hücre "
                                  "epitoplarının ~%90'ı süreksiz/konformasyoneldir (Michalik ve ark. 2016); "

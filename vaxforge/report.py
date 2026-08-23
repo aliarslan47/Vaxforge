@@ -437,16 +437,16 @@ summary{{cursor:pointer;font-size:.95rem}}</style></head><body>
 {mev_html}
 {immuno_html}
 
-<h2>{t(lang,'rep_thresholds')}</h2>
-<table><tr><th>{t(lang,'col_step')}</th><th>{t(lang,'col_tool')}</th><th>{t(lang,'col_param')}</th><th>{t(lang,'col_value')}</th><th>{t(lang,'col_type')}</th></tr>{thr_rows}</table>
-
-<h2>{t(lang,'rep_plan')}</h2>
-<table><tr><th>#</th><th>{t(lang,'col_step')}</th><th>{t(lang,'col_status')}</th><th>{t(lang,'col_note')}</th></tr>{steps_rows}</table>
-
 {iedb_html}
 
 {pop_html}
 
 <h2>Kaynaklar / atıflar</h2>
 <ol style="font-size:.8rem">{ref_items}</ol>
+
+<h2>{t(lang,'rep_thresholds')}</h2>
+<table><tr><th>{t(lang,'col_step')}</th><th>{t(lang,'col_tool')}</th><th>{t(lang,'col_param')}</th><th>{t(lang,'col_value')}</th><th>{t(lang,'col_type')}</th></tr>{thr_rows}</table>
+
+<h2>{t(lang,'rep_plan')}</h2>
+<table><tr><th>#</th><th>{t(lang,'col_step')}</th><th>{t(lang,'col_status')}</th><th>{t(lang,'col_note')}</th></tr>{steps_rows}</table>
 </body></html>"""
