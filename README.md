@@ -1,72 +1,37 @@
-# VaxForge 🧬
+# Vaxforge
 
-**An agent-assisted, in silico reverse vaccinology pipeline with a web interface.**
+An agent-assisted, in silico **reverse-vaccinology** pipeline with a web interface — from a pathogen sequence to a ranked multi-epitope mRNA vaccine construct and a fully cited report.
 
-🌐 English | [🇹🇷 Türkçe](README.tr.md)
+[![type](https://img.shields.io/badge/type-reverse%20vaccinology-0d6b8f)](https://github.com/aliarslan47/Vaxforge)
+[![interface](https://img.shields.io/badge/interface-Streamlit%20web-2f8f5b)](https://github.com/aliarslan47/Vaxforge)
+[![tools](https://img.shields.io/badge/tools-real%20%C2%B7%20cited-c07211)](https://github.com/aliarslan47/Vaxforge)
 
-Upload a pathogen file (FASTA/FASTQ) → the system **auto-detects** the input type →
-**plans** what to do → mines virulence factors and vaccine targets → predicts B- and
-T-cell epitopes across selectable hosts → ranks the strongest peptide candidates with a
-**candidacy score** → assembles a multi-epitope **mRNA vaccine construct** → produces a
-publication-style report with full tool citations.
+[Türkçe](README.tr.md) · **English**
 
----
+## What is it?
 
-## Pipeline
+Vaxforge is the vaccine-design member of the Forge family — a reverse-vaccinology pipeline that turns a pathogen file into ranked vaccine candidates. A deterministic scientific core does the biology; an LLM wrapper only plans, interprets and reports. It ships with a Streamlit web interface.
 
-| Step | Tool / method | Status |
-|------|---------------|--------|
-| Input auto-detection | FASTA/FASTQ, nt/protein, genome/CDS/reads | built-in |
-| **Discovery** (virulence factors) | DIAMOND + VFDB | ✅ real |
-| **Antigen funnel** — localization | DeepLoc-2.1 | ✅ real |
-| **Antigen funnel** — transmembrane | TMHMM-2.0 | ✅ real |
-| **Antigen funnel** — signal peptide | SignalP-5.0 | ✅ real |
-| **Antigen funnel** — antigenicity | IApred | ✅ real |
-| **Antigen funnel** — host homology (safety) | DIAMOND vs human Swiss-Prot | ✅ real |
-| **Epitopes** — B-cell | BepiPred-1.0 | ✅ real |
-| **Epitopes** — MHC-I / MHC-II | NetMHCpan / NetMHCIIpan (local + IEDB) | ✅ real |
-| Multi-host MHC panel | human, mouse, bovine, pig, chicken | ✅ real |
-| **Survival** — toxicity | ToxinPred2 | ✅ real |
-| **Survival** — allergenicity | FAO/WHO 6-mer + UniProt allergens | ✅ real |
-| Candidacy scoring | weighted, configurable | ✅ real |
-| mRNA construct | linkers + adjuvant + human codon-opt + GC/CAI/ProtParam | ✅ real |
-| Peptide–MHC structure + MD | AlphaFold + docking/MD | ⏸️ deferred (needs GPU) |
+## What it does
 
-The scientific core runs with **real, published tools** — each is cited in the report
-(PDF, HTML, JSON) and in the UI.
+Upload a pathogen file (FASTA/FASTQ) → the system auto-detects the input → mines virulence factors and vaccine targets → runs the antigen funnel → predicts B- and T-cell epitopes across selectable hosts → filters for survival (toxicity, allergenicity) → ranks candidates with a configurable candidacy score → assembles a multi-epitope mRNA construct → produces a publication-style report with full tool citations.
 
-## Key design decisions
-
-- **Deterministic pipeline + LLM wrapper:** scientific steps are fixed/reproducible; the
-  LLM only interprets and reports.
-- **Host-selectable, multi-organism MHC:** every peptide is tested against the MHC alleles
-  of one or more chosen hosts → a per-host presentation map ("which organism it works in").
-- **No magic numbers:** all thresholds live in `config/thresholds.yaml` with organism
-  presets; editable in the UI and written into every report for reproducibility.
-- **Honest labeling:** where a real tool is unavailable, a fallback is used and clearly
-  labeled as such.
+- **Real, published tools**, each cited in the report (PDF/HTML/JSON) and UI.
+- **Host-selectable, multi-organism MHC** (human, mouse, bovine, pig, chicken) → per-host presentation map.
+- **No magic numbers**: thresholds live in `config/thresholds.yaml` (organism presets), editable in the UI and written into every report.
+- **Honest labeling**: where a real tool is unavailable, a clearly-labeled fallback is used.
 
 ## Installation
 
 ```bash
-git clone git@github.com:aliarslan47/Vaxforge.git
+git clone https://github.com/aliarslan47/Vaxforge.git
 cd Vaxforge
 python3 -m venv --system-site-packages .venv
 . .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### External tools (`tools/`, not included in the repo)
-
-Open tools are auto-installable; some (DTU HealthTech) require an academic license and a
-manual download. See `tools/README.md`. Summary:
-
-- **Free / auto:** DIAMOND, VFDB, human Swiss-Prot, UniProt allergens, ToxinPred2 (`pip`),
-  IApred (GitHub), DeepLoc-2.1 (`pip`).
-- **Licensed / manual (DTU, Linux x86_64):** NetMHCpan, NetMHCIIpan, SignalP-5.0,
-  TMHMM-2.0, BepiPred-1.0 — download and place under `tools/`.
-
-If a tool is missing, the pipeline still runs using a clearly-labeled fallback.
+External tools live under `tools/` (git-ignored). Free tools auto-install (DIAMOND, VFDB, Swiss-Prot, ToxinPred2, IApred, DeepLoc-2.1); licensed DTU HealthTech tools (NetMHCpan, NetMHCIIpan, SignalP-5.0, TMHMM-2.0, BepiPred-1.0) need a manual academic download — see `tools/README.md`. If a tool is missing, the pipeline still runs with a labeled fallback.
 
 ## Usage
 
@@ -74,32 +39,30 @@ If a tool is missing, the pipeline still runs using a clearly-labeled fallback.
 streamlit run app.py
 ```
 
-Open the browser UI, drag in a FASTA/FASTQ file (or click a sample), pick the pathogen
-profile and host(s), review/edit thresholds, and run. Outputs:
+Drag in a FASTA/FASTQ file (or pick a sample), choose the pathogen profile and host(s), review thresholds, and run. Outputs: publication-style **PDF**, **HTML** dashboard, ranked **CSV**, peptide **FASTA**, **GenBank** mRNA construct, and full-run **JSON**.
 
-- **PDF** (publication-style, with References)
-- **HTML** dashboard
-- **CSV** ranked candidates, **FASTA** peptides, **GenBank** mRNA construct, **JSON** full run
+## Modules
 
-## Project layout
+The scientific core runs with real, cited tools; GPU-dependent structural steps are deferred.
 
-```
-config/            thresholds.yaml (per-organism presets), hosts.yaml (MHC alleles)
-vaxforge/          pipeline modules (detect, discovery, funnel, epitope, survival,
-                   scoring, mrna, report, report_pdf, citations, ...)
-app.py             Streamlit interface
-data/samples/      example FASTA/FASTQ
-tools/             external tools + databases (gitignored)
-```
+| Step | Tool / method | Status |
+|---|---|---|
+| Input auto-detection | FASTA/FASTQ · nt/protein · genome/CDS/reads | built-in |
+| Discovery (virulence factors) | DIAMOND + VFDB | ✅ real |
+| Antigen funnel — localization | DeepLoc-2.1 | ✅ real |
+| Antigen funnel — transmembrane | TMHMM-2.0 | ✅ real |
+| Antigen funnel — signal peptide | SignalP-5.0 | ✅ real |
+| Antigen funnel — antigenicity | IApred | ✅ real |
+| Antigen funnel — host homology (safety) | DIAMOND vs human Swiss-Prot | ✅ real |
+| Epitopes — B-cell | BepiPred-1.0 | ✅ real |
+| Epitopes — MHC-I / MHC-II | NetMHCpan / NetMHCIIpan (local + IEDB) | ✅ real |
+| Survival — toxicity / allergenicity | ToxinPred2 · FAO/WHO 6-mer + UniProt | ✅ real |
+| Candidacy scoring | weighted, configurable | ✅ real |
+| mRNA construct | linkers + adjuvant + human codon-opt + GC/CAI | ✅ real |
+| Peptide–MHC structure + MD | AlphaFold + docking/MD | ⏸️ deferred (GPU) |
 
-## Citations
+Full citations (`vaxforge/citations.py`) and project layout live in the repo.
 
-All tools used are cited in `vaxforge/citations.py` and reproduced in every report
-(DIAMOND, VFDB, DeepLoc, TMHMM, SignalP, IApred, NetMHCpan/NetMHCIIpan, BepiPred,
-ToxinPred2, FAO/WHO, and fallback methods) with DOIs.
+---
 
-## Status
-
-Prototype. The full scientific core is real; GPU-dependent structural steps (AlphaFold
-peptide–MHC, molecular dynamics) are deferred. Performance note: DeepLoc runs ESM on CPU,
-so a full run takes a few minutes for a small proteome.
+Forge family: [RNAForge](https://github.com/aliarslan47/RNAForge) (bulk RNA-seq) · [BacForge](https://github.com/aliarslan47/BacForge) (bacteria) · [VirusForge](https://github.com/aliarslan47/VirusForge) (virus/phage) · [MicrobiomeForge](https://github.com/aliarslan47/MicrobiomeForge) (microbiome) · **Vaxforge** (reverse vaccinology) · [ImmForge](https://github.com/aliarslan47/ImmForge) (immune simulation) · [PipelineForge](https://github.com/aliarslan47/PipelineForge) (DAG generator).
