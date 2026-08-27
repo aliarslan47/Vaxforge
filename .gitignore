@@ -29,3 +29,7 @@ plot/
 # Benchmark ara indirme dosyaları (repoda yalnız işlenmiş *_proteome.faa tutulur)
 data/validation/*_cds.faa
 data/validation/*.gb
+# Türetilmiş/geçici FASTA'lar (prep_proteome.py ile *_proteome.faa'dan yeniden üretilir)
+data/validation/*_prepared.faa
+data/validation/*_prepared_vaxign.faa
+data/validation/*_smoke.faa

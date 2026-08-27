@@ -13,6 +13,7 @@ Ortam değişkenleriyle de geçersiz kılınabilir: NETMHCPAN, NETMHCIIPAN.
 
 from __future__ import annotations
 
+import concurrent.futures
 import functools
 import os
 import platform
@@ -160,24 +161,44 @@ def predict(peptides: list[str], alleles: list[str], mhc_class: str,
     # ör. HLA-A*02:01) çevirmek için normalize-anahtar haritası — popülasyon
     # kapsamı gerçek allel adlarını gerektirir.
     key2orig = {_akey(a): a for a in alleles}
-    agg: dict[str, dict] = {}
-    try:
-        for L, group in by_len.items():
+    # ÖLÇEK GÜVENLİĞİ (bkz. psortb.py aynı sınıf bug): netMHCpan/netMHCIIpan TEK
+    # dev batch'te (tam proteom → yüz binlerce–1.37M peptit) ÇÖKÜYOR/timeout'a çarpıyor
+    # → yalnız minik bir kısmı dönüyor (%0), çoğu protein MHC-epitopsuz kalıyor → yüzey
+    # antijenleri kayboluyor. Bu yüzden peptitleri CHUNK'lara böl; netMHCpan tek-thread
+    # olduğundan chunk'ları ÇEKİRDEKLER ARASINDA PARALEL koştur (16 çekirdek → ~12×).
+    # Sonuçlar birleştirilir; bir chunk başarısız olsa diğerleri kurtulur (kısmi > hiç).
+    CHUNK = 20000
+    chunks = [(L, group[k:k + CHUNK])
+              for L, group in by_len.items()
+              for k in range(0, len(group), CHUNK)]
+    workers = min(12, max(1, (os.cpu_count() or 4) - 2), len(chunks))
+
+    def _run_chunk(task):
+        L, sub = task
+        fpath = None
+        try:
             with tempfile.NamedTemporaryFile("w", suffix=".fsa", delete=False) as fh:
-                fh.write(_fasta(group))
+                fh.write(_fasta(sub))
                 fpath = fh.name
             cmd = [w, "-f", fpath, "-a", ",".join(alleles_n)]
             if mhc_class == "mhc_i":
                 cmd += ["-l", str(L)]
-            # Global batch (tüm proteinlerin peptitleri tek çağrıda) çok büyük
-            # olabilir — özellikle MHC-II (nnalign, çok-allel × ~170k 15-mer, sığır
-            # 8 BoLA-DRB3'te 60dk+). Timeout 120dk: gerçek MHC-II tamamlansın,
-            # proxy'ye düşmesin (biyoloji-öncelikli, kullanıcı kararı 2026-07-12).
             r = subprocess.run(cmd, capture_output=True, timeout=7200, text=True)
-            os.unlink(fpath)
-            _parse_into(r.stdout, agg, alleles_n, rank_weak, mhc_class)
-    except Exception:
-        return None
+            return r.stdout
+        except Exception:
+            return ""      # bu chunk atlandı; diğerleri devam
+        finally:
+            if fpath:
+                try:
+                    os.unlink(fpath)
+                except OSError:
+                    pass
+
+    agg: dict[str, dict] = {}
+    with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as ex:
+        for stdout in ex.map(_run_chunk, chunks):
+            if stdout:
+                _parse_into(stdout, agg, alleles_n, rank_weak, mhc_class)
     if not agg:
         return None
     for pep, d in agg.items():

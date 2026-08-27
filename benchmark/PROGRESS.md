@@ -46,3 +46,17 @@ tam-2003 flagship (GPU gelince). Kozmetik: fig3 alt-sağ etiket örtüşmesi.
   hepsi aynı sette = adil. Tam proteom yalnız hızlı rakiplerde bonus olarak.
 - Asimetri (VaxForge subsample vs rakip tam-proteom) yazıda AÇIKÇA belirtilecek.
 - Patojen/konak seçilim gerekçeleri DOI'li — YAZIM aşaması (kullanıcı kuralı).
+
+## ✅ BAKTERİYEL KOL GENİŞLETMESİ TAMAM (2026-08-27 01:09) — 3 bakteri, TAM PROTEOM
+Kullanıcı isteği: 4-konağı enfekte eden 3 bakteri, genom-boyu artan, TAM proteom, tek tek, rakip-önce.
+Seçilen: S. aureus (2889) · L. monocytogenes (2844) · S. Typhimurium (4533).
+Yeni kod: `bacteria/*.json`, `prep_proteome.py`, `run_bacterium.py`, `run_competitors.sh`,
+`compare_bacterium.py`, `run_bug_full.sh`, `rerun_vaxforge_all.sh`.
+- İlk koşularda VaxForge yapay düşük çıktı (saureus 3/5, listeria 3/5, salmonella 0/5) → **iki ölçek-bug'ı**
+  bulundu+düzeltildi+doğrulandı: (A) PSORTb tek-konteyner timeout → 800'lük chunk; (B) netMHCpan tek-dev-batch
+  (1.37M peptit → %0) → 20k-chunk + 16-çekirdek paralel. Toksisite/alerjen suçsuzdu (kanıtlandı).
+- **NİHAİ (2-fix, tam proteom, default): VaxForge 14/15** (saureus 5/5 AUC1.00 · listeria 4/5 · salmonella 5/5 AUC0.99)
+  · Vaxign-ML 15/15 · NERVE 9/15. VaxForge ≈ Vaxign-ML recall + AUC/rank önde; NERVE geride. Tek kayıp ActA (meşru).
+- Sonuçlar: `results/{saureus,listeria,salmonella}_headtohead.json`; figür `figures/fig5_bacteria_panel.png`;
+  master `BENCHMARK_SUMMARY.md §1b + §metodoloji`; `PATHOGEN_ACCESSIONS.md` + `SELECTION_RATIONALE.md` güncel.
+- KALAN (yazım): koruyucu-antijen "koruyucu" atıfları DOI'li; iki-bug fix Methods/validation'a girecek.

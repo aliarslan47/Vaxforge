@@ -1,0 +1,24 @@
+{
+  "bug": "salmonella",
+  "organism": "Salmonella enterica serovar Typhimurium",
+  "strain": "LT2 / SGSC1412 / ATCC 700720",
+  "proteome": "data/validation/salmonella_lt2_proteome.faa",
+  "uniprot_proteome": "UP000001014",
+  "n_proteins": 4533,
+  "gram": "negative",
+  "gram_flag": "n",
+  "taxon_strain": 99287,
+  "taxon_species": 90371,
+  "iedb_taxon": "NCBITaxon:90371",
+  "genome_mb": 4.86,
+  "refseq_genome": "NC_003197.2",
+  "assembly": "GCF_000006945.2",
+  "protective": {
+    "P37592": "OmpD (outer membrane porin D)",
+    "P0A263": "OmpC (outer membrane porin C)",
+    "P06179": "FliC (phase-1 flagellin)",
+    "Q7BVH7": "SseB (SPI-2 secreted effector/translocon)",
+    "P02936": "OmpA (outer membrane protein A)"
+  },
+  "note": "OMP/flagellin/SseB literatürde yerleşik Salmonella koruyucu antijenleri; DOI yazım aşamasında."
+}

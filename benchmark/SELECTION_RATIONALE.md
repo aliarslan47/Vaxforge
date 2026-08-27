@@ -80,3 +80,21 @@ tek araca özgü bir yapaylık olmadığını gösterir.
 
 > İlişkili kayıtlar: `PATHOGEN_ACCESSIONS.md` (aksesyonlar), `BENCHMARK_SUMMARY.md` (§5 buraya
 > çapraz-referans verir). Çekirdek ilke: her şey literatüre atıflı, uydurma yok.
+
+---
+
+## Bakteriyel kol genişletmesi — 3 bakteri seçim gerekçesi (2026-08)
+
+MenB'nin tek-örnekliğinden çıkmak için 3 ek bakteri seçildi. Ölçütler:
+1. **4 memeli konağını da (insan/sığır/fare/domuz) gerçekten enfekte etme** — virüs kolundaki çok-konak
+   mantığının bakteriyel karşılığı; hepsi zoonotik/geniş-konaklı. (Konak-aralığı DOI'leri yazımda eklenecek.)
+2. **Genom-boyu yayılımı** (2.8 → 4.9 Mb) — pipeline'ın farklı proteom ölçeklerinde tutarlılığını sınar
+   (ve tam-proteom ölçek-bug'larını açığa çıkardı → BENCHMARK_SUMMARY §metodoloji).
+3. **Gram dengesi** (2 Gram+ / 1 Gram−) — PSORTb Gram-özgü lokalizasyonunu iki sınıfta da test eder.
+4. **Bilinen koruyucu/aday antijenler** — ölçülebilir recall@antijen için literatürde yerleşik hedefler.
+
+Seçilenler + ground-truth antijen gerekçesi (DOI'ler yazımda doğrulanacak, [[vaxforge-literature-rule]]):
+- **S. aureus NCTC 8325** (Gram+, 2.8 Mb): IsdB, ClfA, Hla, IsdA, SpA — klinik/preklinik aşı adayları
+  (IsdB = Merck V710; ClfA/Hla/SpA-mutant çok-bileşenli adaylar).
+- **L. monocytogenes EGD-e** (Gram+, 2.9 Mb): LLO (immünodominant CD8 hedefi), p60, InlA, InlB, ActA.
+- **S. Typhimurium LT2** (Gram−, 4.9 Mb): OmpD, OmpC, OmpA, FliC(flagellin), SseB.

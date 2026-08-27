@@ -81,12 +81,26 @@ def _parse_terse(text: str) -> dict[str, dict]:
     return out
 
 
-def predict(seq_pairs: list[tuple[str, str]], gram: str) -> dict[str, dict]:
+def predict(seq_pairs: list[tuple[str, str]], gram: str,
+            chunk_size: int = 800) -> dict[str, dict]:
     """[(id, seq)] -> {id: {localization, raw, score}}. Hata/eksik -> {}.
 
-    gram: 'positive' | 'negative'. Sentetik s0/s1… ID kullanılır (boşluksuz),
-    gerçek ID'ye çağıran tarafta eşlenir.
+    ÖLÇEK GÜVENLİĞİ: PSORTb tek konteynerde çok protein (>~3000) işleyince 1800s
+    timeout'unu aşıp TÜM sonucu kaybediyordu (→ {} → çağıran heuristik lokalizasyona
+    düşer → yüzey antijenleri yanlış-lokalize/elenir). Bu yüzden girdi `chunk_size`
+    alt-batch'lere bölünür; her konteyner çağrısı timeout'un ALTINDA kalır, sonuçlar
+    birleştirilir. Bir chunk başarısız olsa bile diğerleri kurtulur (kısmi > hiç).
     """
+    if len(seq_pairs) <= chunk_size:
+        return _predict_one(seq_pairs, gram)
+    out: dict[str, dict] = {}
+    for k in range(0, len(seq_pairs), chunk_size):
+        out.update(_predict_one(seq_pairs[k:k + chunk_size], gram))
+    return out
+
+
+def _predict_one(seq_pairs: list[tuple[str, str]], gram: str) -> dict[str, dict]:
+    """Tek PSORTb konteyner çağrısı (bir alt-batch). Bkz. predict() chunking."""
     pod = _podman()
     if not pod or gram not in ("positive", "negative") or not seq_pairs:
         return {}

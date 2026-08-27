@@ -132,9 +132,44 @@ def fig4_jaccard(rab):
     fig.tight_layout(); fig.savefig(FIG / "fig4_multihost_jaccard.png", dpi=150); plt.close(fig)
 
 
+def fig5_bacteria_panel():
+    """Bakteriyel kol: 3 bakteri × 3 araç recall@antijen (5 üzerinden) + AUC etiketi.
+
+    TAM PROTEOM, default. VaxForge iki ölçek-bug'ı (PSORTb + netMHCpan tek-batch)
+    düzeltildikten sonraki gerçek sonuç: Vaxign-ML'e ~berabere recall + AUC'de önde;
+    NERVE aşırı-seçici sert filtre → tutarlı 3/5.
+    """
+    bugs = [("saureus", "S. aureus"), ("listeria", "L. monocytogenes"),
+            ("salmonella", "S. Typhimurium")]
+    data = {}
+    for key, _ in bugs:
+        h = json.load(open(BENCH / "results" / f"{key}_headtohead.json"))
+        data[key] = {t["tool"]: t for t in h["tools"]}
+        data[key]["_np"] = h.get("n_protective", 5)
+    fig, ax = plt.subplots(figsize=(8.2, 4.4))
+    x = np.arange(len(bugs)); w = 0.26
+    for k, t in enumerate(TOOLS):
+        vals = [int(data[key][t]["recall"].split("/")[0]) for key, _ in bugs]
+        bars = ax.bar(x + (k - 1) * w, vals, width=w, color=COL[t], label=t)
+        for b, (key, _) in zip(bars, bugs):
+            tool = data[key][t]
+            rec = tool["recall"]; auc = tool.get("auc")
+            lbl = rec + (f"\nAUC {auc:.2f}" if isinstance(auc, (int, float)) else "")
+            ax.text(b.get_x() + b.get_width() / 2, b.get_height() + 0.06, lbl,
+                    ha="center", va="bottom", fontsize=7.5)
+    ax.set_xticks(x); ax.set_xticklabels([n for _, n in bugs], fontsize=10, style="italic")
+    ax.set_ylim(0, 6); ax.set_ylabel("recall@antijen (5 üzerinden)")
+    ax.legend(loc="upper right", fontsize=8, ncol=3)
+    ax.set_title("Bakteriyel kol — bilinen koruyucu antijenlerin geri bulunması (TAM PROTEOM, default)\n"
+                 "VaxForge ≈ Vaxign-ML recall + AUC'de önde · NERVE sert-filtre → 3/5", fontsize=9)
+    ax.grid(axis="y", alpha=0.3)
+    fig.tight_layout(); fig.savefig(FIG / "fig5_bacteria_panel.png", dpi=150); plt.close(fig)
+
+
 def main():
     h204, full, rab = _load()
     fig1_recovery(h204); fig2_recall(h204); fig3_fold_recall(h204, full); fig4_jaccard(rab)
+    fig5_bacteria_panel()
     print("Figürler:", *(p.name for p in sorted(FIG.glob("*.png"))))
 
 

@@ -21,3 +21,11 @@ results/emcv/report.*
 results/emcv/candidates*
 results/emcv/run.json
 results/emcv/top_peptides.fasta
+# Bakteriyel kol (3 bakteri) — ham rakip çıktıları hariç; yalnız results/<bug>/vaxforge_summary.json
+# + results/<bug>_headtohead.json izlenir
+results/saureus/nerve/
+results/saureus/vaxignml/
+results/listeria/nerve/
+results/listeria/vaxignml/
+results/salmonella/nerve/
+results/salmonella/vaxignml/

@@ -1,0 +1,93 @@
+{
+  "pathogen": "Staphylococcus aureus NCTC 8325 / PS 47",
+  "input": "saureus_prepared.faa (TAM PROTEOM, 2889 protein)",
+  "gram": "positive",
+  "genome_mb": 2.82,
+  "fairness": "her araç DEFAULT parametre; eşik tuning yok; özdeş tam-proteom girdi",
+  "ground_truth": {
+    "Q2FZF0": "IsdB (iron-regulated surface determinant B)",
+    "Q2G015": "ClfA (clumping factor A)",
+    "Q2G1X0": "Hla (alpha-hemolysin)",
+    "Q2FZE9": "IsdA (iron-regulated surface determinant A)",
+    "P02976": "SpA (immunoglobulin G-binding protein A)"
+  },
+  "n_protective": 5,
+  "n_background": 2884,
+  "tools": [
+    {
+      "tool": "VaxForge",
+      "n_candidates": 729,
+      "recall": "5/5",
+      "ranks": {
+        "IsdA": 10,
+        "ClfA": 23,
+        "IsdB": 4,
+        "Hla": 9,
+        "SpA": 8
+      },
+      "recovered": [
+        "ClfA",
+        "Hla",
+        "IsdA",
+        "IsdB",
+        "SpA"
+      ],
+      "fold_enrichment": 3.98,
+      "fisher_p": 0.0010125915219699917,
+      "auc": 0.997,
+      "note": "candidacy skoru; funnel soft-VFDB"
+    },
+    {
+      "tool": "Vaxign-ML",
+      "n_candidates": 838,
+      "recall": "5/5",
+      "ranks": {
+        "IsdA": 387,
+        "ClfA": 248,
+        "IsdB": 46,
+        "Hla": 29,
+        "SpA": 178
+      },
+      "recovered": [
+        "ClfA",
+        "Hla",
+        "IsdA",
+        "IsdB",
+        "SpA"
+      ],
+      "fold_enrichment": 3.46218487394958,
+      "fisher_p": 0.002036078984368761,
+      "auc": 0.9393203883495145,
+      "auc_ci": [
+        0.8929604574806838,
+        0.9866581536825217
+      ],
+      "note": "protegenicity (XGBoost); pred>=0.5 protective"
+    },
+    {
+      "tool": "NERVE 2.0",
+      "n_candidates": 34,
+      "recall": "3/5",
+      "ranks": {
+        "IsdA": "DISCARDED",
+        "ClfA": 3,
+        "IsdB": "DISCARDED",
+        "Hla": 24,
+        "SpA": 28
+      },
+      "recovered": [
+        "ClfA",
+        "Hla",
+        "SpA"
+      ],
+      "fold_enrichment": 55.81935483870967,
+      "fisher_p": 1.4666498700566447e-05,
+      "auc": null,
+      "discarded_reasons": {
+        "IsdA": "loc=Cellwall adhesin_p=0.1561",
+        "IsdB": "loc=Cellwall adhesin_p=0.094"
+      },
+      "note": "select modülü sert filtreler (localization + adhesin pad>=0.5)"
+    }
+  ]
+}

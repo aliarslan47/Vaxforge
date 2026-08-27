@@ -1,0 +1,24 @@
+{
+  "bug": "saureus",
+  "organism": "Staphylococcus aureus",
+  "strain": "NCTC 8325 / PS 47",
+  "proteome": "data/validation/saureus_nctc8325_proteome.faa",
+  "uniprot_proteome": "UP000008816",
+  "n_proteins": 2889,
+  "gram": "positive",
+  "gram_flag": "p",
+  "taxon_strain": 93061,
+  "taxon_species": 1280,
+  "iedb_taxon": "NCBITaxon:1280",
+  "genome_mb": 2.82,
+  "refseq_genome": "NC_007795.1",
+  "assembly": "GCF_000013425.1",
+  "protective": {
+    "Q2FZF0": "IsdB (iron-regulated surface determinant B)",
+    "Q2G015": "ClfA (clumping factor A)",
+    "Q2G1X0": "Hla (alpha-hemolysin)",
+    "Q2FZE9": "IsdA (iron-regulated surface determinant A)",
+    "P02976": "SpA (immunoglobulin G-binding protein A)"
+  },
+  "note": "Koruyucu/aday antijenler literatürde yerleşik S. aureus aşı adayları; DOI yazım aşamasında."
+}

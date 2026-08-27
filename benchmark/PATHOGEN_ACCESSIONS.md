@@ -29,6 +29,23 @@ Yayında Methods → "Data sources" bölümüne birebir girecek.
 - **Konaklar (çok-konak MHC):** insan, sığır (bovine), fare (mouse), domuz (pig) — dördü de
   gerçek konak (biyolojik gerekçe + DOI'ler yazım aşamasında eklenecek).
 
+## Bakteriyel kol — 3 bakteri × TAM PROTEOM (2026-08, çok-antijen recall head-to-head)
+4 memeli konağı (insan/sığır/fare/domuz) enfekte eden, genom-boyu artan 3 zoonotik bakteri.
+Her araç DEFAULT + özdeş çıplak-aksesyon TAM PROTEOM girdi. Config: `benchmark/bacteria/<bug>.json`.
+
+- **Staphylococcus aureus** NCTC 8325 · UniProt proteome **UP000008816** (2889 protein) · taxid 93061 (suş)/1280 (tür)
+  · RefSeq **NC_007795.1** · asm **GCF_000013425.1** · Gram+ · `data/validation/saureus_prepared.faa`
+  - Koruyucu antijenler (UniProt, GN= ile doğrulandı): **Q2FZF0** IsdB · **Q2G015** ClfA · **Q2G1X0** Hla(α-hemolizin)
+    · **Q2FZE9** IsdA · **P02976** SpA
+- **Listeria monocytogenes** EGD-e · UniProt **UP000000817** (2844) · taxid 169963/1639 · RefSeq **NC_003210.1**
+  · asm **GCF_000196035.1** · Gram+ · `data/validation/listeria_prepared.faa`
+  - Antijenler: **P13128** LLO(listeriolizin O) · **P21171** p60(iap) · **P0DJM0** InlA · **P0DQD2** InlB · **P33379** ActA
+- **Salmonella enterica** ser. Typhimurium LT2 · UniProt **UP000001014** (4533) · taxid 99287/90371 · RefSeq **NC_003197.2**
+  · asm **GCF_000006945.2** · Gram− · `data/validation/salmonella_prepared.faa`
+  - Antijenler: **P37592** OmpD · **P0A263** OmpC · **P06179** FliC(flagellin) · **Q7BVH7** SseB · **P02936** OmpA
+  - NOT: Vaxign-ML için selenosistein(U) içeren 3 protein sanitize edildi (U→C) → `salmonella_prepared_vaxign.faa`
+    (VaxForge kendi içinde sanitize eder; 5 koruyucu antijenin hiçbiri U içermez → sonuç etkilenmez).
+
 ## (İleride, opsiyonel referans) SARS-CoV-2
 - UniProt/Swiss-Prot, `data/validation/sarscov2_proteome.faa`; Spike = **P0DTC2** (SPIKE_SARS2),
   taxid 2697049. Şu an benchmark'ta kullanılmıyor.

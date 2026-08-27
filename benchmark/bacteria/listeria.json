@@ -1,0 +1,24 @@
+{
+  "bug": "listeria",
+  "organism": "Listeria monocytogenes",
+  "strain": "EGD-e (serovar 1/2a, ATCC BAA-679)",
+  "proteome": "data/validation/listeria_egde_proteome.faa",
+  "uniprot_proteome": "UP000000817",
+  "n_proteins": 2844,
+  "gram": "positive",
+  "gram_flag": "p",
+  "taxon_strain": 169963,
+  "taxon_species": 1639,
+  "iedb_taxon": "NCBITaxon:1639",
+  "genome_mb": 2.94,
+  "refseq_genome": "NC_003210.1",
+  "assembly": "GCF_000196035.1",
+  "protective": {
+    "P13128": "LLO (listeriolysin O, immunodominant)",
+    "P21171": "p60 (invasion-associated endopeptidase, iap)",
+    "P0DJM0": "InlA (internalin A)",
+    "P0DQD2": "InlB (internalin B)",
+    "P33379": "ActA (actin assembly-inducing protein)"
+  },
+  "note": "LLO immunodominant koruyucu antijen; internalin/ActA yüzey virülans faktörleri; DOI yazım aşamasında."
+}

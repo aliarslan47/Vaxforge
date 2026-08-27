@@ -1,0 +1,93 @@
+{
+  "pathogen": "Salmonella enterica serovar Typhimurium LT2 / SGSC1412 / ATCC 700720",
+  "input": "salmonella_prepared.faa (TAM PROTEOM, 4533 protein)",
+  "gram": "negative",
+  "genome_mb": 4.86,
+  "fairness": "her araç DEFAULT parametre; eşik tuning yok; özdeş tam-proteom girdi",
+  "ground_truth": {
+    "P37592": "OmpD (outer membrane porin D)",
+    "P0A263": "OmpC (outer membrane porin C)",
+    "P06179": "FliC (phase-1 flagellin)",
+    "Q7BVH7": "SseB (SPI-2 secreted effector/translocon)",
+    "P02936": "OmpA (outer membrane protein A)"
+  },
+  "n_protective": 5,
+  "n_background": 4528,
+  "tools": [
+    {
+      "tool": "VaxForge",
+      "n_candidates": 1368,
+      "recall": "5/5",
+      "ranks": {
+        "OmpA": 20,
+        "OmpD": 63,
+        "OmpC": 51,
+        "SseB": 12,
+        "FliC": 8
+      },
+      "recovered": [
+        "FliC",
+        "OmpA",
+        "OmpC",
+        "OmpD",
+        "SseB"
+      ],
+      "fold_enrichment": 3.32,
+      "fisher_p": 0.0024904746635785392,
+      "auc": 0.994,
+      "note": "candidacy skoru; funnel soft-VFDB"
+    },
+    {
+      "tool": "Vaxign-ML",
+      "n_candidates": 1276,
+      "recall": "5/5",
+      "ranks": {
+        "OmpA": 185,
+        "OmpD": 28,
+        "OmpC": 30,
+        "SseB": 897,
+        "FliC": 127
+      },
+      "recovered": [
+        "FliC",
+        "OmpA",
+        "OmpC",
+        "OmpD",
+        "SseB"
+      ],
+      "fold_enrichment": 3.5625491738788355,
+      "fisher_p": 0.0017574201314841317,
+      "auc": 0.9225044169611307,
+      "auc_ci": [
+        0.7808462104488595,
+        0.9934673142860669
+      ],
+      "note": "protegenicity (XGBoost); pred>=0.5 protective"
+    },
+    {
+      "tool": "NERVE 2.0",
+      "n_candidates": 118,
+      "recall": "3/5",
+      "ranks": {
+        "OmpA": 51,
+        "OmpD": "DISCARDED",
+        "OmpC": 70,
+        "SseB": "DISCARDED",
+        "FliC": 6
+      },
+      "recovered": [
+        "FliC",
+        "OmpA",
+        "OmpC"
+      ],
+      "fold_enrichment": 23.624347826086957,
+      "fisher_p": 0.0001655649627395447,
+      "auc": null,
+      "discarded_reasons": {
+        "OmpD": "loc=OuterMembrane adhesin_p=0.1973",
+        "SseB": "loc=Unknown adhesin_p=0.0046"
+      },
+      "note": "select modülü sert filtreler (localization + adhesin pad>=0.5)"
+    }
+  ]
+}
