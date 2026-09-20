@@ -80,7 +80,7 @@ VaxForge was built to close these three gaps within one deterministic pipeline. 
 
 ![Figure 1](figures/fig1_antigen_recovery.png)
 
-**Figure 1.** VaxForge and Vaxign-ML recover all four licensed meningococcal antigens, whereas NERVE 2.0 recovers only PorA. For each antigen, the rank it received in each tool's candidate list is shown (lower is better); a cross marks an antigen that was not recovered. Ranks and recall were computed under default parameters on identical input.
+**Figure 1.** VaxForge and Vaxign-ML recover all four licensed meningococcal antigens, whereas NERVE 2.0 recovers only PorA. Each point is one tool's result for one antigen, and colour identifies the tool (legend, top right). The number beside each point is that antigen's rank in the tool's candidate list, meaning its position from the top (1 is first, and a lower number is better). A cross in the "not recovered" column marks an antigen the tool did not return at all. Ranks and recall were computed under default parameters on identical input.
 
 ![Figure 2](figures/fig2_recall_bar.png)
 
@@ -90,7 +90,7 @@ VaxForge was built to close these three gaps within one deterministic pipeline. 
 
 ![Figure 3](figures/fig3_fold_vs_recall.png)
 
-**Figure 3.** High fold enrichment does not imply high recall. Fold enrichment of the known antigens among each tool's candidates, with the recall of that run labelled above each bar; the dashed line marks the published NERVE 2.0 fold value of 16.6. NERVE 2.0 reaches the highest fold with the lowest recall (1 of 4).
+**Figure 3.** High fold enrichment does not imply high recall. Each bar is the fold enrichment of the known protective antigens in one tool's candidate list, that is, how many times more concentrated the known antigens are among the candidates than expected by chance. The label above each bar is that run's recall, the count of known antigens the tool actually recovered out of the total (4/4 means all four were recovered, 1/4 only one). The dashed line marks the published NERVE 2.0 fold value of 16.6. NERVE 2.0 reaches the highest fold with the lowest recall.
 
 **The pattern generalises across genome scale, and a validation step made the results trustworthy.** To move beyond a single exemplar we ran three additional zoonotic bacteria at full proteome scale, chosen for increasing genome size and Gram balance (Table 3). VaxForge recovered 5 of 5 for *Staphylococcus aureus* (iron-regulated surface determinant B at rank 4 of 2,889), 4 of 5 for *Listeria monocytogenes* and 5 of 5 for *Salmonella enterica* serovar Typhimurium, for a total of 14 of 15 (Figure 4). Vaxign-ML recovered 15 of 15 and NERVE 2.0 recovered 9 of 15, missing the same kinds of surface antigens it lost on meningococcus. VaxForge placed protective antigens at higher ranks than Vaxign-ML on the two species where both reached full recall. The single VaxForge miss, ActA of *L. monocytogenes*, is a genuine hard antigen: it also ranked at the bottom of the Vaxign-ML list, so it reflects the difficulty of the target rather than a pipeline fault. During these runs we identified and corrected two scale-dependent engineering defects that had artefactually lowered VaxForge recall in first-pass runs (initial values of 3 of 5, 3 of 5 and 0 of 5); the localisation and MHC steps were each collapsing under a single oversized batch at full-proteome scale, and both were repartitioned into bounded, parallel sub-batches (`MANUSCRIPT_METHODS.md`, section B). Control experiments confirmed that the toxicity and allergenicity filters were not responsible.
 
@@ -136,7 +136,7 @@ The viral arm was built to exercise this host-specific presentation. Using rabie
 
 ![Figure 5](figures/fig5_multihost_jaccard.png)
 
-**Figure 5.** Host selection reshapes the rabies glycoprotein G epitope repertoire. Jaccard overlap of glycoprotein G class I epitopes for each host pair; every pair falls below one, so the predicted repertoire depends on the chosen host.
+**Figure 5.** Host selection reshapes the rabies glycoprotein G epitope repertoire. Each bar is one pair of host species (for example human–pig), and its value is the Jaccard overlap between the glycoprotein G epitopes predicted for those two hosts: 1 would mean the two hosts share an identical epitope set and 0 means they share none. Every pair falls below one, so the epitopes predicted for one host do not fully transfer to another and the choice of host changes the predicted repertoire.
 
 ---
 

@@ -66,7 +66,7 @@ def fig1_recovery(h204):
     ax.set_xticks(ticks + [elim_x]); ax.set_xticklabels([str(v) for v in ticks] + ["not\nrecovered"])
     ax.set_xlabel("Rank in candidate list (lower is better)")
     ax.set_ylabel("4CMenB protective antigen")
-    ax.legend(loc="lower right", fontsize=8)
+    ax.legend(loc="upper right", fontsize=8)
     ax.grid(axis="x", alpha=0.3)
     fig.tight_layout(); fig.savefig(FIG / "fig1_antigen_recovery.png", dpi=150); plt.close(fig)
 

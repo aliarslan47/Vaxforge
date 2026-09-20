@@ -82,7 +82,7 @@ Huniyi geçen proteinler hattın çekirdeğine, immünolojik katmana girer. NetM
 
 ![Şekil 1](figures/fig1_antigen_recovery.png)
 
-**Şekil 1.** VaxForge ve Vaxign-ML dört ruhsatlı meningokok antijeninin dördünü de bulur, NERVE 2.0 yalnız PorA'yı bulur. Her antijen için, o antijenin her aracın aday listesindeki sırası gösterilir (düşük = daha iyi); çarpı, geri getirilmeyen antijeni işaretler. Sıralar ve recall varsayılan parametrelerle özdeş girdi üzerinde hesaplandı.
+**Şekil 1.** VaxForge ve Vaxign-ML dört ruhsatlı meningokok antijeninin dördünü de bulur, NERVE 2.0 yalnız PorA'yı bulur. Her nokta, bir aracın bir antijen için sonucudur; renk aracı belirtir (lejant, sağ üst). Noktanın yanındaki sayı, o antijenin aracın aday listesindeki sırasıdır; yani baştan konumu (1 = ilk sırada; küçük sayı = daha iyi). "not recovered" (geri getirilmedi) sütunundaki çarpı, aracın hiç döndürmediği antijeni işaretler. Sıralar ve recall varsayılan parametrelerle özdeş girdi üzerinde hesaplandı.
 
 ![Şekil 2](figures/fig2_recall_bar.png)
 
@@ -92,7 +92,7 @@ Huniyi geçen proteinler hattın çekirdeğine, immünolojik katmana girer. NetM
 
 ![Şekil 3](figures/fig3_fold_vs_recall.png)
 
-**Şekil 3.** Yüksek fold-zenginleşme yüksek recall demek değildir. Her aracın adayları arasında bilinen antijenlerin fold-zenginleşmesi; her barın üstünde o koşunun recall'ı yazılı; kesikli çizgi yayınlanmış NERVE 2.0 fold değeri 16,6'yı gösterir. NERVE 2.0 en yüksek fold'a en düşük recall'la (1/4) ulaşır.
+**Şekil 3.** Yüksek fold-zenginleşme yüksek recall demek değildir. Her bar, bir aracın aday listesinde bilinen koruyucu antijenlerin fold-zenginleşmesidir; yani bilinen antijenlerin, adaylar arasında rastlantıya göre kaç kat daha yoğun olduğudur. Barın üstündeki etiket, o koşunun recall'ıdır: aracın toplam içinden gerçekten geri getirdiği bilinen antijen sayısı (4/4 = dördü de bulundu, 1/4 = yalnız biri). Kesikli çizgi yayınlanmış NERVE 2.0 fold değeri 16,6'yı gösterir. NERVE 2.0 en yüksek fold'a en düşük recall'la ulaşır.
 
 **Kalıp genom ölçeğinden bağımsız ve bir doğrulama adımı sonuçları güvenilir kıldı.** Tek örnekle sınırlı kalmamak için, artan genom boyutu ve Gram dengesine göre seçtiğimiz üç zoonotik bakteriyi tam proteom ölçeğinde koştuk (Tablo 3). VaxForge *Staphylococcus aureus* için 5/5 (demir-düzenlenen yüzey belirleyicisi B, 2.889 içinde 4. sırada), *Listeria monocytogenes* için 4/5 ve *Salmonella enterica* serovar Typhimurium için 5/5 buldu; toplam 14/15 (Şekil 4). Vaxign-ML 15/15, NERVE 2.0 ise 9/15 bularak meningokoktakiyle aynı türden yüzey antijenlerini yine kaçırdı. Her iki aracın da tam recall'a ulaştığı iki türde VaxForge koruyucu antijenleri Vaxign-ML'den daha üste yerleştirdi. VaxForge'un tek kaybı olan *L. monocytogenes* ActA'sı gerçekten zor bir antijendir; Vaxign-ML listesinde de en dipte çıktı, yani hedefin zorluğunu yansıtır, bir hat kusurunu değil. Bu koşular sırasında, ilk denemelerde VaxForge recall'ını yapay olarak düşüren iki ölçek kaynaklı kusuru saptayıp giderdik (ilk değerler 3/5, 3/5 ve 0/5); lokalizasyon ve MHC adımları tam-proteom ölçeğinde tek ve aşırı büyük bir yığın altında çöküyordu, ikisini de sınırlı ve paralel alt-yığınlara böldük (`MANUSCRIPT_METHODS.md`, bölüm B). Kontrol deneyleri toksisite ve alerjenite filtrelerinin suçsuz olduğunu doğruladı.
 
@@ -138,7 +138,7 @@ Virüs kolunu bu konak-özgü sunumu sınamak için kurduk. Tek yapısal protein
 
 ![Şekil 5](figures/fig5_multihost_jaccard.png)
 
-**Şekil 5.** Konak seçimi kuduz glikoprotein G epitop repertuarını yeniden biçimlendirir. Her konak çifti için glikoprotein G sınıf I epitoplarının Jaccard örtüşmesi; her çift birin altındadır, yani öngörülen repertuar seçilen konağa bağlıdır.
+**Şekil 5.** Konak seçimi kuduz glikoprotein G epitop repertuarını yeniden biçimlendirir. Her bar bir konak çiftidir (örneğin insan–domuz) ve değeri, o iki konak için öngörülen glikoprotein G epitoplarının Jaccard örtüşmesidir: 1 iki konağın birebir aynı epitop setini paylaştığı, 0 ise hiç ortak epitop olmadığı anlamına gelir. Her çift birin altındadır; yani bir konak için öngörülen epitoplar başka bir konağa tam aktarılmaz ve konak seçimi öngörülen repertuarı değiştirir.
 
 ---
 
