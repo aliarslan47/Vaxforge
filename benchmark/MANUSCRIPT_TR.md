@@ -28,9 +28,13 @@ VaxForge bu üç eksiği tek bir deterministik hatta kapatır. Sert virülans fi
 
 **Materyal ve Metot**
 
-**VaxForge hattı.** VaxForge, tek bir eşik dosyasıyla yapılandırılan deterministik bir hattır; hiçbir kesim değeri kodda gömülü değildir ve her değer denetlenebilir (`config/thresholds.yaml`). Girdi türü (proteom, kodlayan diziler ya da genom) otomatik tanınır. Keşif adımı proteinleri DIAMOND blastp ile küratörlü virülans referanslarına (VFDB) hizalar (bakteride e-value en çok 1e-5, kimlik en az %30, kapsam en az %50); bu adım kapı görevi görmez, adaylık puanını besler, böylece virülans veritabanında bulunmayan gerçek bir yüzey antijeni elenmez. Antijen hunisi ardından birkaç sert filtre uygular: hücre-altı yerleşim (PSORTb 3.0, yedek DeepLoc 2.0; sitoplazmik proteinler elenir), transmembran topoloji (TMHMM-2.0; en çok bir heliks) ve zorunlu insan-homoloji elemesi (insan proteomuna karşı DIAMOND blastp; %35 üstü kimlik, otoimmün güvenlik için elenir). Bunların yanında sinyal peptidi (SignalP-5.0), antijenite (IApred), suşlar arası korunmuşluk ve adezin olasılığı puana katkı veren yumuşak terimlerdir. Geçen proteinler ağırlıklı bir adaylık puanıyla sıralanır.
+**Aday keşfi ve antijen hunisi.** VaxForge deterministiktir ve her kesim değerini tek bir yapılandırma dosyasından okur; hiçbir eşik kodda gömülü değildir (`config/thresholds.yaml`). Girdi türü (proteom, kodlayan diziler ya da genom) otomatik tanındı. Proteinler, küratörlü virülans faktörü veritabanı VFDB'ye (Liu vd., 2022) DIAMOND blastp (Buchfink vd., 2021) ile hizalandı; eşikler e-value en çok 1 × 10⁻⁵, dizi kimliği en az %30 ve kapsam en az %50 olarak alındı. Bu kanıt adaylık puanına katkı verdi, kapı olarak kullanılmadı. Hücre-altı yerleşim PSORTb 3.0 (Yu vd., 2010), yedek olarak DeepLoc 2.0 (Thumuluri vd., 2022) ile tahmin edildi; hücre-dışı, dış-membran, hücre-duvarı ve periplazmik proteinler tutuldu, sitoplazmik olanlar elendi (sert filtre). Transmembran topoloji TMHMM-2.0 (Krogh vd., 2001) ile tahmin edildi; birden çok helikse sahip proteinler elendi (sert filtre). İnsan homolojisi, insan proteomuna karşı DIAMOND blastp ile değerlendirildi; %35'in üzerinde kimlik gösteren proteinler otoimmün güvenlik için çıkarıldı (sert filtre). Sinyal peptidi (SignalP-5.0; Almagro Armenteros vd., 2019, olasılık ≥ 0,5), antijenite (IApred; Miles vd., 2025), suşlar arası korunmuşluk (çok suş verildiğinde ≥ %80) ve adezin olasılığı (≥ 0,51) puana katkı veren yumuşak terimlerdi. Geçen proteinler ağırlıklı bir adaylık puanıyla sıralandı.
 
-İmmünolojik katman, seçilen konak için sınıf I ve sınıf II bağlanmayı (NetMHCpan-4.1 ve NetMHCIIpan; sınıf I peptit uzunlukları 8-11) güçlü ve zayıf bağlayıcı için varsayılan yüzdelik-sıra kesimleriyle tahmin eder; buna sınıf I immünojenite (Calis vd., 2013), proteozomal kesim ile TAP taşınımı (Larsen vd., 2005) ve lineer B-hücre epitopları (BepiPred-3.0) eşlik eder. Epitop güvenliği toksisite (ToxinPred2; Sharma vd., 2022) ve bilinen alerjenlere altı-kalıntılık birebir benzerliğe dayanan bir alerjenite kuralıyla (FAO/WHO, 2001) taranır; epitopun konak proteomuna kendi-mimikrisi yumuşak biçimde işaretlenir. Seçilen epitoplar için insan HLA allellerinde popülasyon kapsamı hesaplanır; sonra epitoplar AAY, GPGPG ve KK linkerleri ile bir adjuvan kullanılarak çok-epitoplu bir konstrukta birleştirilir ve in silico immünizasyon modülüyle değerlendirilir.
+**Konak-özgü epitop tahmini.** Seçilen konak için sınıf I bağlanma, 8-11 kalıntılık peptitler için NetMHCpan-4.1 (Reynisson vd., 2020) ile tahmin edildi; güçlü ve zayıf bağlayıcılar sırasıyla ≤ %0,5 ve ≤ %2 yüzdelik-sırada tanımlandı. Antijen işleme, NetCTL-1.2'den allel-bağımsız proteozomal kesim ve TAP taşınımı olarak eklendi (Larsen vd., 2005); sınıf I immünojenite IEDB modelinden alındı (Calis vd., 2013). Sınıf II bağlanma, 9-kalıntılık çekirdekli 15-mer'ler için NetMHCIIpan (Reynisson vd., 2020) ile ≤ %2 ve ≤ %10 yüzdelik-sırada tahmin edildi; yardımcı epitoplar ayrıca insan ve farede interferon-γ indükleme açısından IFNepitope2 (skor ≥ 0,49; Dhall vd., 2024) ile tarandı. Lineer B-hücre epitopları BepiPred-3.0 (Clifford vd., 2022) ile tahmin edildi.
+
+**Epitop güvenliği ve popülasyon kapsamı.** Tutulan epitopların, bilinen alerjenlere altı-kalıntılık birebir benzerlikle değerlendirilerek (FAO/WHO, 2001) alerjen olmaması ve makine-öğrenmesi skoru 0,6'nın üzerindeki peptitlerin çıkarıldığı ToxinPred2 ile değerlendirilerek (Sharma vd., 2022) toksik olmaması istendi; ikisi de sert filtredir. Epitopun konak proteomuna kendi-mimikrisi, birebir 9-kalıntılık eşleşme olarak tanımlanıp yumuşak biçimde işaretlendi. Seçilen epitop setinin insan HLA allellerindeki popülasyon kapsamı IEDB popülasyon-kapsamı aracıyla (Bui vd., 2006) hesaplandı; hedef en az %90 olarak alındı.
+
+**Çok-epitoplu konstrukt ve in silico immünizasyon.** Tutulan epitoplar tek bir konstruktta birleştirildi: sitotoksik epitoplar arasında AAY ve B-hücre epitopları çevresinde KK linkerleri (Schubert & Kohlbacher, 2016), yardımcı epitoplar arasında GPGPG linkerleri (Livingston vd., 2002) ve N-ucunda β-defensin adjuvanı (Biragyn vd., 2002) kullanıldı. Konstruktun fizikokimyasal özellikleri ProtParam (Gasteiger vd., 2005) ile hesaplandı; konstrukt, antikor ve izotip yanıtını zaman içinde benzeten in silico immünizasyon modülüne verildi.
 
 **Benchmark patojenleri ve ground-truth antijenleri.** Bakteri kolunda serogrup B *N. meningitidis* MC58 (UniProt proteom UP000000425, 2.003 protein; RefSeq NC_003112.2), ground-truth olarak dört 4CMenB antijeniyle, fHbp (Q9JXV4), NadA (Q9JXK7), NHBA (Q7DD37) ve PorA (P0DH58), kullanıldı. Buna tam proteom ölçeğinde üç tür daha eklendi: *S. aureus* NCTC 8325 (UP000008816, 2.889 protein), *L. monocytogenes* EGD-e (UP000000817, 2.844) ve *S.* Typhimurium LT2 (UP000001014, 4.533); her biri, kanıtı ve DOI'leri `PROTECTIVE_ANTIGENS.md`'de listelenen beşer koruyucu ya da aday antijenle. Virüs kolunda kuduz virüsü (NC_001542; glikoprotein G, NP_056796), veziküler stomatit virüsü ve ensefalomiyokardit virüsü kullanıldı. Tüm aksesyonlar NCBI ve UniProt'a karşı doğrulandı (`PATHOGEN_ACCESSIONS.md`). Meningokokta, tam-proteom VaxForge koşuları CPU-yalnız donanımda pratik olmadığından proteomun sabit-seed alt örneklemi (64 ve 204 protein; dört koruyucu antijen artı arka plan) kullanıldı ve aynı alt örneklem her araca verildi.
 
@@ -148,7 +152,11 @@ Kaynaklar APA 7 biçiminde ve DOI bağlantılıdır; İngilizce sürümle (`MANU
 
 Almagro Armenteros, J. J., Tsirigos, K. D., Sønderby, C. K., Petersen, T. N., Winther, O., Brunak, S., von Heijne, G., & Nielsen, H. (2019). SignalP 5.0 improves signal peptide predictions using deep neural networks. *Nature Biotechnology, 37*, 420–423. https://doi.org/10.1038/s41587-019-0036-z
 
+Biragyn, A., Ruffini, P. A., Leifer, C. A., Klyushnenkova, E., Shakhov, A., Chertov, O., Coscia, M., Boyd, L. F., Xu, Y., & Kwak, L. W. (2002). Toll-like receptor 4-dependent activation of dendritic cells by β-defensin 2. *Science, 298*(5595), 1025–1029. https://doi.org/10.1126/science.1075565
+
 Buchfink, B., Reuter, K., & Drost, H. G. (2021). Sensitive protein alignments at tree-of-life scale using DIAMOND. *Nature Methods, 18*, 366–368. https://doi.org/10.1038/s41592-021-01101-x
+
+Bui, H. H., Sidney, J., Dinh, K., Southwood, S., Newman, M. J., & Sette, A. (2006). Predicting population coverage of T-cell epitope-based diagnostics and vaccines. *BMC Bioinformatics, 7*, 153. https://doi.org/10.1186/1471-2105-7-153
 
 Calis, J. J. A., Maybeno, M., Greenbaum, J. A., Weiskopf, D., De Silva, A. D., Sette, A., Keşmir, C., & Peters, B. (2013). Properties of MHC class I presented peptides that enhance immunogenicity. *PLoS Computational Biology, 9*(10), e1003266. https://doi.org/10.1371/journal.pcbi.1003266
 
@@ -158,9 +166,13 @@ Conte, A., Gulmini, N., Costa, F., Cartura, M., Bröhl, F., Patanè, F., & Filip
 
 Cox, J. H., Dietzschold, B., & Schneider, L. G. (1977). Rabies virus glycoprotein. II. Biological and serological characterization. *Infection and Immunity, 16*(3), 754–759. https://doi.org/10.1128/iai.16.3.754-759.1977
 
+Dhall, A., Patyal, S., & Raghava, G. P. S. (2024). A hybrid method for discovering interferon-gamma inducing peptides in human and mouse. *Scientific Reports, 14*(1), 26859. https://doi.org/10.1038/s41598-024-77957-8
+
 FAO/WHO. (2001). *Evaluation of allergenicity of genetically modified foods. Report of a Joint FAO/WHO Expert Consultation.* https://www.fao.org/3/y0820e/y0820e00.htm
 
 Fooks, A. R., Cliquet, F., Finke, S., Freuling, C., Hemachudha, T., Mani, R. S., Müller, T., Nadin-Davis, S., Picard-Meyer, E., Wilde, H., & Banyard, A. C. (2017). Rabies. *Nature Reviews Disease Primers, 3*, 17091. https://doi.org/10.1038/nrdp.2017.91
+
+Gasteiger, E., Hoogland, C., Gattiker, A., Duvaud, S., Wilkins, M. R., Appel, R. D., & Bairoch, A. (2005). Protein identification and analysis tools on the ExPASy server. In J. M. Walker (Ed.), *The Proteomics Protocols Handbook* (pp. 571–607). Humana Press. https://doi.org/10.1385/1-59259-890-0:571
 
 Giuliani, M. M., Adu-Bobie, J., Comanducci, M., Aricò, B., Savino, S., Santini, L., Brunelli, B., Bambini, S., Biolchi, A., Capecchi, B., Cartocci, E., Ciucchi, L., Di Marcello, F., Ferlicca, F., Galli, B., Luzzi, E., Masignani, V., Serruto, D., Veggi, D., … Pizza, M. (2006). A universal vaccine for serogroup B meningococcus. *Proceedings of the National Academy of Sciences, 103*(29), 10834–10839. https://doi.org/10.1073/pnas.0603940103
 
@@ -172,6 +184,8 @@ Larsen, M. V., Lundegaard, C., Lund, O., & Nielsen, M. (2005). An integrative ap
 
 Liu, B., Zheng, D., Zhou, S., Chen, L., & Yang, J. (2022). VFDB 2022: a general classification scheme for bacterial virulence factors. *Nucleic Acids Research, 50*(D1), D912–D917. https://doi.org/10.1093/nar/gkab1107
 
+Livingston, B., Crimi, C., Newman, M., Higashimoto, Y., Appella, E., Sidney, J., & Sette, A. (2002). A rational strategy to design multiepitope immunogens based on multiple Th lymphocyte epitopes. *Journal of Immunology, 168*(11), 5499–5506. https://doi.org/10.4049/jimmunol.168.11.5499
+
 Miles, S., Menafra, G., Iriarte, A., & Chabalgoity, J. A. (2025). IApred: A versatile open-source tool for predicting protein antigenicity across diverse pathogens. *ImmunoInformatics*. https://doi.org/10.1016/j.immuno.2025.100014
 
 Ong, E., Wang, H., Wong, M. U., Seetharaman, M., Valdez, N., & He, Y. (2020). Vaxign-ML: supervised machine learning reverse vaccinology model for improved prediction of bacterial protective antigens. *Bioinformatics, 36*(10), 3185–3191. https://doi.org/10.1093/bioinformatics/btaa119
@@ -179,6 +193,8 @@ Ong, E., Wang, H., Wong, M. U., Seetharaman, M., Valdez, N., & He, Y. (2020). Va
 Pizza, M., Scarlato, V., Masignani, V., Giuliani, M. M., Aricò, B., Comanducci, M., Jennings, G. T., Baldi, L., Bartolini, E., Capecchi, B., Galeotti, C. L., Luzzi, E., Manetti, R., Marchetti, E., Mora, M., Nuti, S., Ratti, G., Santini, L., Savino, S., … Rappuoli, R. (2000). Identification of vaccine candidates against serogroup B meningococcus by whole-genome sequencing. *Science, 287*(5459), 1816–1820. https://doi.org/10.1126/science.287.5459.1816
 
 Reynisson, B., Alvarez, B., Paul, S., Peters, B., & Nielsen, M. (2020). NetMHCpan-4.1 and NetMHCIIpan-4.0: improved predictions of MHC antigen presentation by concurrent motif deconvolution and integration of MS MHC eluted ligand data. *Nucleic Acids Research, 48*(W1), W449–W454. https://doi.org/10.1093/nar/gkaa379
+
+Schubert, B., & Kohlbacher, O. (2016). Designing string-of-beads vaccines with optimal spacers. *Genome Medicine, 8*, 9. https://doi.org/10.1186/s13073-016-0263-6
 
 Sharma, N., Naorem, L. D., Jain, S., & Raghava, G. P. S. (2022). ToxinPred2: an improved method for predicting toxicity of proteins. *Briefings in Bioinformatics, 23*(5), bbac174. https://doi.org/10.1093/bib/bbac174
 
