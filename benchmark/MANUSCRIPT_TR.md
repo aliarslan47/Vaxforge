@@ -26,6 +26,24 @@ VaxForge bu üç eksiği tek bir deterministik hatta kapatır. Sert virülans fi
 
 ---
 
+**Materyal ve Metot**
+
+**VaxForge hattı.** VaxForge, tek bir eşik dosyasıyla yapılandırılan deterministik bir hattır; hiçbir kesim değeri kodda gömülü değildir ve her değer denetlenebilir (`config/thresholds.yaml`). Girdi türü (proteom, kodlayan diziler ya da genom) otomatik tanınır. Keşif adımı proteinleri DIAMOND blastp ile küratörlü virülans referanslarına (VFDB) hizalar (bakteride e-value en çok 1e-5, kimlik en az %30, kapsam en az %50); bu adım kapı görevi görmez, adaylık puanını besler, böylece virülans veritabanında bulunmayan gerçek bir yüzey antijeni elenmez. Antijen hunisi ardından birkaç sert filtre uygular: hücre-altı yerleşim (PSORTb 3.0, yedek DeepLoc 2.0; sitoplazmik proteinler elenir), transmembran topoloji (TMHMM-2.0; en çok bir heliks) ve zorunlu insan-homoloji elemesi (insan proteomuna karşı DIAMOND blastp; %35 üstü kimlik, otoimmün güvenlik için elenir). Bunların yanında sinyal peptidi (SignalP-5.0), antijenite (IApred), suşlar arası korunmuşluk ve adezin olasılığı puana katkı veren yumuşak terimlerdir. Geçen proteinler ağırlıklı bir adaylık puanıyla sıralanır.
+
+İmmünolojik katman, seçilen konak için sınıf I ve sınıf II bağlanmayı (NetMHCpan-4.1 ve NetMHCIIpan; sınıf I peptit uzunlukları 8-11) güçlü ve zayıf bağlayıcı için varsayılan yüzdelik-sıra kesimleriyle tahmin eder; buna sınıf I immünojenite (Calis vd., 2013), proteozomal kesim ile TAP taşınımı (Larsen vd., 2005) ve lineer B-hücre epitopları (BepiPred-3.0) eşlik eder. Epitop güvenliği toksisite (ToxinPred2; Sharma vd., 2022) ve bilinen alerjenlere altı-kalıntılık birebir benzerliğe dayanan bir alerjenite kuralıyla (FAO/WHO, 2001) taranır; epitopun konak proteomuna kendi-mimikrisi yumuşak biçimde işaretlenir. Seçilen epitoplar için insan HLA allellerinde popülasyon kapsamı hesaplanır; sonra epitoplar AAY, GPGPG ve KK linkerleri ile bir adjuvan kullanılarak çok-epitoplu bir konstrukta birleştirilir ve in silico immünizasyon modülüyle değerlendirilir.
+
+**Benchmark patojenleri ve ground-truth antijenleri.** Bakteri kolunda serogrup B *N. meningitidis* MC58 (UniProt proteom UP000000425, 2.003 protein; RefSeq NC_003112.2), ground-truth olarak dört 4CMenB antijeniyle, fHbp (Q9JXV4), NadA (Q9JXK7), NHBA (Q7DD37) ve PorA (P0DH58), kullanıldı. Buna tam proteom ölçeğinde üç tür daha eklendi: *S. aureus* NCTC 8325 (UP000008816, 2.889 protein), *L. monocytogenes* EGD-e (UP000000817, 2.844) ve *S.* Typhimurium LT2 (UP000001014, 4.533); her biri, kanıtı ve DOI'leri `PROTECTIVE_ANTIGENS.md`'de listelenen beşer koruyucu ya da aday antijenle. Virüs kolunda kuduz virüsü (NC_001542; glikoprotein G, NP_056796), veziküler stomatit virüsü ve ensefalomiyokardit virüsü kullanıldı. Tüm aksesyonlar NCBI ve UniProt'a karşı doğrulandı (`PATHOGEN_ACCESSIONS.md`). Meningokokta, tam-proteom VaxForge koşuları CPU-yalnız donanımda pratik olmadığından proteomun sabit-seed alt örneklemi (64 ve 204 protein; dört koruyucu antijen artı arka plan) kullanıldı ve aynı alt örneklem her araca verildi.
+
+**Karşılaştırma araçları.** NERVE 2.0 ve Vaxign-ML yerelde konteynerlerde kuruldu ve özdeş girdi üzerinde, eşik ayarı yapılmadan, varsayılan parametrelerle koşuldu. Ground-truth antijenlerdeki recall ve antijen sıraları her aracın kendi çıktısından okundu.
+
+**İstatistiksel analiz.** Ground-truth antijenlerin adaylar arasındaki zenginleşmesi Fisher kesin testiyle, antijen sıraları ise dağılımdan bağımsız bir permütasyon testiyle sınandı. Ayrım gücü ROC-AUC ve bootstrap güven aralıklarıyla, AUC farkları DeLong testiyle özetlendi; her patojende yalnız dört ila beş pozitif olduğundan AUC küçük-örneklem uyarısıyla ikincil olarak verildi. Konak epitop kümelerinin örtüşmesi Jaccard indeksiyle ölçüldü. Tüm testler `benchmark/stats.py`'de uygulanmıştır.
+
+**Hattın ölçek-güvenliği doğrulaması.** Tam-proteom bakteri koşuları sırasında, VaxForge recall'ını yapay olarak düşüren iki ölçek kaynaklı kusur saptandı ve giderildi. Lokalizasyon adımı başlangıçta tüm proteinleri sabit bir zaman aşımı altında tek konteyner çağrısında işliyordu; en büyük proteomda bu çağrı boş dönüp yüzey antijenlerini yanlış atayan bir sezgisel yedeğe düşürüyordu. Adım artık en çok 800 proteinlik alt-yığınlarda koşuyor. Sınıf I adımı ise NetMHCpan'i tüm proteinlerin birleştirilmiş peptitleriyle tek çağrıda (tam-proteom ölçeğinde yaklaşık 1,37 milyon benzersiz 9-mer) çalıştırıyordu; bu neredeyse sıfır kapsamaya çöküyordu. Adım artık peptitleri 20.000'lik parçalar hâlinde çekirdeklerde paralel işliyor. Kontrol deneyleri toksisite ve alerjenite filtrelerinin suçsuz olduğunu doğruladı; düzeltmelerin ardından üç tür de yeniden koşuldu. Ayrıntı `MANUSCRIPT_METHODS.md`, bölüm B'dedir.
+
+**Veri ve kod erişilebilirliği.** Benchmark betikleri, sonuçları ve figürleri `benchmark/` altındadır; hat yöntem atıfları `vaxforge/citations.py`'de, tüm eşikler `config/thresholds.yaml`'dedir.
+
+---
+
 **Bulgular**
 
 **VaxForge hattı.** VaxForge bir proteomu, kodlayan dizileri ya da ham bir genomu otomatik tanımayla alır; ardından keşif, antijen hunisi, konak-duyarlı epitop tahmini, konstrukt kurulumu ve immünizasyon kontrolü gelir. Keşif adımı proteinleri DIAMOND (Buchfink vd., 2021) ile VFDB'ye (Liu vd., 2022) hizalar. Huni; hücre-altı yerleşimi PSORTb (Yu vd., 2010) ve DeepLoc (Thumuluri vd., 2022), transmembran topolojiyi TMHMM (Krogh vd., 2001), sinyal peptidini SignalP (Almagro Armenteros vd., 2019), antijeniteyi IApred (Miles vd., 2025) ile değerlendirir ve otoimmün güvenlik için zorunlu bir insan-homoloji elemesi uygular; birkaç sert kesim dışında kalanları ağırlıklı bir adaylık puanıyla sıralar.
@@ -140,6 +158,8 @@ Conte, A., Gulmini, N., Costa, F., Cartura, M., Bröhl, F., Patanè, F., & Filip
 
 Cox, J. H., Dietzschold, B., & Schneider, L. G. (1977). Rabies virus glycoprotein. II. Biological and serological characterization. *Infection and Immunity, 16*(3), 754–759. https://doi.org/10.1128/iai.16.3.754-759.1977
 
+FAO/WHO. (2001). *Evaluation of allergenicity of genetically modified foods. Report of a Joint FAO/WHO Expert Consultation.* https://www.fao.org/3/y0820e/y0820e00.htm
+
 Fooks, A. R., Cliquet, F., Finke, S., Freuling, C., Hemachudha, T., Mani, R. S., Müller, T., Nadin-Davis, S., Picard-Meyer, E., Wilde, H., & Banyard, A. C. (2017). Rabies. *Nature Reviews Disease Primers, 3*, 17091. https://doi.org/10.1038/nrdp.2017.91
 
 Giuliani, M. M., Adu-Bobie, J., Comanducci, M., Aricò, B., Savino, S., Santini, L., Brunelli, B., Bambini, S., Biolchi, A., Capecchi, B., Cartocci, E., Ciucchi, L., Di Marcello, F., Ferlicca, F., Galli, B., Luzzi, E., Masignani, V., Serruto, D., Veggi, D., … Pizza, M. (2006). A universal vaccine for serogroup B meningococcus. *Proceedings of the National Academy of Sciences, 103*(29), 10834–10839. https://doi.org/10.1073/pnas.0603940103
@@ -159,6 +179,8 @@ Ong, E., Wang, H., Wong, M. U., Seetharaman, M., Valdez, N., & He, Y. (2020). Va
 Pizza, M., Scarlato, V., Masignani, V., Giuliani, M. M., Aricò, B., Comanducci, M., Jennings, G. T., Baldi, L., Bartolini, E., Capecchi, B., Galeotti, C. L., Luzzi, E., Manetti, R., Marchetti, E., Mora, M., Nuti, S., Ratti, G., Santini, L., Savino, S., … Rappuoli, R. (2000). Identification of vaccine candidates against serogroup B meningococcus by whole-genome sequencing. *Science, 287*(5459), 1816–1820. https://doi.org/10.1126/science.287.5459.1816
 
 Reynisson, B., Alvarez, B., Paul, S., Peters, B., & Nielsen, M. (2020). NetMHCpan-4.1 and NetMHCIIpan-4.0: improved predictions of MHC antigen presentation by concurrent motif deconvolution and integration of MS MHC eluted ligand data. *Nucleic Acids Research, 48*(W1), W449–W454. https://doi.org/10.1093/nar/gkaa379
+
+Sharma, N., Naorem, L. D., Jain, S., & Raghava, G. P. S. (2022). ToxinPred2: an improved method for predicting toxicity of proteins. *Briefings in Bioinformatics, 23*(5), bbac174. https://doi.org/10.1093/bib/bbac174
 
 Thumuluri, V., Almagro Armenteros, J. J., Johansen, A. R., Nielsen, H., & Winther, O. (2022). DeepLoc 2.0: multi-label subcellular localization prediction using protein language models. *Nucleic Acids Research, 50*(W1), W228–W234. https://doi.org/10.1093/nar/gkac278
 
