@@ -73,7 +73,7 @@ tek araca özgü bir yapaylık olmadığını gösterir.
    **doi:10.1038/nrdp.2017.91** · PMID 29188797.
 5. **Conte A, Gulmini N, Costa F, et al.** NERVE 2.0: boosting the new enhanced reverse vaccinology
    environment via artificial intelligence and a user-friendly web interface. *BMC Bioinformatics*.
-   2024;25:377. **doi:10.1186/s12859-024-06004-0** · PMID 39695945 · PMC11654298.
+   2024;25:378. **doi:10.1186/s12859-024-06004-0** · PMID 39695945 · PMC11654298.
 6. **Ong E, Wang H, Wong MU, Seetharaman M, Valdez N, He Y.** Vaxign-ML: supervised machine learning
    reverse vaccinology model for improved prediction of bacterial protective antigens.
    *Bioinformatics*. 2020;36(10):3185–3191. **doi:10.1093/bioinformatics/btaa119** · PMID 32096826.

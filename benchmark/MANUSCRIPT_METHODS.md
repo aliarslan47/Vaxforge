@@ -116,7 +116,7 @@ initial low recall reflected the method rather than an engineering-scale defect.
 - Cox JH, Dietzschold B, Schneider LG. *Infect Immun*. 1977;16(3):754–759. doi:10.1128/iai.16.3.754-759.1977
 - Fooks AR, et al. *Nat Rev Dis Primers*. 2017;3:17091. doi:10.1038/nrdp.2017.91
 - Hampson K, et al. *PLoS Negl Trop Dis*. 2015;9(4):e0003709. doi:10.1371/journal.pntd.0003709
-- Conte A, et al. *BMC Bioinformatics*. 2024;25:377. doi:10.1186/s12859-024-06004-0
+- Conte A, et al. *BMC Bioinformatics*. 2024;25:378. doi:10.1186/s12859-024-06004-0
 - Ong E, et al. *Bioinformatics*. 2020;36(10):3185–3191. doi:10.1093/bioinformatics/btaa119
 - Kuklin NA, et al. *Infect Immun*. 2006;74(4):2215–2223. doi:10.1128/iai.74.4.2215-2223.2006
 - Phelps CC, et al. *Vaccine*. 2020;38(36):5803–5813. doi:10.1016/j.vaccine.2020.06.049
