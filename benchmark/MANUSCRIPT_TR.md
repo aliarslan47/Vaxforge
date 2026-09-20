@@ -1,6 +1,10 @@
 **VaxForge: konak-özgü epitop çözünürlüğü ile uçtan uca ters aşı bilişimi**
 
-*Yazar listesi ve kurumlar tamamlanacak. Sorumlu yazar yer tutucu.*
+Ali Arslan
+
+Department of Molecular Biology and Genetics, Institute of Natural Sciences, Yıldız Technical University, Istanbul 34220, Turkey
+
+Yazışma: aliarslan47@gmail.com
 
 Taslak hazırlanma tarihi 2026-09-20. Yöntem anlatısı `MANUSCRIPT_METHODS.md`'de; ground-truth antijen kanıtı ve DOI'ler `PROTECTIVE_ANTIGENS.md`'de; aksesyonlar `PATHOGEN_ACCESSIONS.md`'de. Bu, `MANUSCRIPT.md` (İngilizce) sürümünün Türkçe karşılığıdır.
 

@@ -1,6 +1,10 @@
 **VaxForge: end-to-end reverse vaccinology with host-specific epitope resolution**
 
-*Author list and affiliations to be completed. Corresponding author placeholder.*
+Ali Arslan
+
+Department of Molecular Biology and Genetics, Institute of Natural Sciences, Yıldız Technical University, Istanbul 34220, Turkey
+
+Correspondence: aliarslan47@gmail.com
 
 Draft prepared 2026-09-20. Methods narrative in `MANUSCRIPT_METHODS.md`; ground-truth antigen evidence and DOIs in `PROTECTIVE_ANTIGENS.md`; accessions in `PATHOGEN_ACCESSIONS.md`.
 
