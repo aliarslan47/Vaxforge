@@ -18,3 +18,4 @@ importlib-resources>=5.8
 #
 # Ağır/harici araçlar (diamond, prodigal, AlphaFold, GROMACS ...) konteyner
 # (podman) veya ayrı GPU makinesinde; buraya dahil değildir.
+python-docx

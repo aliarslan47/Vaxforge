@@ -101,7 +101,7 @@ DeLong (AUC karşılaştırma), Jaccard (çok-konak). Küçük-n dürüstlüğü
 ## 4. FİGÜRLER (figures/)
 - `fig1_antigen_recovery.png` — araç×antijen kurtarma matrisi (NERVE 3 kırmızı "elendi") ★ ana figür
 - `fig2_recall_bar.png` — recall@antijen + AUC
-- `fig3_fold_vs_recall.png` — fold-vs-recall ödünleşimi (NERVE yüksek-fold/düşük-recall) [kozmetik: alt-sağ etiket örtüşmesi düzeltilebilir]
+- `fig3_fold_vs_recall.png` — fold-vs-recall ödünleşimi (NERVE yüksek-fold/düşük-recall); etiket örtüşmesi giderildi (leader-line ofsetleri, commit 1330972; görsel doğrulandı)
 - `fig4_multihost_jaccard.png` — rabies G host×host Jaccard (çok-konak) ★
 - `fig5_bacteria_panel.png` — 3 bakteri × 3 araç recall@antijen + AUC (bakteriyel kol) ★ ana figür
 

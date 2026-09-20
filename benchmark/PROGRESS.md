@@ -62,4 +62,6 @@ Yeni kod: `bacteria/*.json`, `prep_proteome.py`, `run_bacterium.py`, `run_compet
 - ✅ YAZIM AŞAMASI TAMAM (2026-09-20): koruyucu-antijen "koruyucu" atıfları DOI'li → `PROTECTIVE_ANTIGENS.md`
   (20 antijen, 18 DOI Crossref/yayıncı-doğrulandı, kanıt-gücü antijen-başına açık); iki-bug fix Methods/validation
   düzyazısı → `MANUSCRIPT_METHODS.md` §B; seçilim gerekçeleri makale metni → `MANUSCRIPT_METHODS.md` §A
-  (+ Hampson 2015 konak-yük atıfı). Kalan yalnız opsiyonel: VaxForge tam-2003 MenB (GPU); fig3 kozmetik etiket.
+  (+ Hampson 2015 konak-yük atıfı). fig3 etiket örtüşmesi zaten çözülü (commit 1330972, görsel doğrulandı).
+  Makale taslağı: `MANUSCRIPT.md` (Abstract/Intro/Results/Discussion/figure-legends/refs) + `MANUSCRIPT.docx`
+  (pandoc/python-docx; gövde 12 / bölüm-etiketi 13 bold, katlanmaz). Kalan yalnız opsiyonel: VaxForge tam-2003 MenB (GPU).
