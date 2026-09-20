@@ -59,4 +59,7 @@ Yeni kod: `bacteria/*.json`, `prep_proteome.py`, `run_bacterium.py`, `run_compet
   · Vaxign-ML 15/15 · NERVE 9/15. VaxForge ≈ Vaxign-ML recall + AUC/rank önde; NERVE geride. Tek kayıp ActA (meşru).
 - Sonuçlar: `results/{saureus,listeria,salmonella}_headtohead.json`; figür `figures/fig5_bacteria_panel.png`;
   master `BENCHMARK_SUMMARY.md §1b + §metodoloji`; `PATHOGEN_ACCESSIONS.md` + `SELECTION_RATIONALE.md` güncel.
-- KALAN (yazım): koruyucu-antijen "koruyucu" atıfları DOI'li; iki-bug fix Methods/validation'a girecek.
+- ✅ YAZIM AŞAMASI TAMAM (2026-09-20): koruyucu-antijen "koruyucu" atıfları DOI'li → `PROTECTIVE_ANTIGENS.md`
+  (20 antijen, 18 DOI Crossref/yayıncı-doğrulandı, kanıt-gücü antijen-başına açık); iki-bug fix Methods/validation
+  düzyazısı → `MANUSCRIPT_METHODS.md` §B; seçilim gerekçeleri makale metni → `MANUSCRIPT_METHODS.md` §A
+  (+ Hampson 2015 konak-yük atıfı). Kalan yalnız opsiyonel: VaxForge tam-2003 MenB (GPU); fig3 kozmetik etiket.

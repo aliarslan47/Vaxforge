@@ -105,9 +105,12 @@ DeLong (AUC karşılaştırma), Jaccard (çok-konak). Küçük-n dürüstlüğü
 - `fig4_multihost_jaccard.png` — rabies G host×host Jaccard (çok-konak) ★
 - `fig5_bacteria_panel.png` — 3 bakteri × 3 araç recall@antijen + AUC (bakteriyel kol) ★ ana figür
 
-## 5. SEÇİM GEREKÇELERİ & YAZIM AŞAMASI
-Patojen (MenB, rabies) + konak (insan/sığır/fare/domuz) **biyolojik kullanım + seçilim gerekçeleri
-DOI-doğrulanmış makalelerle** → **`SELECTION_RATIONALE.md`** (2026-08-20; 6 atıf web-doğrulandı:
-Pizza 2000, Giuliani 2006, Cox 1977, Fooks 2017, NERVE2 Conte 2024, Vaxign-ML Ong 2020 — hepsi gerçek
-DOI, uydurma yok). Kalan (opsiyonel/GPU): VaxForge tam-2003 koşusu flagship fold sayısını tamamlar;
-konak-başına ayrı epidemiyolojik atıf yazımda eklenebilir.
+## 5. SEÇİM GEREKÇELERİ & YAZIM AŞAMASI (TAMAMLANDI 2026-09-20)
+Patojen (MenB, rabies, 3 bakteri) + konak (insan/sığır/fare/domuz) **biyolojik kullanım + seçilim
+gerekçeleri DOI-doğrulanmış makalelerle** → **`SELECTION_RATIONALE.md`**. Yazım-hazır Methods
+düzyazısı → **`MANUSCRIPT_METHODS.md`** (§A seçim gerekçesi, §B ölçek-güvenlik validasyonu).
+- **Koruyucu-antijen atıfları TAMAM:** 20 ground-truth antijenin (MenB 4 + rabies G + 15 bakteri)
+  koruyuculuk kanıtı + DOI'si → **`PROTECTIVE_ANTIGENS.md`** (2026-09-20; 18 atıf Crossref/yayıncı ile
+  doğrulandı, uydurma yok; kanıt-gücü antijen-başına açık: aktif/pasif immünizasyon vs aday-antijen).
+- **İki ölçek-bug'ı Methods/validation'a taşındı** → `MANUSCRIPT_METHODS.md` §B.
+- Kalan (opsiyonel/GPU): VaxForge tam-2003 MenB koşusu flagship fold sayısını tamamlar.

@@ -45,9 +45,9 @@ epitopları esaslı değiştirir (`BENCHMARK_SUMMARY.md` §2).
 ### Konak seçimi notu (dürüst kapsam)
 Dört konak da RABV'nin doğal memeli konağı olduğu için seçildi [Fooks 2017]; sığır (veteriner/
 ekonomik yük), domuz (tarımsal + insana yakın), fare (standart rabies challenge/lab modeli) ve
-insan (halk sağlığı hedefi) pratikte de anlamlıdır. Bu dört-konak iddiası **tek bir otoriter
-derlemeye** (Fooks 2017) dayandırılmıştır; konak-başına ayrı epidemiyolojik DOI eklenmesi yazım
-sırasında opsiyoneldir — mevcut hâliyle hiçbir uydurma atıf yoktur.
+insan (halk sağlığı hedefi) pratikte de anlamlıdır. Bu dört-konak iddiası **Fooks 2017** (tür-ötesi
+memeli konak aralığı) + **Hampson 2015** (küresel insan/hayvan rabies yükü, doi:10.1371/journal.pntd.0003709)
+atıflarına dayandırılmıştır; makale-hazır anlatı `MANUSCRIPT_METHODS.md` §A.2'de. Uydurma atıf yok.
 
 ## 3. Neden bu iki rakip — NERVE 2.0 & Vaxign-ML
 
@@ -93,8 +93,13 @@ MenB'nin tek-örnekliğinden çıkmak için 3 ek bakteri seçildi. Ölçütler:
 3. **Gram dengesi** (2 Gram+ / 1 Gram−) — PSORTb Gram-özgü lokalizasyonunu iki sınıfta da test eder.
 4. **Bilinen koruyucu/aday antijenler** — ölçülebilir recall@antijen için literatürde yerleşik hedefler.
 
-Seçilenler + ground-truth antijen gerekçesi (DOI'ler yazımda doğrulanacak, [[vaxforge-literature-rule]]):
+Seçilenler + ground-truth antijen gerekçesi. **Her antijenin koruyuculuk/aday-antijen kanıtı ve
+DOI-doğrulanmış atıfı `PROTECTIVE_ANTIGENS.md`'de** (2026-09-20'de hepsi Crossref/yayıncı ile
+teyit edildi; uydurma yok, [[vaxforge-literature-rule]]):
 - **S. aureus NCTC 8325** (Gram+, 2.8 Mb): IsdB, ClfA, Hla, IsdA, SpA — klinik/preklinik aşı adayları
-  (IsdB = Merck V710; ClfA/Hla/SpA-mutant çok-bileşenli adaylar).
+  (IsdB = Merck V710; ClfA/Hla/SpA-mutant çok-bileşenli adaylar). Atıflar: Kuklin 2006, Josefsson
+  2001, Adhikari 2012, Kim 2010 (IsdA), Kim 2010 (SpA).
 - **L. monocytogenes EGD-e** (Gram+, 2.9 Mb): LLO (immünodominant CD8 hedefi), p60, InlA, InlB, ActA.
-- **S. Typhimurium LT2** (Gram−, 4.9 Mb): OmpD, OmpC, OmpA, FliC(flagellin), SseB.
+  Atıflar: Phelps 2020, Harty & Pamer 1995, Gaillard 1991, Dramsi 1995, Asano 2016.
+- **S. Typhimurium LT2** (Gram−, 4.9 Mb): OmpD, OmpC, OmpA, FliC(flagellin), SseB. Atıflar: Gil-Cruz
+  2009, Secundino 2006, Domínguez-Medina 2020, Bumann 2014, Lee 2017.
