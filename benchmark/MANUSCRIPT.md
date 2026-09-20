@@ -78,9 +78,21 @@ VaxForge was built to close these three gaps within one deterministic pipeline. 
 | Full 2,003 | Vaxign-ML | 4/4 | 613 | 3.28 | n/a | n/a |
 | Full 2,003 | NERVE 2.0 | 1/4 | 9 | 62.5 | n/a | n/a |
 
+![Figure 1](figures/fig1_antigen_recovery.png)
+
+**Figure 1.** VaxForge and Vaxign-ML recover all four licensed meningococcal antigens, whereas NERVE 2.0 recovers only PorA. For each antigen, the rank it received in each tool's candidate list is shown (lower is better); a cross marks an antigen that was not recovered. Ranks and recall were computed under default parameters on identical input.
+
+![Figure 2](figures/fig2_recall_bar.png)
+
+**Figure 2.** Recall over known antigens separates the tools more clearly than area-under-curve. Per-tool recall of the four meningococcal antigens with secondary AUC annotation; AUC carries a small-sample caveat and is not used as the headline metric (n = 4 positives).
+
 **High fold enrichment does not imply high recall.** NERVE 2.0 produced short candidate lists with high fold enrichment (25 on the 204 set, 62.5 on the full proteome), consistent with its published value near 16.6, yet its Fisher exact p was not significant because the candidate count was very small, and it missed three of the four licensed antigens at every scale (Figure 3). The three losses, factor H binding protein, adhesin A and the Heparin Binding Antigen, were not caused by low continuous scores from NERVE 2.0 itself, which rated them highly, but by the hard selection step applied after scoring (periplasmic localisation, adhesin probability below the 0.5 cutoff, and an unknown-localisation call with one predicted transmembrane helix). Fold enrichment therefore rewards selectivity and can rise precisely as recall falls, so it is misleading when read on its own. The metric that reflects what a tool actually delivers is recall over known antigens together with the ranks of those antigens.
 
-**The pattern generalises across genome scale, and a validation step made the results trustworthy.** To move beyond a single exemplar we ran three additional zoonotic bacteria at full proteome scale, chosen for increasing genome size and Gram balance (Table 3). VaxForge recovered 5 of 5 for *Staphylococcus aureus* (iron-regulated surface determinant B at rank 4 of 2,889), 4 of 5 for *Listeria monocytogenes* and 5 of 5 for *Salmonella enterica* serovar Typhimurium, for a total of 14 of 15 (Figure 5). Vaxign-ML recovered 15 of 15 and NERVE 2.0 recovered 9 of 15, missing the same kinds of surface antigens it lost on meningococcus. VaxForge placed protective antigens at higher ranks than Vaxign-ML on the two species where both reached full recall. The single VaxForge miss, ActA of *L. monocytogenes*, is a genuine hard antigen: it also ranked at the bottom of the Vaxign-ML list, so it reflects the difficulty of the target rather than a pipeline fault. During these runs we identified and corrected two scale-dependent engineering defects that had artefactually lowered VaxForge recall in first-pass runs (initial values of 3 of 5, 3 of 5 and 0 of 5); the localisation and MHC steps were each collapsing under a single oversized batch at full-proteome scale, and both were repartitioned into bounded, parallel sub-batches (`MANUSCRIPT_METHODS.md`, section B). Control experiments confirmed that the toxicity and allergenicity filters were not responsible.
+![Figure 3](figures/fig3_fold_vs_recall.png)
+
+**Figure 3.** High fold enrichment does not imply high recall. Fold enrichment of the known antigens among each tool's candidates, with the recall of that run labelled above each bar; the dashed line marks the published NERVE 2.0 fold value of 16.6. NERVE 2.0 reaches the highest fold with the lowest recall (1 of 4).
+
+**The pattern generalises across genome scale, and a validation step made the results trustworthy.** To move beyond a single exemplar we ran three additional zoonotic bacteria at full proteome scale, chosen for increasing genome size and Gram balance (Table 3). VaxForge recovered 5 of 5 for *Staphylococcus aureus* (iron-regulated surface determinant B at rank 4 of 2,889), 4 of 5 for *Listeria monocytogenes* and 5 of 5 for *Salmonella enterica* serovar Typhimurium, for a total of 14 of 15 (Figure 4). Vaxign-ML recovered 15 of 15 and NERVE 2.0 recovered 9 of 15, missing the same kinds of surface antigens it lost on meningococcus. VaxForge placed protective antigens at higher ranks than Vaxign-ML on the two species where both reached full recall. The single VaxForge miss, ActA of *L. monocytogenes*, is a genuine hard antigen: it also ranked at the bottom of the Vaxign-ML list, so it reflects the difficulty of the target rather than a pipeline fault. During these runs we identified and corrected two scale-dependent engineering defects that had artefactually lowered VaxForge recall in first-pass runs (initial values of 3 of 5, 3 of 5 and 0 of 5); the localisation and MHC steps were each collapsing under a single oversized batch at full-proteome scale, and both were repartitioned into bounded, parallel sub-batches (`MANUSCRIPT_METHODS.md`, section B). Control experiments confirmed that the toxicity and allergenicity filters were not responsible.
 
 **Table 3.** Three-bacterium head-to-head at full proteome scale, with five protective antigens each.
 
@@ -97,6 +109,10 @@ VaxForge was built to close these three gaps within one deterministic pipeline. 
 |  | NERVE 2.0 | 3/5 | 118 | 23.6 | n/a |
 | **Total** | **VaxForge 14/15 · Vaxign-ML 15/15 · NERVE 2.0 9/15** |  |  |  |  |
 
+![Figure 4](figures/fig4_bacteria_panel.png)
+
+**Figure 4.** The recall pattern generalises across three genome scales. Recall over five protective antigens for each tool on *S. aureus*, *L. monocytogenes* and *S.* Typhimurium at full proteome scale, with AUC annotation; VaxForge totals 14 of 15, Vaxign-ML 15 of 15 and NERVE 2.0 9 of 15.
+
 **Host selection changes the predicted epitope repertoire, a dimension the comparators cannot address.** VaxForge draws binding predictions from curated allele panels for four hosts, human, mouse, bovine and pig (Table 4), taken from IMGT/HLA for human and IPD-MHC for the others. For human, mouse and bovine, both class I and class II run on real NetMHCpan and NetMHCIIpan models, including the BoLA-DRB3 class II panel for cattle; pig class I is real while its class II rests on a single validated allele. The panels are representative subsets rather than the complete databases, and invalid allele names are dropped at runtime, so the reported epitopes are conservative.
 
 **Table 4.** Host allele panels used for epitope prediction (representative subsets; full panels in `config/hosts.yaml`).
@@ -108,7 +124,7 @@ VaxForge was built to close these three gaps within one deterministic pipeline. 
 | Bovine (BoLA) | BoLA class I (8) | BoLA-DRB3 (8) | real |
 | Pig (SLA) | SLA class I (6) | SLA-DRB1 (1) | class I real; class II single allele |
 
-The viral arm was built to exercise this host-specific presentation. Using rabies virus (species *Lyssavirus rabies*; RefSeq NC_001542), whose glycoprotein G is the only structural protein that elicits neutralising, protective antibodies (Cox et al., 1977), VaxForge ranked G second of five proteins and, more importantly, produced different bound-epitope sets for each of four natural mammalian hosts (glycoprotein G: 8 epitopes in mouse, 7 in human, 7 in bovine, 5 in pig). Pairwise host overlap of the glycoprotein G epitopes was well below unity (Table 5), so the choice of host materially changed the predicted repertoire. Two further four-host viruses reproduced the effect: vesicular stomatitis Indiana virus (*Vesiculovirus indiana*), a rhabdovirus relative of rabies virus, again placed glycoprotein G at rank 2 of 5 with human and pig overlap as low as 0.33, and encephalomyocarditis virus (*Cardiovirus A*) placed capsid VP1 at rank 3 of 11 with no shared epitopes at all between bovine and pig. NERVE 2.0 is bacterial only and Vaxign-ML has no host dimension (it ranked rabies glycoprotein G fourth of five with no host resolution), so this capability is unique to VaxForge among the three. Because rabies presents a single protective antigen, the rank statistic here is descriptive rather than inferential (permutation p = 0.40, n = 1), and population-coverage data were reported as unavailable for non-human hosts rather than imputed.
+The viral arm was built to exercise this host-specific presentation. Using rabies virus (species *Lyssavirus rabies*; RefSeq NC_001542), whose glycoprotein G is the only structural protein that elicits neutralising, protective antibodies (Cox et al., 1977), VaxForge ranked G second of five proteins and, more importantly, produced different bound-epitope sets for each of four natural mammalian hosts (glycoprotein G: 8 epitopes in mouse, 7 in human, 7 in bovine, 5 in pig). Pairwise host overlap of the glycoprotein G epitopes was well below unity (Table 5; Figure 5), so the choice of host materially changed the predicted repertoire. Two further four-host viruses reproduced the effect: vesicular stomatitis Indiana virus (*Vesiculovirus indiana*), a rhabdovirus relative of rabies virus, again placed glycoprotein G at rank 2 of 5 with human and pig overlap as low as 0.33, and encephalomyocarditis virus (*Cardiovirus A*) placed capsid VP1 at rank 3 of 11 with no shared epitopes at all between bovine and pig. NERVE 2.0 is bacterial only and Vaxign-ML has no host dimension (it ranked rabies glycoprotein G fourth of five with no host resolution), so this capability is unique to VaxForge among the three. Because rabies presents a single protective antigen, the rank statistic here is descriptive rather than inferential (permutation p = 0.40, n = 1), and population-coverage data were reported as unavailable for non-human hosts rather than imputed.
 
 **Table 5.** Host-specific epitope resolution across three four-host viruses (VaxForge).
 
@@ -118,41 +134,23 @@ The viral arm was built to exercise this host-specific presentation. Using rabie
 | Vesicular stomatitis Indiana virus (*Vesiculovirus indiana*) | glycoprotein G | 2/5 | human~bovine 0.78; human~pig 0.33 |
 | Encephalomyocarditis virus (*Cardiovirus A*) | capsid VP1 | 3/11 | human~mouse 0.78; bovine~pig 0.00 |
 
+![Figure 5](figures/fig5_multihost_jaccard.png)
+
+**Figure 5.** Host selection reshapes the rabies glycoprotein G epitope repertoire. Jaccard overlap of glycoprotein G class I epitopes for each host pair; every pair falls below one, so the predicted repertoire depends on the chosen host.
+
 ---
 
 **Discussion**
 
-VaxForge recovered known protective antigens as well as a strong independent predictor and added two capabilities that predictor does not have. Across four bacteria it found 14 of 15 validated antigens, against 15 of 15 for Vaxign-ML and 9 of 15 for NERVE 2.0, and it ranked them as high or higher. NERVE 2.0 fell short for a concrete reason: its hard selection step discarded genuine surface antigens that its own continuous score had rated highly, which raised fold enrichment while cutting recall. Fold enrichment can make a pipeline look sharper than it is, so recall over known antigens is the number to trust in this kind of benchmark.
+Benchmarks of reverse vaccinology tools have usually reported enrichment or classifier accuracy on curated positive and negative sets (Goodswen et al., 2023). Our comparison adds a measure that is more decisive for a user: how many independently validated protective antigens each tool actually returns. On the licensed 4CMenB antigens (Pizza et al., 2000; Giuliani et al., 2006), VaxForge and Vaxign-ML recovered all four while NERVE 2.0 recovered one, and across four bacteria VaxForge reached 14 of 15 against 15 of 15 for Vaxign-ML and 9 of 15 for NERVE 2.0. The high recall of the independent machine-learning classifier is in line with the performance Ong et al. (2020) reported for Vaxign-ML, which strengthens these recall estimates rather than leaving them tool-specific. NERVE 2.0's shortfall traces to its hard selection cascade (Conte et al., 2024): antigens that its own score rated highly were removed by fixed localisation and adhesin cut-offs, which raised fold enrichment while lowering recall.
 
-Two features distinguish VaxForge beyond recall. The soft virulence filter recovered the Neisserial Heparin Binding Antigen, a licensed component with no virulence-database annotation, and the host-aware epitope layer produced species-specific repertoires for rabies, vesicular stomatitis and encephalomyocarditis viruses. The latter is relevant to the large veterinary and zoonotic space where the intended host is not human, and where a single human reference would misstate which peptides are presented. VaxForge also continues past ranking into construct assembly and an in silico immunisation readout, so the output is a candidate immunogen rather than a list.
+The clearest case is the Neisserial Heparin Binding Antigen, a licensed 4CMenB component that is not a classical virulence factor and is absent from curated virulence databases (Giuliani et al., 2006). Any pipeline that gates on a virulence-database hit loses it, whereas VaxForge's soft, score-weighted use of that evidence keeps it. This is consistent with a recurring caution in the reverse vaccinology methodology literature that rigid filters trade sensitivity for apparent specificity (Goodswen et al., 2023), and it argues for reporting recall over known antigens, not fold enrichment alone, when tools are compared.
 
-Several limitations bound these claims and are stated plainly. ActA was missed by VaxForge, and although it is a genuine hard antigen that the independent tool also ranked last, its recovery would require either conformational or context-specific signals that a linear-epitope pipeline does not model. The default toxicity filter can remove peptides derived from toxin antigens, which lowered peptide-level recall for the pore-forming listeriolysin O before the scale fixes and remains a conservative choice we did not tune for the benchmark. The area-under-curve figures are reported as secondary with an explicit small-sample caveat rather than as a headline, because with only four to five positives per pathogen the differences are not statistically resolvable, and we make no claim of superior discrimination on that basis. The bacterial comparison also carries a scale asymmetry: VaxForge full-proteome meningococcal runs are impractical on the current CPU-only hardware, so the flagship meningococcal comparison used matched subsampled sets that are fair across tools, while whole-proteome runs were available only for the faster comparators. Finally, roughly nine tenths of B-cell epitopes are discontinuous, and the linear construct produced here does not represent conformational epitopes, a scope limit we note rather than resolve.
+The second distinguishing feature, host-specific epitope prediction, addresses a gap that bacterial-oriented tools leave open. NetMHCpan and NetMHCIIpan already support many non-human alleles (Reynisson et al., 2020), yet reverse vaccinology pipelines typically apply them against a single human reference. Because rabies virus and the two additional viruses infect all four mammalian hosts examined (Cox et al., 1977; Fooks et al., 2017), we could compute an honest per-host repertoire, and the glycoprotein G epitope sets differed substantially between species (pairwise Jaccard 0.50 to 0.78, and no shared epitopes between bovine and pig for encephalomyocarditis VP1). For the veterinary and zoonotic targets that dominate the practical vaccine burden (Fooks et al., 2017; Hampson et al., 2015), a human-only epitope layer would misstate presentation, so this capability is a concrete advantage rather than a cosmetic one. VaxForge also continues past ranking into construct assembly and an in silico immunisation readout, so its output is a candidate immunogen rather than a list.
 
-Two directions follow directly. A GPU backend would allow whole-proteome VaxForge runs and complete the head-to-head at full scale for every pathogen, and the host-specific epitope predictions, particularly the cross-species divergence seen for the viral glycoproteins, are concrete hypotheses that binding and immunisation experiments could test. The pipeline and its benchmark are structured so that both extensions slot into the existing framework without redesign.
+Several limitations bound these claims. ActA of *L. monocytogenes* was missed by VaxForge and also ranked last by the independent tool, so it is a genuinely difficult target rather than a pipeline fault; its recovery would need conformational or context-specific signals that a linear-epitope pipeline does not model, and most B-cell epitopes are in any case discontinuous (Michalik et al., 2016). The default toxicity filter can discard peptides from toxin antigens such as listeriolysin O, a conservative choice we did not tune for the benchmark. We report area-under-curve only as a secondary measure with an explicit small-sample caveat, because four to five positives per pathogen cannot resolve AUC differences, and we make no claim of superior discrimination on that basis. Finally, whole-proteome VaxForge runs are impractical on current CPU-only hardware, so the meningococcal comparison used matched subsamples that are fair across tools while full proteomes were run only for the faster comparators.
 
----
-
-**Figures**
-
-![Figure 1](figures/fig1_antigen_recovery.png)
-
-**Figure 1.** VaxForge and Vaxign-ML recover all four licensed meningococcal antigens, whereas NERVE 2.0 recovers only PorA. Antigen-by-tool recovery matrix for the four 4CMenB antigens; green cells mark recovered antigens with their rank and red cells mark antigens eliminated by the NERVE 2.0 selection step. Recall and candidate counts were computed under default parameters on identical input.
-
-![Figure 2](figures/fig2_recall_bar.png)
-
-**Figure 2.** Recall over known antigens separates the tools more clearly than area-under-curve. Per-tool recall of the four meningococcal antigens with secondary AUC annotation; AUC carries a small-sample caveat and is not used as the headline metric (n = 4 positives).
-
-![Figure 3](figures/fig3_fold_vs_recall.png)
-
-**Figure 3.** High fold enrichment tracks selectivity, not recall. Fold enrichment against recall for the three tools on the 204-protein set (filled circles) and the full proteome (open squares); the inset magnifies the full-recall cluster, where VaxForge and Vaxign-ML sit at moderate fold, and the dashed line marks the published NERVE 2.0 fold value of 16.6. NERVE 2.0 sits at high fold and low recall.
-
-![Figure 4](figures/fig4_multihost_jaccard.png)
-
-**Figure 4.** Host selection reshapes the rabies glycoprotein G epitope repertoire. Pairwise Jaccard overlap of glycoprotein G class I epitopes across human, bovine, mouse and pig; values below one indicate that the predicted repertoire depends on the chosen host.
-
-![Figure 5](figures/fig5_bacteria_panel.png)
-
-**Figure 5.** The recall pattern generalises across three genome scales. Recall over five protective antigens for each tool on *S. aureus*, *L. monocytogenes* and *S.* Typhimurium at full proteome scale, with AUC annotation; VaxForge totals 14 of 15, Vaxign-ML 15 of 15 and NERVE 2.0 9 of 15.
+Two directions follow. A GPU backend would allow whole-proteome VaxForge runs and complete the head-to-head at full scale for every pathogen, and the cross-species divergence of the viral glycoprotein epitopes is a concrete hypothesis that binding and immunisation experiments could test. Both extensions fit the existing framework without redesign.
 
 ---
 
@@ -184,6 +182,8 @@ Gasteiger, E., Hoogland, C., Gattiker, A., Duvaud, S., Wilkins, M. R., Appel, R.
 
 Giuliani, M. M., Adu-Bobie, J., Comanducci, M., Aricò, B., Savino, S., Santini, L., Brunelli, B., Bambini, S., Biolchi, A., Capecchi, B., Cartocci, E., Ciucchi, L., Di Marcello, F., Ferlicca, F., Galli, B., Luzzi, E., Masignani, V., Serruto, D., Veggi, D., … Pizza, M. (2006). A universal vaccine for serogroup B meningococcus. *Proceedings of the National Academy of Sciences, 103*(29), 10834–10839. https://doi.org/10.1073/pnas.0603940103
 
+Goodswen, S. J., Kennedy, P. J., & Ellis, J. T. (2023). A guide to current methodology and usage of reverse vaccinology towards in silico vaccine discovery. *FEMS Microbiology Reviews, 47*(2), fuad004. https://doi.org/10.1093/femsre/fuad004
+
 Hampson, K., Coudeville, L., Lembo, T., Sambo, M., Kieffer, A., Attlan, M., Barrat, J., Blanton, J. D., Briggs, D. J., Cleaveland, S., Costa, P., Freuling, C. M., Hiby, E., Knopf, L., & Leanes, F. (2015). Estimating the global burden of endemic canine rabies. *PLoS Neglected Tropical Diseases, 9*(4), e0003709. https://doi.org/10.1371/journal.pntd.0003709
 
 Krogh, A., Larsson, B., von Heijne, G., & Sonnhammer, E. L. L. (2001). Predicting transmembrane protein topology with a hidden Markov model: application to complete genomes. *Journal of Molecular Biology, 305*(3), 567–580. https://doi.org/10.1006/jmbi.2000.4315
@@ -193,6 +193,8 @@ Larsen, M. V., Lundegaard, C., Lund, O., & Nielsen, M. (2005). An integrative ap
 Liu, B., Zheng, D., Zhou, S., Chen, L., & Yang, J. (2022). VFDB 2022: a general classification scheme for bacterial virulence factors. *Nucleic Acids Research, 50*(D1), D912–D917. https://doi.org/10.1093/nar/gkab1107
 
 Livingston, B., Crimi, C., Newman, M., Higashimoto, Y., Appella, E., Sidney, J., & Sette, A. (2002). A rational strategy to design multiepitope immunogens based on multiple Th lymphocyte epitopes. *Journal of Immunology, 168*(11), 5499–5506. https://doi.org/10.4049/jimmunol.168.11.5499
+
+Michalik, M., Djahanshiri, B., Leo, J. C., & Linke, D. (2016). Reverse vaccinology: the pathway from genomes and epitope predictions to tailored recombinant vaccines. In *Vaccine Design* (Methods in Molecular Biology, Vol. 1403, pp. 87–106). Springer. https://doi.org/10.1007/978-1-4939-3387-7_4
 
 Miles, S., Menafra, G., Iriarte, A., & Chabalgoity, J. A. (2025). IApred: A versatile open-source tool for predicting protein antigenicity across diverse pathogens. *ImmunoInformatics*. https://doi.org/10.1016/j.immuno.2025.100014
 

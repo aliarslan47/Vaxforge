@@ -1,15 +1,14 @@
 """Benchmark figürleri — kaydedilen JSON sonuçlarından üretir (tekrarlanabilir).
 
 Biçim kuralları (kullanıcı): figürlerde TEPE BAŞLIĞI YOK; her figürde yalnız x ve y ekseni
-açıklaması bulunur; etiketler İngilizce (yayın standardı). Açıklama/anlam figür ALTYAZISINDA
-(makale metni) verilir, figürün üstünde değil.
+açıklaması; etiketler İngilizce (yayın standardı). Anlam figür ALTYAZISINDA (makale metni).
 
-Figürler → benchmark/figures/:
-  fig1_antigen_recovery.png : araç × 4CMenB antijeni kurtarma matrisi
+Figürler → benchmark/figures/ (numara = makalede ilk-anılma sırası):
+  fig1_antigen_recovery.png : antijen × araç RANK nokta-grafiği (✗ = geri getirilmedi)
   fig2_recall_bar.png       : recall@antijen + AUC (204-set)
-  fig3_fold_vs_recall.png   : fold-enrichment vs recall ödünleşimi
-  fig4_multihost_jaccard.png: rabies G-epitop host×host Jaccard
-  fig5_bacteria_panel.png   : 3 bakteri × 3 araç recall@antijen + AUC
+  fig3_fold_vs_recall.png   : araç başına fold-enrichment (bar) + üstünde recall etiketi
+  fig4_bacteria_panel.png   : 3 bakteri × 3 araç recall@antijen + AUC
+  fig5_multihost_jaccard.png: rabies G-epitop host-ÇİFTİ Jaccard örtüşmesi (yatay bar)
 """
 from __future__ import annotations
 
@@ -19,19 +18,16 @@ from pathlib import Path
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
-import matplotlib.lines as mlines  # noqa: E402
-import matplotlib.patches as mpatches  # noqa: E402
-from matplotlib.colors import ListedColormap  # noqa: E402
 import numpy as np  # noqa: E402
 
 BENCH = Path(__file__).resolve().parent
 FIG = BENCH / "figures"
 FIG.mkdir(exist_ok=True)
 ANT = ["fHbp", "NadA", "NHBA(VFDB-)", "PorA"]     # results JSON anahtarları
-ANT_LABEL = ["fHbp", "NadA", "NHBA", "PorA"]       # figürde gösterilen temiz etiket
+ANT_LABEL = ["fHbp", "NadA", "NHBA", "PorA"]       # temiz etiket
 TOOLS = ["VaxForge", "Vaxign-ML", "NERVE 2.0"]
 COL = {"VaxForge": "#1f77b4", "Vaxign-ML": "#2ca02c", "NERVE 2.0": "#d62728"}
-plt.rcParams.update({"font.size": 11, "axes.titlesize": 11})
+plt.rcParams.update({"font.size": 11})
 
 
 def _load():
@@ -42,36 +38,36 @@ def _load():
 
 
 def fig1_recovery(h204):
-    """Antijen kurtarma matrisi: yeşil hücre = kurtarıldı (rank yazılı), kırmızı = elendi (✗)."""
-    M = np.zeros((3, 4))
-    labels = [["" for _ in ANT] for _ in TOOLS]
-    for i, t in enumerate(TOOLS):
+    """Her antijenin (satır) her araçtaki aday-listesi RANK'ı (nokta). ✗ = geri getirilmedi.
+    Düşük rank = daha iyi. Araçlar küçük dikey ofsetle ayrılır (üst üste binmesin)."""
+    max_rank = max(v for t in TOOLS for v in h204[t]["ranks"].values() if isinstance(v, int))
+    elim_x = max_rank + 5
+    fig, ax = plt.subplots(figsize=(7.2, 3.8))
+    offs = {"VaxForge": 0.22, "Vaxign-ML": 0.0, "NERVE 2.0": -0.22}
+    for t in TOOLS:
         r = h204[t]["ranks"]
+        xr, yr, ye = [], [], []
         for j, a in enumerate(ANT):
             v = r[a]
             if isinstance(v, int):
-                M[i, j] = 1; labels[i][j] = f"#{v}"
+                xr.append(v); yr.append(j + offs[t])
             else:
-                M[i, j] = 0; labels[i][j] = "✗"
-    cmap = ListedColormap(["#ef9a9a", "#a5d6a7"])
-    fig, ax = plt.subplots(figsize=(7, 3.6))
-    ax.imshow(M, cmap=cmap, vmin=0, vmax=1, aspect="auto")
-    ax.set_xticks(range(4)); ax.set_xticklabels(ANT_LABEL)
-    ax.set_yticks(range(3)); ax.set_yticklabels(TOOLS)
-    for i in range(3):
-        for j in range(4):
-            ax.text(j, i, labels[i][j], ha="center", va="center", fontsize=13,
-                    fontweight="bold", color="#1b5e20" if M[i, j] else "#b71c1c")
-    ax.set_xlabel("4CMenB protective antigen")
-    ax.set_ylabel("Reverse vaccinology tool")
-    ax.set_xticks(np.arange(-.5, 4, 1), minor=True)
-    ax.set_yticks(np.arange(-.5, 3, 1), minor=True)
-    ax.grid(which="minor", color="white", linewidth=3)
-    ax.tick_params(which="minor", length=0)
-    rec = mpatches.Patch(color="#a5d6a7", label="Recovered (rank shown)")
-    elim = mpatches.Patch(color="#ef9a9a", label="Eliminated (✗)")
-    ax.legend(handles=[rec, elim], loc="upper center", bbox_to_anchor=(0.5, -0.22),
-              ncol=2, frameon=False, fontsize=9)
+                ye.append(j + offs[t])
+        ax.scatter(xr, yr, s=95, color=COL[t], label=t, zorder=3)
+        for xx, yy in zip(xr, yr):
+            ax.annotate(str(int(xx)), (xx, yy), textcoords="offset points",
+                        xytext=(0, 7), ha="center", fontsize=7.5, color=COL[t])
+        ax.scatter([elim_x] * len(ye), ye, s=95, marker="x", color=COL[t], zorder=3)
+    ax.axvline(elim_x - 2.5, ls=":", color="gray", lw=1)
+    ax.set_yticks(range(len(ANT_LABEL))); ax.set_yticklabels(ANT_LABEL)
+    ax.set_ylim(-0.6, len(ANT_LABEL) - 0.4)
+    ax.set_xlim(0, elim_x + 2)
+    ticks = list(range(0, max_rank + 1, 5))
+    ax.set_xticks(ticks + [elim_x]); ax.set_xticklabels([str(v) for v in ticks] + ["not\nrecovered"])
+    ax.set_xlabel("Rank in candidate list (lower is better)")
+    ax.set_ylabel("4CMenB protective antigen")
+    ax.legend(loc="lower right", fontsize=8)
+    ax.grid(axis="x", alpha=0.3)
     fig.tight_layout(); fig.savefig(FIG / "fig1_antigen_recovery.png", dpi=150); plt.close(fig)
 
 
@@ -93,81 +89,36 @@ def fig2_recall(h204):
 
 
 def fig3_fold_recall(h204, full):
-    """fold-enrichment vs recall ödünleşimi. Renk=araç, dolu daire=204-set, içi boş kare=tam proteom.
-    Yüksek recall bandı (sağ) hafif yeşille işaretli; yayınlanmış NERVE fold referans çizgisi."""
-    fig, ax = plt.subplots(figsize=(7.0, 4.8))
-    ax.axvspan(90, 105, color="#a5d6a7", alpha=0.15, zorder=0)
-    pts = []
+    """Araç başına fold-enrichment (bar). Her barın üstünde o koşunun recall'ı yazılı → yüksek
+    fold'un yüksek recall demek OLMADIĞI doğrudan görünür (NERVE: dev fold, recall 1/4)."""
+    labels, folds, recalls, colors = [], [], [], []
     for t in TOOLS:
-        rec = int(h204[t]["recall"].split("/")[0]) / 4 * 100
-        pts.append((rec, h204[t]["fold_enrichment"], t, True))
+        labels.append(t + "\n(204-set)")
+        folds.append(h204[t]["fold_enrichment"])
+        recalls.append(h204[t]["recall"]); colors.append(COL[t])
     for tool, key in [("Vaxign-ML", "vaxignml"), ("NERVE 2.0", "nerve")]:
         f = full[key]["fold"]
         if f:
-            pts.append((int(full[key]["recall"].split("/")[0]) / 4 * 100, f, tool, False))
-
-    def draw(a, s=170):
-        for rec, fold, t, filled in pts:
-            a.scatter(rec, fold, s=s, marker=("o" if filled else "s"),
-                      color=(COL[t] if filled else "white"),
-                      edgecolors=COL[t], linewidths=1.8, zorder=3)
-
-    draw(ax)
+            labels.append(tool + "\n(full proteome)")
+            folds.append(f); recalls.append(full[key]["recall"]); colors.append(COL[tool])
+    x = np.arange(len(labels))
+    fig, ax = plt.subplots(figsize=(7.2, 4.4))
+    bars = ax.bar(x, folds, color=colors, width=0.62)
+    for b, rec in zip(bars, recalls):
+        ax.text(b.get_x() + b.get_width() / 2, b.get_height() + 1.0, f"recall {rec}",
+                ha="center", va="bottom", fontsize=8.5, fontweight="bold")
     ax.axhline(16.57, ls="--", c="gray", lw=1)
-    ax.text(2, 15.0, "NERVE 2.0 published fold = 16.6", fontsize=8, color="gray", va="top")
-    ax.set_xlim(0, 108); ax.set_ylim(0, 70)
-    ax.set_xlabel("Recall over known antigens (%)")
-    ax.set_ylabel("Fold enrichment")
-    # tam-recall kümesi üst üste biner → yakınlaştırma-inset ile ayır
-    axin = ax.inset_axes([0.40, 0.34, 0.34, 0.40])
-    draw(axin, s=110)
-    axin.set_xlim(99.0, 101.0); axin.set_ylim(2.7, 4.0)
-    axin.set_xticks([100]); axin.set_yticks([3.0, 3.5, 4.0])
-    axin.tick_params(labelsize=7)
-    axin.grid(alpha=0.3)
-    for rec, fold, t, filled in pts:
-        if rec >= 90:
-            axin.annotate(t + (" (204)" if filled else " (full)"), (rec, fold),
-                          textcoords="offset points", xytext=(7, 0), fontsize=6.5,
-                          va="center", color=COL[t])
-    ax.indicate_inset_zoom(axin, edgecolor="gray")
-    tool_h = [mlines.Line2D([], [], marker="o", linestyle="None", markerfacecolor=COL[t],
-                            markeredgecolor=COL[t], markersize=10, label=t) for t in TOOLS]
-    style_h = [mlines.Line2D([], [], marker="o", linestyle="None", markerfacecolor="gray",
-                             markeredgecolor="gray", markersize=9, label="204-protein set"),
-               mlines.Line2D([], [], marker="s", linestyle="None", markerfacecolor="white",
-                             markeredgecolor="gray", markersize=9, label="full proteome")]
-    ax.legend(handles=tool_h + style_h, fontsize=8, loc="upper right", framealpha=0.95)
-    ax.grid(alpha=0.3)
+    ax.text(len(labels) - 0.4, 18.0, "NERVE 2.0 published fold 16.6", fontsize=7.5,
+            color="gray", ha="right")
+    ax.set_ylim(0, 72)
+    ax.set_ylabel("Fold enrichment of known antigens among candidates")
+    ax.set_xlabel("Tool (input set)")
+    ax.set_xticks(x); ax.set_xticklabels(labels, fontsize=8)
+    ax.grid(axis="y", alpha=0.3)
     fig.tight_layout(); fig.savefig(FIG / "fig3_fold_vs_recall.png", dpi=150); plt.close(fig)
 
 
-def fig4_jaccard(rab):
-    hosts = rab["hosts"]
-    jg = rab["multihost"]["jaccard_overlap_G"]
-    n = len(hosts); M = np.eye(n)
-    for i in range(n):
-        for j in range(i + 1, n):
-            key = f"{hosts[i]}~{hosts[j]}"
-            v = jg.get(key, {}).get("statistic")
-            if v is None:
-                key = f"{hosts[j]}~{hosts[i]}"; v = jg.get(key, {}).get("statistic")
-            M[i, j] = M[j, i] = v if v is not None else np.nan
-    fig, ax = plt.subplots(figsize=(5.4, 4.6))
-    im = ax.imshow(M, cmap="viridis", vmin=0, vmax=1)
-    ax.set_xticks(range(n)); ax.set_xticklabels(hosts, rotation=30, ha="right")
-    ax.set_yticks(range(n)); ax.set_yticklabels(hosts)
-    for i in range(n):
-        for j in range(n):
-            ax.text(j, i, f"{M[i,j]:.2f}", ha="center", va="center",
-                    color="white" if M[i, j] < 0.6 else "black", fontsize=10)
-    ax.set_xlabel("Host")
-    ax.set_ylabel("Host")
-    fig.colorbar(im, ax=ax, label="Jaccard overlap of glycoprotein G epitopes")
-    fig.tight_layout(); fig.savefig(FIG / "fig4_multihost_jaccard.png", dpi=150); plt.close(fig)
-
-
-def fig5_bacteria_panel():
+def fig4_bacteria_panel():
     bugs = [("saureus", "S. aureus"), ("listeria", "L. monocytogenes"),
             ("salmonella", "S. Typhimurium")]
     data = {}
@@ -191,13 +142,46 @@ def fig5_bacteria_panel():
     ax.set_xlabel("Bacterial species (full proteome)")
     ax.legend(loc="upper right", fontsize=8, ncol=3)
     ax.grid(axis="y", alpha=0.3)
-    fig.tight_layout(); fig.savefig(FIG / "fig5_bacteria_panel.png", dpi=150); plt.close(fig)
+    fig.tight_layout(); fig.savefig(FIG / "fig4_bacteria_panel.png", dpi=150); plt.close(fig)
+
+
+def fig5_jaccard(rab):
+    """Rabies glikoprotein G: her HOST ÇİFTİ için epitop örtüşmesi (Jaccard), yatay bar.
+    Simetrik host×host matris yerine okunur çift-bazlı gösterim."""
+    hosts = rab["hosts"]
+    jg = rab["multihost"]["jaccard_overlap_G"]
+    pairs, vals = [], []
+    for i in range(len(hosts)):
+        for j in range(i + 1, len(hosts)):
+            v = jg.get(f"{hosts[i]}~{hosts[j]}", {}).get("statistic")
+            if v is None:
+                v = jg.get(f"{hosts[j]}~{hosts[i]}", {}).get("statistic")
+            if v is not None:
+                pairs.append(f"{hosts[i]}–{hosts[j]}"); vals.append(v)
+    order = np.argsort(vals)
+    pairs = [pairs[k] for k in order]; vals = [vals[k] for k in order]
+    fig, ax = plt.subplots(figsize=(6.6, 3.9))
+    ax.barh(range(len(pairs)), vals, color="#4c72b0", height=0.6)
+    for i, v in enumerate(vals):
+        ax.text(v + 0.015, i, f"{v:.2f}", va="center", fontsize=9)
+    ax.set_yticks(range(len(pairs))); ax.set_yticklabels(pairs)
+    ax.set_xlim(0, 1.08)
+    ax.axvline(1.0, ls=":", color="gray", lw=1)
+    ax.set_xlabel("Jaccard overlap of glycoprotein G epitopes (1 = identical repertoire)")
+    ax.set_ylabel("Host pair")
+    ax.grid(axis="x", alpha=0.3)
+    fig.tight_layout(); fig.savefig(FIG / "fig5_multihost_jaccard.png", dpi=150); plt.close(fig)
 
 
 def main():
     h204, full, rab = _load()
-    fig1_recovery(h204); fig2_recall(h204); fig3_fold_recall(h204, full); fig4_jaccard(rab)
-    fig5_bacteria_panel()
+    fig1_recovery(h204); fig2_recall(h204); fig3_fold_recall(h204, full)
+    fig4_bacteria_panel(); fig5_jaccard(rab)
+    # eski (yeniden numaralanmış) dosyaları temizle
+    for old in ["fig4_multihost_jaccard.png", "fig5_bacteria_panel.png"]:
+        p = FIG / old
+        if p.exists():
+            p.unlink()
     print("Figürler:", *(p.name for p in sorted(FIG.glob("*.png"))))
 
 

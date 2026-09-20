@@ -80,9 +80,21 @@ Huniyi geçen proteinler hattın çekirdeğine, immünolojik katmana girer. NetM
 | Tam 2.003 | Vaxign-ML | 4/4 | 613 | 3,28 | yok | yok |
 | Tam 2.003 | NERVE 2.0 | 1/4 | 9 | 62,5 | yok | yok |
 
+![Şekil 1](figures/fig1_antigen_recovery.png)
+
+**Şekil 1.** VaxForge ve Vaxign-ML dört ruhsatlı meningokok antijeninin dördünü de bulur, NERVE 2.0 yalnız PorA'yı bulur. Her antijen için, o antijenin her aracın aday listesindeki sırası gösterilir (düşük = daha iyi); çarpı, geri getirilmeyen antijeni işaretler. Sıralar ve recall varsayılan parametrelerle özdeş girdi üzerinde hesaplandı.
+
+![Şekil 2](figures/fig2_recall_bar.png)
+
+**Şekil 2.** Bilinen antijenlerdeki recall, araçları AUC'den daha net ayırır. Dört meningokok antijeninin araç-başına recall'ı, ikincil AUC ek notuyla; AUC küçük-örneklem uyarısı taşır ve başlık ölçüt olarak kullanılmaz (n = 4 pozitif).
+
 **Yüksek fold-zenginleşme yüksek recall demek değildir.** NERVE 2.0 kısa aday listeleriyle yüksek fold verdi (204 setinde 25, tam proteomda 62,5); bu, yaklaşık 16,6'lık yayınlanmış değeriyle uyumlu. Ne var ki aday sayısı çok küçük olduğundan Fisher p'si anlamlı değildi ve araç her ölçekte dört ruhsatlı antijenden üçünü kaçırdı (Şekil 3). Bu üç kayıp, faktör H bağlayıcı protein, adhezin A ve Heparin Bağlayıcı Antijen, NERVE 2.0'ın kendi sürekli skorunun düşüklüğünden gelmedi; tersine bu skor onları yüksek verdi. Kayba yol açan, skordan sonra gelen sert seçim adımıydı (periplazmik yerleşim, 0,5 eşiğinin altında adhezin olasılığı ve tek transmembran heliksli bilinmeyen yerleşim). Demek ki fold-zenginleşme seçiciliği ödüllendirir ve recall düşerken bile yükselebilir; bu yüzden yalnız başına okununca aldatıcıdır. Bir aracın gerçekte ne verdiğini gösteren ölçüt, bilinen antijenlerdeki recall ve bu antijenlerin sıralarıdır.
 
-**Kalıp genom ölçeğinden bağımsız ve bir doğrulama adımı sonuçları güvenilir kıldı.** Tek örnekle sınırlı kalmamak için, artan genom boyutu ve Gram dengesine göre seçtiğimiz üç zoonotik bakteriyi tam proteom ölçeğinde koştuk (Tablo 3). VaxForge *Staphylococcus aureus* için 5/5 (demir-düzenlenen yüzey belirleyicisi B, 2.889 içinde 4. sırada), *Listeria monocytogenes* için 4/5 ve *Salmonella enterica* serovar Typhimurium için 5/5 buldu; toplam 14/15 (Şekil 5). Vaxign-ML 15/15, NERVE 2.0 ise 9/15 bularak meningokoktakiyle aynı türden yüzey antijenlerini yine kaçırdı. Her iki aracın da tam recall'a ulaştığı iki türde VaxForge koruyucu antijenleri Vaxign-ML'den daha üste yerleştirdi. VaxForge'un tek kaybı olan *L. monocytogenes* ActA'sı gerçekten zor bir antijendir; Vaxign-ML listesinde de en dipte çıktı, yani hedefin zorluğunu yansıtır, bir hat kusurunu değil. Bu koşular sırasında, ilk denemelerde VaxForge recall'ını yapay olarak düşüren iki ölçek kaynaklı kusuru saptayıp giderdik (ilk değerler 3/5, 3/5 ve 0/5); lokalizasyon ve MHC adımları tam-proteom ölçeğinde tek ve aşırı büyük bir yığın altında çöküyordu, ikisini de sınırlı ve paralel alt-yığınlara böldük (`MANUSCRIPT_METHODS.md`, bölüm B). Kontrol deneyleri toksisite ve alerjenite filtrelerinin suçsuz olduğunu doğruladı.
+![Şekil 3](figures/fig3_fold_vs_recall.png)
+
+**Şekil 3.** Yüksek fold-zenginleşme yüksek recall demek değildir. Her aracın adayları arasında bilinen antijenlerin fold-zenginleşmesi; her barın üstünde o koşunun recall'ı yazılı; kesikli çizgi yayınlanmış NERVE 2.0 fold değeri 16,6'yı gösterir. NERVE 2.0 en yüksek fold'a en düşük recall'la (1/4) ulaşır.
+
+**Kalıp genom ölçeğinden bağımsız ve bir doğrulama adımı sonuçları güvenilir kıldı.** Tek örnekle sınırlı kalmamak için, artan genom boyutu ve Gram dengesine göre seçtiğimiz üç zoonotik bakteriyi tam proteom ölçeğinde koştuk (Tablo 3). VaxForge *Staphylococcus aureus* için 5/5 (demir-düzenlenen yüzey belirleyicisi B, 2.889 içinde 4. sırada), *Listeria monocytogenes* için 4/5 ve *Salmonella enterica* serovar Typhimurium için 5/5 buldu; toplam 14/15 (Şekil 4). Vaxign-ML 15/15, NERVE 2.0 ise 9/15 bularak meningokoktakiyle aynı türden yüzey antijenlerini yine kaçırdı. Her iki aracın da tam recall'a ulaştığı iki türde VaxForge koruyucu antijenleri Vaxign-ML'den daha üste yerleştirdi. VaxForge'un tek kaybı olan *L. monocytogenes* ActA'sı gerçekten zor bir antijendir; Vaxign-ML listesinde de en dipte çıktı, yani hedefin zorluğunu yansıtır, bir hat kusurunu değil. Bu koşular sırasında, ilk denemelerde VaxForge recall'ını yapay olarak düşüren iki ölçek kaynaklı kusuru saptayıp giderdik (ilk değerler 3/5, 3/5 ve 0/5); lokalizasyon ve MHC adımları tam-proteom ölçeğinde tek ve aşırı büyük bir yığın altında çöküyordu, ikisini de sınırlı ve paralel alt-yığınlara böldük (`MANUSCRIPT_METHODS.md`, bölüm B). Kontrol deneyleri toksisite ve alerjenite filtrelerinin suçsuz olduğunu doğruladı.
 
 **Tablo 3.** Tam proteom ölçeğinde üç-bakteri karşılaştırması; her bakteride beş koruyucu antijen.
 
@@ -99,9 +111,13 @@ Huniyi geçen proteinler hattın çekirdeğine, immünolojik katmana girer. NetM
 |  | NERVE 2.0 | 3/5 | 118 | 23,6 | yok |
 | **Toplam** | **VaxForge 14/15 · Vaxign-ML 15/15 · NERVE 2.0 9/15** |  |  |  |  |
 
+![Şekil 4](figures/fig4_bacteria_panel.png)
+
+**Şekil 4.** Recall kalıbı üç genom ölçeğinde de sürer. Tam proteom ölçeğinde *S. aureus*, *L. monocytogenes* ve *S.* Typhimurium için her aracın beş koruyucu antijendeki recall'ı, AUC ek notuyla; VaxForge toplam 14/15, Vaxign-ML 15/15 ve NERVE 2.0 9/15.
+
 **Konak seçimi öngörülen epitop repertuarını değiştirir; karşılaştırılan araçların ulaşamadığı boyut.** VaxForge bağlanma tahminlerini dört konak için küratörlü allel panellerinden alır: insan, fare, sığır ve domuz (Tablo 4). İnsan panelleri IMGT/HLA'dan, diğerleri IPD-MHC'den derlenmiştir. İnsan, fare ve sığırda hem sınıf I hem sınıf II gerçek NetMHCpan ve NetMHCIIpan modelleriyle koşar; sığırın sınıf II BoLA-DRB3 paneli de gerçektir. Domuzda sınıf I gerçek, sınıf II ise tek doğrulanmış allele dayanır. Paneller tam veritabanları değil temsili alt kümelerdir ve geçersiz allel adları çalışma-zamanında elenir; dolayısıyla bildirilen epitoplar temkinlidir.
 
-Virüs kolunu bu konak-özgü sunumu sınamak için kurduk. Tek yapısal proteini olan glikoprotein G'nin nötralize edici ve koruyucu antikorları uyaran tek protein olduğu (Cox vd., 1977) kuduz virüsünde (tür *Lyssavirus rabies*; RefSeq NC_001542), VaxForge G'yi beş protein içinde ikinci sıraya koydu; daha da önemlisi dört doğal memeli konağın her biri için farklı bağlı-epitop setleri üretti (glikoprotein G: farede 8, insanda 7, sığırda 7, domuzda 5). Glikoprotein G epitoplarının ikili konak örtüşmesi birin belirgin altındaydı (Tablo 5); yani konak seçimi öngörülen repertuarı gözle görülür biçimde değiştirdi. İki ek dört-konaklı virüs bu etkiyi yineledi: kuduz virüsünün rabdovirüs akrabası veziküler stomatit Indiana virüsü (*Vesiculovirus indiana*) glikoprotein G'yi yine 5 içinde 2. sıraya koydu ve insan ile domuz örtüşmesi 0,33'e kadar indi; ensefalomiyokardit virüsü (*Cardiovirus A*) kapsid VP1'i 11 içinde 3. sıraya koydu ve sığır ile domuz arasında hiç ortak epitop çıkmadı. NERVE 2.0 yalnız bakteriler için çalışır, Vaxign-ML'de konak boyutu yoktur (kuduz glikoprotein G'yi konak ayrımı olmadan 5 içinde 4. sıraya koydu); dolayısıyla bu yetenek üç araç arasında yalnız VaxForge'da vardır. Kuduz tek koruyucu antijen sunduğundan buradaki sıra istatistiği çıkarımsal değil betimseldir (permütasyon p = 0,40, n = 1); popülasyon kapsamı da insan-dışı konaklarda uydurulmadan "veri yok" olarak bildirildi.
+Virüs kolunu bu konak-özgü sunumu sınamak için kurduk. Tek yapısal proteini olan glikoprotein G'nin nötralize edici ve koruyucu antikorları uyaran tek protein olduğu (Cox vd., 1977) kuduz virüsünde (tür *Lyssavirus rabies*; RefSeq NC_001542), VaxForge G'yi beş protein içinde ikinci sıraya koydu; daha da önemlisi dört doğal memeli konağın her biri için farklı bağlı-epitop setleri üretti (glikoprotein G: farede 8, insanda 7, sığırda 7, domuzda 5). Glikoprotein G epitoplarının ikili konak örtüşmesi birin belirgin altındaydı (Tablo 5; Şekil 5); yani konak seçimi öngörülen repertuarı gözle görülür biçimde değiştirdi. İki ek dört-konaklı virüs bu etkiyi yineledi: kuduz virüsünün rabdovirüs akrabası veziküler stomatit Indiana virüsü (*Vesiculovirus indiana*) glikoprotein G'yi yine 5 içinde 2. sıraya koydu ve insan ile domuz örtüşmesi 0,33'e kadar indi; ensefalomiyokardit virüsü (*Cardiovirus A*) kapsid VP1'i 11 içinde 3. sıraya koydu ve sığır ile domuz arasında hiç ortak epitop çıkmadı. NERVE 2.0 yalnız bakteriler için çalışır, Vaxign-ML'de konak boyutu yoktur (kuduz glikoprotein G'yi konak ayrımı olmadan 5 içinde 4. sıraya koydu); dolayısıyla bu yetenek üç araç arasında yalnız VaxForge'da vardır. Kuduz tek koruyucu antijen sunduğundan buradaki sıra istatistiği çıkarımsal değil betimseldir (permütasyon p = 0,40, n = 1); popülasyon kapsamı da insan-dışı konaklarda uydurulmadan "veri yok" olarak bildirildi.
 
 **Tablo 4.** Epitop tahmininde kullanılan konak allel panelleri (temsili alt kümeler; tam paneller `config/hosts.yaml`).
 
@@ -120,41 +136,23 @@ Virüs kolunu bu konak-özgü sunumu sınamak için kurduk. Tek yapısal protein
 | Veziküler stomatit Indiana virüsü (*Vesiculovirus indiana*) | glikoprotein G | 2/5 | insan~sığır 0,78; insan~domuz 0,33 |
 | Ensefalomiyokardit virüsü (*Cardiovirus A*) | kapsid VP1 | 3/11 | insan~fare 0,78; sığır~domuz 0,00 |
 
+![Şekil 5](figures/fig5_multihost_jaccard.png)
+
+**Şekil 5.** Konak seçimi kuduz glikoprotein G epitop repertuarını yeniden biçimlendirir. Her konak çifti için glikoprotein G sınıf I epitoplarının Jaccard örtüşmesi; her çift birin altındadır, yani öngörülen repertuar seçilen konağa bağlıdır.
+
 ---
 
 **Tartışma**
 
-VaxForge, bilinen koruyucu antijenleri geri getirmede güçlü bir bağımsız tahminci kadar başarılı oldu ve o tahmincinin sunmadığı iki yeteneği ekledi. Dört bakteride 15 doğrulanmış antijenin 14'ünü buldu; bu, Vaxign-ML için 15/15, NERVE 2.0 için 9/15'e karşılık gelir ve VaxForge antijenleri en az onlar kadar, çoğu yerde daha üst sıraya koydu. NERVE 2.0'ın eksiği belirli bir nedene dayanıyor: sert seçim adımı, kendi sürekli skorunun yüksek verdiği gerçek yüzey antijenlerini eledi; bu da fold-zenginleşmeyi şişirirken recall'ı kesti. Fold-zenginleşme bir hattı olduğundan keskin gösterebilir; bu yüzden bu tür karşılaştırmalarda güvenilecek sayı, bilinen antijenlerdeki recall'dır.
+Ters aşı bilişimi araçlarının kıyasları çoğunlukla küratörlü pozitif ve negatif setlerde zenginleşme ya da sınıflandırıcı doğruluğu bildirir (Goodswen vd., 2023). Bizim karşılaştırmamız, bir kullanıcı için daha belirleyici bir ölçüt ekler: her aracın bağımsız olarak doğrulanmış kaç koruyucu antijeni gerçekten döndürdüğü. Ruhsatlı 4CMenB antijenlerinde (Pizza vd., 2000; Giuliani vd., 2006) VaxForge ve Vaxign-ML dördünü de, NERVE 2.0 ise yalnız birini geri getirdi; dört bakteride VaxForge 14/15'e, Vaxign-ML 15/15'e, NERVE 2.0 9/15'e ulaştı. Bağımsız makine-öğrenmesi sınıflandırıcısının yüksek recall'ı, Ong vd.'nin (2020) Vaxign-ML için bildirdiği başarımla uyumludur; bu, recall tahminlerimizi tek-araca özgü bırakmak yerine güçlendirir. NERVE 2.0'ın eksiği sert seçim basamağından kaynaklanır (Conte vd., 2024): kendi skorunun yüksek verdiği antijenler sabit lokalizasyon ve adezin eşikleriyle elendi; bu, fold-zenginleşmeyi yükseltirken recall'ı düşürdü.
 
-İki özellik VaxForge'u recall'ın ötesinde ayırır. Yumuşak virülans filtresi, virülans-veritabanı kaydı olmayan ruhsatlı bir bileşeni, Neisseria Heparin Bağlayıcı Antijeni, geri kazandı; konak-duyarlı epitop katmanı ise kuduz, veziküler stomatit ve ensefalomiyokardit virüsleri için türe özgü repertuarlar verdi. İkincisi, hedef konağın insan olmadığı geniş veteriner ve zoonotik alan için önemlidir; orada tek bir insan referansı hangi peptitlerin sunulduğunu yanlış gösterir. VaxForge ayrıca sıralamadan sonra konstrukt kurulumuna ve in silico immünizasyon çıktısına geçer; böylece elde bir liste değil, aday bir immünojen kalır.
+En açık örnek, klasik bir virülans faktörü olmayan ve küratörlü virülans veritabanlarında bulunmayan ruhsatlı bir 4CMenB bileşeni olan Neisseria Heparin Bağlayıcı Antijendir (Giuliani vd., 2006). Virülans-veritabanı isabetine kapı koyan her hat onu kaybeder; VaxForge ise bu kanıtı yumuşak ve puana-ağırlıklı biçimde kullandığı için korur. Bu, ters aşı bilişimi metodoloji literatüründe katı filtrelerin duyarlılığı görünürdeki özgüllük uğruna feda ettiği yönündeki yinelenen uyarıyla uyumludur (Goodswen vd., 2023) ve araçlar karşılaştırılırken tek başına fold-zenginleşme değil, bilinen antijenlerdeki recall'ın raporlanmasını gerektirir.
 
-Birkaç sınırlama bu iddiaları çerçeveler. ActA'yı VaxForge kaçırdı; bağımsız aracın da en dibe koyduğu gerçekten zor bir antijen olsa da, geri kazanımı lineer-epitop bir hattın modellemediği konformasyonel ya da bağlama-özgü sinyalleri gerektirir. Varsayılan toksisite filtresi, toksin antijenlerinden gelen peptitleri eleyebilir; bu, ölçek düzeltmelerinden önce por-açan listeriolizin O'da peptit-düzeyi recall'ını düşürmüştü ve karşılaştırma için ayarlamadığımız temkinli bir seçim olarak kalıyor. AUC değerlerini başlık değil, açık bir küçük-örneklem uyarısıyla ikincil olarak veriyoruz; çünkü patojen başına yalnız dört ila beş pozitifle farklar istatistiksel olarak ayrışmıyor, bu temelde üstün ayrım iddia etmiyoruz. Bakteriyel karşılaştırma bir ölçek asimetrisi de taşır: VaxForge'un tam-proteom meningokok koşuları bugünkü CPU-yalnız donanımda pratik değil, bu yüzden amiral meningokok karşılaştırması araçlar arası adil olan eşlenmiş alt-örneklem setlerini kullandı; tam proteom yalnız hızlı araçlarda koşulabildi. Son olarak, B-hücre epitoplarının kabaca onda dokuzu süreksizdir ve buradaki lineer konstrukt konformasyonel epitopları temsil etmez; bunu çözmek yerine bir kapsam sınırı olarak belirtiyoruz.
+İkinci ayırt edici özellik, konak-özgü epitop tahmini, bakteri-odaklı araçların açık bıraktığı bir boşluğu kapatır. NetMHCpan ve NetMHCIIpan zaten pek çok insan-dışı alleli destekler (Reynisson vd., 2020); ancak ters aşı bilişimi hatları bunları çoğunlukla tek bir insan referansına uygular. Kuduz virüsü ve iki ek virüs incelenen dört memeli konağın hepsini enfekte ettiğinden (Cox vd., 1977; Fooks vd., 2017), her konak için dürüst bir repertuar hesaplayabildik; glikoprotein G epitop setleri türden türe belirgin biçimde farklıydı (ikili Jaccard 0,50-0,78 ve ensefalomiyokardit VP1'de sığır ile domuz arasında hiç ortak epitop yok). Pratik aşı yükünün çoğunu oluşturan veteriner ve zoonotik hedefler için (Fooks vd., 2017; Hampson vd., 2015), yalnız-insan bir epitop katmanı sunumu yanlış verir; dolayısıyla bu yetenek kozmetik değil, somut bir üstünlüktür. VaxForge ayrıca sıralamadan sonra konstrukt kurulumuna ve in silico immünizasyon çıktısına geçer; böylece çıktısı bir liste değil, aday bir immünojendir.
 
-İki yön kendiliğinden çıkıyor. Bir GPU arka ucu, tam-proteom VaxForge koşularına ve her patojende tam ölçekli karşılaştırmaya olanak verir. Konak-özgü epitop tahminleri, özellikle viral glikoproteinlerde görülen türler-arası ayrışma, bağlanma ve immünizasyon deneyleriyle sınanabilecek somut hipotezlerdir. Hat ve karşılaştırması, bu iki genişlemenin de yeniden tasarım gerektirmeden mevcut çerçeveye oturacağı biçimde kurulmuştur.
+Birkaç sınırlama bu iddiaları çerçeveler. *L. monocytogenes* ActA'sı VaxForge tarafından kaçırıldı ve bağımsız araçça da en dibe kondu; yani bir hat kusuru değil, gerçekten zor bir hedeftir. Geri kazanımı, lineer-epitop bir hattın modellemediği konformasyonel ya da bağlama-özgü sinyalleri gerektirir; zaten B-hücre epitoplarının çoğu süreksizdir (Michalik vd., 2016). Varsayılan toksisite filtresi, listeriolizin O gibi toksin antijenlerinden gelen peptitleri eleyebilir; bu, kıyas için ayarlamadığımız temkinli bir seçimdir. AUC'yi yalnız ikincil ölçüt olarak, açık bir küçük-örneklem uyarısıyla veriyoruz; çünkü patojen başına dört ila beş pozitif AUC farklarını ayrıştıramaz ve bu temelde üstün ayrım iddia etmiyoruz. Son olarak, tam-proteom VaxForge koşuları bugünkü CPU-yalnız donanımda pratik olmadığından meningokok karşılaştırması araçlar arası adil eşlenmiş alt-örneklemler kullandı; tam proteomlar yalnız hızlı araçlarda koşuldu.
 
----
-
-**Şekiller**
-
-![Şekil 1](figures/fig1_antigen_recovery.png)
-
-**Şekil 1.** VaxForge ve Vaxign-ML dört ruhsatlı meningokok antijeninin dördünü de bulur, NERVE 2.0 yalnız PorA'yı bulur. Dört 4CMenB antijeni için antijen-araç geri getirme matrisi; yeşil hücreler bulunan antijenleri sıralarıyla, kırmızı hücreler NERVE 2.0 seçim adımınca elenenleri gösterir. Recall ve aday sayıları varsayılan parametrelerle özdeş girdi üzerinde hesaplandı.
-
-![Şekil 2](figures/fig2_recall_bar.png)
-
-**Şekil 2.** Bilinen antijenlerdeki recall, araçları AUC'den daha net ayırır. Dört meningokok antijeninin araç-başına recall'ı, ikincil AUC ek notuyla; AUC küçük-örneklem uyarısı taşır ve başlık ölçüt olarak kullanılmaz (n = 4 pozitif).
-
-![Şekil 3](figures/fig3_fold_vs_recall.png)
-
-**Şekil 3.** Yüksek fold-zenginleşme recall'ı değil seçiciliği izler. Üç araç için 204-protein setinde (dolu daireler) ve tam proteomda (içi boş kareler) fold-zenginleşmeye karşı recall; inset tam-recall kümesini büyütür, burada VaxForge ve Vaxign-ML orta fold'da yer alır; kesikli çizgi yayınlanmış NERVE 2.0 fold değeri 16,6'yı gösterir. NERVE 2.0 yüksek fold ve düşük recall'dadır.
-
-![Şekil 4](figures/fig4_multihost_jaccard.png)
-
-**Şekil 4.** Konak seçimi kuduz glikoprotein G epitop repertuarını yeniden biçimlendirir. İnsan, sığır, fare ve domuz arasında glikoprotein G sınıf I epitoplarının ikili Jaccard örtüşmesi; birin altındaki değerler öngörülen repertuarın seçilen konağa bağlı olduğunu gösterir.
-
-![Şekil 5](figures/fig5_bacteria_panel.png)
-
-**Şekil 5.** Recall kalıbı üç genom ölçeğinde de sürer. Tam proteom ölçeğinde *S. aureus*, *L. monocytogenes* ve *S.* Typhimurium için her aracın beş koruyucu antijendeki recall'ı, AUC ek notuyla; VaxForge toplam 14/15, Vaxign-ML 15/15 ve NERVE 2.0 9/15.
+İki yön öne çıkıyor. Bir GPU arka ucu, tam-proteom VaxForge koşularına ve her patojende tam ölçekli karşılaştırmaya olanak verir; viral glikoprotein epitoplarının türler-arası ayrışması ise bağlanma ve immünizasyon deneyleriyle sınanabilecek somut bir hipotezdir. İki genişleme de yeniden tasarım gerektirmeden mevcut çerçeveye oturur.
 
 ---
 
@@ -188,6 +186,8 @@ Gasteiger, E., Hoogland, C., Gattiker, A., Duvaud, S., Wilkins, M. R., Appel, R.
 
 Giuliani, M. M., Adu-Bobie, J., Comanducci, M., Aricò, B., Savino, S., Santini, L., Brunelli, B., Bambini, S., Biolchi, A., Capecchi, B., Cartocci, E., Ciucchi, L., Di Marcello, F., Ferlicca, F., Galli, B., Luzzi, E., Masignani, V., Serruto, D., Veggi, D., … Pizza, M. (2006). A universal vaccine for serogroup B meningococcus. *Proceedings of the National Academy of Sciences, 103*(29), 10834–10839. https://doi.org/10.1073/pnas.0603940103
 
+Goodswen, S. J., Kennedy, P. J., & Ellis, J. T. (2023). A guide to current methodology and usage of reverse vaccinology towards in silico vaccine discovery. *FEMS Microbiology Reviews, 47*(2), fuad004. https://doi.org/10.1093/femsre/fuad004
+
 Hampson, K., Coudeville, L., Lembo, T., Sambo, M., Kieffer, A., Attlan, M., Barrat, J., Blanton, J. D., Briggs, D. J., Cleaveland, S., Costa, P., Freuling, C. M., Hiby, E., Knopf, L., & Leanes, F. (2015). Estimating the global burden of endemic canine rabies. *PLoS Neglected Tropical Diseases, 9*(4), e0003709. https://doi.org/10.1371/journal.pntd.0003709
 
 Krogh, A., Larsson, B., von Heijne, G., & Sonnhammer, E. L. L. (2001). Predicting transmembrane protein topology with a hidden Markov model: application to complete genomes. *Journal of Molecular Biology, 305*(3), 567–580. https://doi.org/10.1006/jmbi.2000.4315
@@ -197,6 +197,8 @@ Larsen, M. V., Lundegaard, C., Lund, O., & Nielsen, M. (2005). An integrative ap
 Liu, B., Zheng, D., Zhou, S., Chen, L., & Yang, J. (2022). VFDB 2022: a general classification scheme for bacterial virulence factors. *Nucleic Acids Research, 50*(D1), D912–D917. https://doi.org/10.1093/nar/gkab1107
 
 Livingston, B., Crimi, C., Newman, M., Higashimoto, Y., Appella, E., Sidney, J., & Sette, A. (2002). A rational strategy to design multiepitope immunogens based on multiple Th lymphocyte epitopes. *Journal of Immunology, 168*(11), 5499–5506. https://doi.org/10.4049/jimmunol.168.11.5499
+
+Michalik, M., Djahanshiri, B., Leo, J. C., & Linke, D. (2016). Reverse vaccinology: the pathway from genomes and epitope predictions to tailored recombinant vaccines. In *Vaccine Design* (Methods in Molecular Biology, Vol. 1403, pp. 87–106). Springer. https://doi.org/10.1007/978-1-4939-3387-7_4
 
 Miles, S., Menafra, G., Iriarte, A., & Chabalgoity, J. A. (2025). IApred: A versatile open-source tool for predicting protein antigenicity across diverse pathogens. *ImmunoInformatics*. https://doi.org/10.1016/j.immuno.2025.100014
 
