@@ -16,8 +16,11 @@ OUT = sys.argv[2] if len(sys.argv) > 2 else "MANUSCRIPT.docx"
 
 doc = Document()
 normal = doc.styles["Normal"]
-normal.font.name = "Calibri"
+normal.font.name = "Times New Roman"
 normal.font.size = Pt(12)
+# gövde: iki yana yaslı + 1,8 satır aralığı (kullanıcı isteği)
+normal.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+normal.paragraph_format.line_spacing = 1.8
 
 _tok = re.compile(r"(\*\*[^*]+\*\*|\*[^*]+\*)")
 _img = re.compile(r"^!\[[^\]]*\]\(([^)]+)\)\s*$")
@@ -60,10 +63,15 @@ while i < n:
         ncol = len(header)
         t = doc.add_table(rows=1, cols=ncol)
         t.style = "Light Grid Accent 1"
+        def _cellfmt(par):
+            # tablo hücreleri: tek satır aralığı + sola dayalı (1,8 gövdeden bağımsız)
+            par.paragraph_format.line_spacing = 1.0
+            par.alignment = WD_ALIGN_PARAGRAPH.LEFT
         for j, h in enumerate(header):
             cell = t.rows[0].cells[j]
             cell.paragraphs[0].text = ""
             add_runs(cell.paragraphs[0], clean(h), base_bold=True, base_size=11)
+            _cellfmt(cell.paragraphs[0])
         for row in rows:
             cells = t.add_row().cells
             for j in range(ncol):
@@ -71,6 +79,7 @@ while i < n:
                 cells[j].paragraphs[0].text = ""
                 bold = txt.startswith("Total") or txt.startswith("Toplam") or txt.startswith("VaxForge 14")
                 add_runs(cells[j].paragraphs[0], txt, base_bold=bold, base_size=11)
+                _cellfmt(cells[j].paragraphs[0])
         doc.add_paragraph()
         continue
 
