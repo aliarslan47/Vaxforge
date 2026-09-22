@@ -154,6 +154,38 @@ export async function getConfig(): Promise<AppConfig> {
   return r.json();
 }
 
+export interface TaxonHit {
+  taxon_id: string;
+  iri: string;
+  name: string;
+  rank: string;
+  division: string;
+}
+export interface TaxonSearchResult {
+  query: string;
+  results: TaxonHit[];
+  available: boolean;
+  note: string | null;
+}
+export async function searchTaxon(q: string): Promise<TaxonSearchResult> {
+  const r = await fetch(`/api/taxon-search?q=${encodeURIComponent(q)}`, { cache: "no-store" });
+  if (!r.ok) throw new Error("taxon araması başarısız");
+  return r.json();
+}
+
+export interface ProteomePreview {
+  ok: boolean;
+  accession: string | null;
+  organism: string | null;
+  n_proteins: number;
+  note: string | null;
+}
+export async function previewProteome(taxon: string): Promise<ProteomePreview> {
+  const r = await fetch(`/api/proteome-preview?taxon=${encodeURIComponent(taxon)}`, { cache: "no-store" });
+  if (!r.ok) throw new Error("proteom önizleme başarısız");
+  return r.json();
+}
+
 export async function getRuns(): Promise<RunSummary[]> {
   const r = await fetch("/api/runs", { cache: "no-store" });
   if (!r.ok) throw new Error("koşular alınamadı");

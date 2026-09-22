@@ -70,6 +70,28 @@ def config():
     return get_config()
 
 
+@app.get("/api/taxon-search")
+def taxon_search(q: str = Query("", description="organizma adı")):
+    """Organizma adını NCBI Taxonomy'de arar → taxon ID önerileri.
+
+    Kullanıcı taxon ID'sini ezbere bilmese de ad yazıp seçebilsin diye.
+    """
+    import taxon_lookup
+    return taxon_lookup.search(q)
+
+
+@app.get("/api/proteome-preview")
+def proteome_preview(taxon: str = Query("", description="NCBI taxon ID veya IRI")):
+    """Taxon'un NCBI referans proteomunu çeker (cache'ler) ve özet döndürür.
+
+    Dosya yüklemeden koşmak isteyen kullanıcıya 'kaç protein indirilecek'i
+    önizletir. Path döndürülmez (istemciye gerek yok).
+    """
+    import proteome_fetch
+    r = proteome_fetch.fetch_reference_proteome(taxon)
+    return {k: v for k, v in r.items() if k != "path"}
+
+
 @app.get("/api/runs")
 def runs():
     return {"runs": list_runs()}
@@ -104,29 +126,61 @@ def run_file(run_id: str, name: str):
 
 @app.post("/api/run")
 async def run(
-    file: UploadFile = File(...),
+    file: UploadFile | None = File(None),
     profile: str = Form("bacteria"),
     hosts: str = Form(""),          # virgülle ayrık konak adları
     gram: str = Form(""),           # negative | positive | ""
     lang: str = Form("tr"),
     adjuvant: str = Form("beta_defensin"),   # MEV adjuvan anahtarı
+    organism_taxon: str = Form(""),  # opsiyonel NCBI taxon (hedefli IEDB eşlemesi)
+    autofetch: str = Form(""),       # "1" → dosya yerine taxon'dan NCBI proteomu çek
     strains: list[UploadFile] = File(default=[]),  # opsiyonel çok-suş (konservasyon)
 ):
-    """Yüklenen dosyayı geçici diske yazar, koşuyu arka-plan job'ı olarak başlatır
-    ve o job'ın akışını SSE ile döndürür.
+    """Girdiyi geçici diske yazar (yüklenen dosya ya da taxon'dan NCBI proteomu),
+    koşuyu arka-plan job'ı olarak başlatır ve akışı SSE ile döndürür.
 
-    Koşu artık SSE bağlantısından bağımsız (thread'de) çalışır: tarayıcı kapansa/
+    Koşu SSE bağlantısından bağımsız (thread'de) çalışır: tarayıcı kapansa/
     yenilense bile iş sürer; istemci `job_id` ile /api/jobs/{jid}/stream'e yeniden
     bağlanabilir. İlk event `__job__` job_id'yi taşır.
     """
-    suffix = Path(file.filename or "input.dat").suffix or ".dat"
-    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
-        tmp.write(await file.read())
-        tmp_path = tmp.name
+    # Taxon normalizasyonu: kullanıcı "10244" veya "NCBITaxon:10244" girebilir;
+    # pipeline IRI biçimi bekler. Boşsa None → dürüstçe atlanır.
+    taxon_raw = organism_taxon.strip()
+    if taxon_raw.isdigit():
+        taxon_raw = f"NCBITaxon:{taxon_raw}"
+    organism_taxon_val = taxon_raw or None
+
+    has_file = file is not None and bool(file.filename)
+    want_autofetch = autofetch.strip() == "1"
+
+    # Girdi kaynağı: (1) yüklenen dosya, ya da (2) taxon'dan NCBI referans proteomu.
+    if has_file:
+        assert file is not None
+        suffix = Path(file.filename or "input.dat").suffix or ".dat"
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+            tmp.write(await file.read())
+            tmp_path = tmp.name
+        filename = file.filename or Path(tmp_path).name
+    elif want_autofetch and organism_taxon_val:
+        import proteome_fetch
+        fetched = proteome_fetch.fetch_reference_proteome(organism_taxon_val)
+        if not fetched["ok"]:
+            raise HTTPException(status_code=422,
+                                detail=f"NCBI proteomu çekilemedi: {fetched['note']}")
+        # Cache dosyasını job silmesin diye geçici bir kopyaya yaz (job tmp_path'i
+        # koşu sonunda unlink eder; cache kalıcı kalmalı).
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".faa") as tmp:
+            tmp.write(Path(fetched["path"]).read_bytes())
+            tmp_path = tmp.name
+        acc = fetched["accession"]
+        filename = f"{acc}.faa" if acc else "proteome.faa"
+    else:
+        raise HTTPException(status_code=422,
+                            detail="Girdi yok: bir dosya yükleyin ya da taxon seçip "
+                                   "'NCBI'den getir'i işaretleyin.")
 
     host_names = [h.strip() for h in hosts.split(",") if h.strip()] or None
     gram_val = gram.strip() or None
-    filename = file.filename or Path(tmp_path).name
 
     # Opsiyonel çok-suş proteomları (konservasyon). Verilmezse liste boş → dürüstçe
     # "hesaplanmadı". Her biri geçici diske yazılır (pipeline dosya-yolu bekler).
@@ -144,6 +198,7 @@ async def run(
         "input_path": tmp_path, "filename": filename, "profile": profile,
         "host_names": host_names, "gram": gram_val,
         "lang": lang, "adjuvant": adjuvant, "strain_paths": strain_paths,
+        "organism_taxon": organism_taxon_val,
     })
 
     def event_stream():

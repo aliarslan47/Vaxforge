@@ -28,10 +28,14 @@ import {
   runPipeline,
   streamJob,
   cancelRun,
+  searchTaxon,
+  previewProteome,
   AppConfig,
   SSEEvent,
   RunDetail,
   ActiveRun,
+  TaxonHit,
+  ProteomePreview,
 } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
@@ -50,6 +54,15 @@ export default function RunPage() {
   const [gram, setGram] = useState("negative");
   const [hosts, setHosts] = useState<string[]>([]);
   const [adjuvant, setAdjuvant] = useState("beta_defensin");
+  const [taxon, setTaxon] = useState("");            // seçilen taxon ID (backend'e gider)
+  const [taxonName, setTaxonName] = useState("");    // seçilen organizmanın gösterim adı
+  const [taxonQuery, setTaxonQuery] = useState("");  // arama kutusu metni
+  const [taxonHits, setTaxonHits] = useState<TaxonHit[]>([]);
+  const [taxonBusy, setTaxonBusy] = useState(false);
+  const [taxonNote, setTaxonNote] = useState<string | null>(null);
+  const [autofetch, setAutofetch] = useState(false);          // NCBI'den proteom çek
+  const [proteome, setProteome] = useState<ProteomePreview | null>(null);
+  const [proteomeBusy, setProteomeBusy] = useState(false);
   const [dragOver, setDragOver] = useState(false);
 
   const [phase, setPhase] = useState<Phase>("idle");
@@ -193,8 +206,68 @@ export default function RunPage() {
     });
   }, []);
 
+  const runTaxonSearch = useCallback(async () => {
+    const q = taxonQuery.trim();
+    if (!q) return;
+    setTaxonBusy(true);
+    setTaxonNote(null);
+    setTaxonHits([]);
+    try {
+      const res = await searchTaxon(q);
+      setTaxonHits(res.results);
+      if (!res.available) setTaxonNote(res.note ?? "NCBI'ye erişilemedi");
+      else if (res.results.length === 0) setTaxonNote(res.note ?? "eşleşme yok");
+    } catch {
+      setTaxonNote("arama başarısız");
+    } finally {
+      setTaxonBusy(false);
+    }
+  }, [taxonQuery]);
+
+  const pickTaxon = useCallback((hit: TaxonHit) => {
+    setTaxon(hit.taxon_id);
+    setTaxonName(hit.name);
+    setTaxonHits([]);
+    setTaxonQuery(hit.name);
+    setProteome(null);
+  }, []);
+
+  const clearTaxon = useCallback(() => {
+    setTaxon("");
+    setTaxonName("");
+    setTaxonQuery("");
+    setTaxonHits([]);
+    setTaxonNote(null);
+    setAutofetch(false);
+    setProteome(null);
+  }, []);
+
+  // NCBI'den referans proteomu önizle (indir + cache; kaç protein göster).
+  const fetchProteome = useCallback(async () => {
+    if (!taxon) return;
+    setProteomeBusy(true);
+    setProteome(null);
+    try {
+      const p = await previewProteome(taxon);
+      setProteome(p);
+    } catch {
+      setProteome({ ok: false, accession: null, organism: null, n_proteins: 0, note: "önizleme başarısız" });
+    } finally {
+      setProteomeBusy(false);
+    }
+  }, [taxon]);
+
+  // Autofetch açılınca proteomu getir; kapanınca temizle.
+  const toggleAutofetch = useCallback((on: boolean) => {
+    setAutofetch(on);
+    if (on) fetchProteome();
+    else setProteome(null);
+  }, [fetchProteome]);
+
+  const canRun = !!file || (autofetch && !!taxon && !!proteome?.ok);
+
   const start = async () => {
-    if (!file) return;
+    if (!canRun) return;
     setPhase("running");
     setEvents([]);
     setProgress(0);
@@ -206,12 +279,14 @@ export default function RunPage() {
     doneRef.current = 0;
 
     const form = new FormData();
-    form.append("file", file);
+    if (file) form.append("file", file);
     form.append("profile", profile);
     form.append("hosts", hosts.join(","));
     form.append("gram", profile === "bacteria" ? gram : "");
     form.append("lang", lang);
     form.append("adjuvant", adjuvant);
+    form.append("organism_taxon", taxon.trim());
+    form.append("autofetch", !file && autofetch ? "1" : "");
     for (const s of strains) form.append("strains", s);
 
     const ac = new AbortController();
@@ -394,6 +469,124 @@ export default function RunPage() {
               </Card>
             )}
 
+            {/* Organizma taxon'u (opsiyonel — hedefli IEDB eşlemesi) */}
+            <Card className="p-4">
+              <div className="text-xs font-medium uppercase tracking-wide text-fg-faint">
+                {lang === "tr" ? "Organizma taxon'u" : "Organism taxon"}
+                <span className="ml-1 lowercase text-fg-faint/70">({lang === "tr" ? "opsiyonel" : "optional"})</span>
+              </div>
+
+              {taxon ? (
+                // Seçili taxon rozeti
+                <div className="mt-2 flex items-center justify-between gap-2 rounded-lg border border-primary/50 bg-primary/[0.07] px-3 py-2">
+                  <span className="min-w-0 truncate text-[13px] text-fg">
+                    <span className="font-medium text-primary">{taxonName || taxon}</span>
+                    <span className="ml-1.5 font-mono text-[11px] text-fg-faint">NCBITaxon:{taxon}</span>
+                  </span>
+                  <button
+                    onClick={clearTaxon}
+                    className="shrink-0 text-[11px] text-fg-faint hover:text-fg transition cursor-pointer"
+                  >
+                    {lang === "tr" ? "temizle" : "clear"}
+                  </button>
+                </div>
+              ) : null}
+
+              {/* NCBI'den otonom proteom çekme — yalnız taxon seçiliyken ve dosya yokken */}
+              {taxon && !file && (
+                <div className="mt-2 rounded-lg border border-line p-3">
+                  <label className="flex cursor-pointer items-start gap-2">
+                    <input
+                      type="checkbox"
+                      checked={autofetch}
+                      onChange={(e) => toggleAutofetch(e.target.checked)}
+                      className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-primary"
+                    />
+                    <span className="text-[12px] leading-snug text-fg">
+                      {lang === "tr"
+                        ? "Proteomu NCBI'den otomatik getir (dosya yükleme)"
+                        : "Auto-fetch proteome from NCBI (no file upload)"}
+                    </span>
+                  </label>
+
+                  {autofetch && (
+                    <div className="mt-2 text-[11px]">
+                      {proteomeBusy && (
+                        <span className="text-fg-faint">
+                          {lang === "tr" ? "NCBI'den çekiliyor…" : "Fetching from NCBI…"}
+                        </span>
+                      )}
+                      {!proteomeBusy && proteome?.ok && (
+                        <div className="rounded-md border border-bio/40 bg-bio/[0.06] px-2.5 py-1.5 text-fg">
+                          <span className="font-medium text-bio">✓ {proteome.n_proteins} {lang === "tr" ? "protein" : "proteins"}</span>
+                          <span className="ml-1.5 font-mono text-[10px] text-fg-faint">{proteome.accession}</span>
+                          <span className="ml-1.5 text-fg-muted">{proteome.organism}</span>
+                        </div>
+                      )}
+                      {!proteomeBusy && proteome && !proteome.ok && (
+                        <div className="flex items-center gap-2 text-warn">
+                          <span>{proteome.note ?? (lang === "tr" ? "çekilemedi" : "fetch failed")}</span>
+                          <button onClick={fetchProteome} className="underline hover:text-fg cursor-pointer">
+                            {lang === "tr" ? "tekrar dene" : "retry"}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {!taxon && (
+                <>
+                  <div className="mt-2 flex gap-2">
+                    <input
+                      type="text"
+                      value={taxonQuery}
+                      onChange={(e) => setTaxonQuery(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); runTaxonSearch(); } }}
+                      placeholder={lang === "tr" ? "organizma adı ara — örn. monkeypox" : "search organism — e.g. monkeypox"}
+                      className="min-w-0 flex-1 rounded-lg border border-line bg-transparent px-3 py-2 text-[13px] text-fg placeholder:text-fg-faint/60 focus:border-primary/50 focus:outline-none"
+                    />
+                    <Button
+                      onClick={runTaxonSearch}
+                      disabled={taxonBusy || !taxonQuery.trim()}
+                      className="shrink-0"
+                    >
+                      {taxonBusy ? (lang === "tr" ? "…" : "…") : (lang === "tr" ? "Ara" : "Search")}
+                    </Button>
+                  </div>
+
+                  {taxonHits.length > 0 && (
+                    <div className="mt-2 space-y-1">
+                      {taxonHits.map((h) => (
+                        <button
+                          key={h.taxon_id}
+                          onClick={() => pickTaxon(h)}
+                          className="w-full rounded-lg border border-line px-3 py-2 text-left transition hover:border-primary/40 cursor-pointer"
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="min-w-0 truncate text-[13px] font-medium text-fg">{h.name}</span>
+                            <span className="shrink-0 font-mono text-[10px] text-fg-faint">#{h.taxon_id}</span>
+                          </div>
+                          <div className="mt-0.5 text-[10px] text-fg-faint">
+                            {[h.rank, h.division].filter(Boolean).join(" · ")}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {taxonNote && <p className="mt-2 text-[11px] text-warn">{taxonNote}</p>}
+                </>
+              )}
+
+              <p className="mt-2 text-[10px] leading-relaxed text-fg-faint">
+                {lang === "tr"
+                  ? "Adı arayıp seç → adaylar IEDB'nin deneysel doğrulanmış epitoplarıyla eşleştirilir (hedefli, hızlı). Boş bırakılırsa ve aday sayısı çoksa bu adım atlanır."
+                  : "Search a name and pick → candidates are matched against IEDB's experimentally validated epitopes (targeted, fast). Left empty with many candidates, this step is skipped."}
+              </p>
+            </Card>
+
             {/* Suş konservasyonu (opsiyonel çok-suş) */}
             <Card className="p-4">
               <div className="flex items-center justify-between">
@@ -459,7 +652,7 @@ export default function RunPage() {
 
             <Button
               onClick={start}
-              disabled={!file || phase === "running"}
+              disabled={!canRun || phase === "running"}
               size="lg"
               className="w-full"
             >
