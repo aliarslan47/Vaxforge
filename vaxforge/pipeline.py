@@ -142,19 +142,34 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
     mim_k = int(resolved["molecular_mimicry"].params["k"].value) \
         if "molecular_mimicry" in resolved else 9
     mim = mimicry.predict([p.seq for p in peptides], [h.name for h in hosts], k=mim_k)
-    n_mim = 0
+    n_mim = 0       # tam eşleşme (sert mimikri)
+    n_near = 0      # kısmi eşleşme (tek konservatif ikame — BLOSUM62)
     for p in peptides:
         d = mim.get(p.seq)
         if d:
             p.metrics["self_mimicry"] = d["self_match"]
             p.metrics["self_mimicry_host"] = d["host"]
             p.metrics["self_mimicry_match"] = d["match"]
-            p.methods["self_mimicry"] = f"konak self {mim_k}-mer tam eşleşme"
+            p.metrics["self_mimicry_near"] = d["near_match"]
+            p.metrics["self_mimicry_near_sub"] = d["near_sub"]
+            p.metrics["self_mimicry_near_blosum"] = d["near_blosum"]
+            p.methods["self_mimicry"] = (f"konak self {mim_k}-mer tam eşleşme + "
+                                         "BLOSUM62 Hamming-1 kısmi (konservatif ikame)")
             if d["self_match"]:
                 n_mim += 1
+            elif d["near_match"]:
+                n_near += 1
+    meta["mimicry"] = {
+        "available": True, "k": mim_k,
+        "n_candidates": len(peptides), "n_exact": n_mim, "n_near": n_near,
+        "hosts": [h.name for h in hosts],
+        "method": ("tam k-mer eşleşme (sert mimikri) + BLOSUM62 Hamming-1 konservatif "
+                   "ikame (kısmi mimikri) — YUMUŞAK: işaretler, elemez"),
+    }
     yield _ev("mimicry", "done",
-              f"Moleküler mimikri taraması: {n_mim}/{len(peptides)} peptit konak self "
-              f"{mim_k}-mer eşleşmesi (yumuşak uyarı)", {"n_flagged": n_mim, "k": mim_k})
+              f"Moleküler mimikri: {n_mim} tam + {n_near} kısmi (BLOSUM62) / {len(peptides)} "
+              f"peptit konak self {mim_k}-mer eşleşmesi (yumuşak uyarı)",
+              {"n_exact": n_mim, "n_near": n_near, "k": mim_k})
 
     # 5c) Glikozilasyon — glikan-maskeli B-epitop filtresi (YUMUŞAK: işaretler, elemez).
     # N-X-S/T sequon ile örtüşen B-epitobu in vivo glikanla kaplı olabilir → antikor erişemez.

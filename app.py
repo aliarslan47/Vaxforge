@@ -540,6 +540,18 @@ if st.button(t(lang,"run_start"), type="primary"):
                               f"{round((bm['precision_like'] or 0)*100,1)}%",
                               f"{bm['n_pred_matched']}/{bm['n_pred']}")
 
+        # --- Moleküler mimikri (otoimmünite — Faz 7) ------------------------
+        mmc = rmeta.get("mimicry")
+        if mmc and mmc.get("available"):
+            st.subheader("🧩 Moleküler mimikri — konak self-eşleşme")
+            st.caption("Tam k-mer eşleşme = güçlü otoimmünite riski; BLOSUM62 Hamming-1 "
+                       "(tek konservatif ikame) = kısmi çapraz-reaktivite. Yumuşak — ELENMEZ.")
+            m1, m2, m3, m4 = st.columns(4)
+            m1.metric("k-mer", mmc.get("k", "—"))
+            m2.metric("Aday", mmc.get("n_candidates", "—"))
+            m3.metric("Tam mimik", mmc.get("n_exact", "—"))
+            m4.metric("Kısmi (BLOSUM)", mmc.get("n_near", "—"))
+
         # --- In silico klonlama (kodon optimizasyonu — Faz 5) ---------------
         cln = rmeta.get("cloning")
         if cln and cln.get("available"):

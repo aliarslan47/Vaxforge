@@ -455,6 +455,45 @@ export function MevConstruct({ mev }: { mev: MevData }) {
   );
 }
 
+// ---------- Moleküler mimikri (otoimmünite — Faz 7) ----------
+export function MimicryCard({ mimicry }: { mimicry: any }) {
+  const { lang } = useLang();
+  if (!mimicry || mimicry.available === false) return null;
+  const items = [
+    { label: lang === "tr" ? "k-mer" : "k-mer", value: mimicry.k ?? "—" },
+    { label: lang === "tr" ? "Aday" : "Candidates", value: mimicry.n_candidates ?? "—" },
+    { label: lang === "tr" ? "Tam mimik (sert)" : "Exact (hard)", value: mimicry.n_exact ?? "—", warn: (mimicry.n_exact ?? 0) > 0 },
+    { label: lang === "tr" ? "Kısmi (BLOSUM H-1)" : "Partial (BLOSUM H-1)", value: mimicry.n_near ?? "—", warn: (mimicry.n_near ?? 0) > 0 },
+  ];
+  return (
+    <Card className="p-5 sm:p-6">
+      <div className="flex items-center gap-2.5">
+        <span className="grid h-9 w-9 place-items-center rounded-xl bg-warn/10 ring-1 ring-warn/25">
+          <ShieldCheck className="h-5 w-5 text-warn" />
+        </span>
+        <div>
+          <h3 className="font-display text-lg font-semibold text-fg">
+            {lang === "tr" ? "Moleküler mimikri — konak self-eşleşme" : "Molecular mimicry — host self-match"}
+          </h3>
+          <p className="text-xs text-fg-muted">
+            {lang === "tr"
+              ? "Tam k-mer = güçlü otoimmünite; BLOSUM62 tek-ikame = kısmi çapraz-reaktivite (yumuşak)."
+              : "Exact k-mer = strong autoimmunity; BLOSUM62 single-sub = partial cross-reactivity (soft)."}
+          </p>
+        </div>
+      </div>
+      <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+        {items.map((it) => (
+          <PropStat key={it.label} label={it.label} value={it.value} tone={it.warn ? "warn" : undefined} />
+        ))}
+      </div>
+      {mimicry.hosts?.length > 0 && (
+        <p className="mt-3 text-[11px] text-fg-faint">{lang === "tr" ? "Konaklar" : "Hosts"}: {mimicry.hosts.join(", ")}</p>
+      )}
+    </Card>
+  );
+}
+
 // ---------- In silico klonlama (kodon optimizasyonu — Faz 5) ----------
 export function CloningCard({ cloning }: { cloning: any }) {
   const { lang } = useLang();

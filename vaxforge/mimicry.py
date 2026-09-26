@@ -22,6 +22,17 @@ import pickle
 from pathlib import Path
 
 _DB_DIR = Path(__file__).resolve().parent.parent / "tools" / "db"
+_AA = "ACDEFGHIKLMNPQRSTVWY"
+
+
+@functools.lru_cache(maxsize=1)
+def _blosum():
+    """BLOSUM62 matrisi (lazy). Yoksa None → kısmi mimikri atlanır (dürüst)."""
+    try:
+        from Bio.Align import substitution_matrices
+        return substitution_matrices.load("BLOSUM62")
+    except Exception:
+        return None
 
 # ImmForge tür adı / VaxForge host adı → self-proteom dosya öneki
 _HOST_DB = {
@@ -73,10 +84,38 @@ def _add(seq: str, out: set, k: int) -> None:
         out.add(s[i:i + k])
 
 
-def predict(peptides: list[str], hosts: list[str], k: int = 9) -> dict[str, dict]:
-    """Peptit -> {self_match, host, match}. Herhangi bir konak self-k-mer'iyle tam eşleşme.
+def _near_hit(kmer: str, kset: frozenset, min_sub_blosum: float = 1.0):
+    """Hamming-1 (tek KONSERVATİF ikame) ile konak self-k-mer'ine kısmi eşleşme.
 
-    Yumuşak: sadece işaretler. Bir konağın DB'si yoksa o konak atlanır (dürüst).
+    kmer'in her pozisyonunda 19 ikame denenir; komşu host set'te VE ikame BLOSUM62≥
+    min_sub_blosum (konservatif, ör. I↔V=3) ise kısmi mimikri. Milyonlarca k-mer'e
+    brute-force yerine komşu-üretme → hızlı. Döner: (host_kmer, pos, orig, sub, blosum) | None.
+    """
+    b = _blosum()
+    if b is None:
+        return None
+    for i, orig in enumerate(kmer):
+        for aa in _AA:
+            if aa == orig:
+                continue
+            neighbor = kmer[:i] + aa + kmer[i + 1:]
+            if neighbor in kset:
+                try:
+                    sc = float(b[orig, aa])
+                except (KeyError, IndexError):
+                    sc = -9.0
+                if sc >= min_sub_blosum:
+                    return (neighbor, i, orig, aa, sc)
+    return None
+
+
+def predict(peptides: list[str], hosts: list[str], k: int = 9) -> dict[str, dict]:
+    """Peptit -> {self_match, host, match, near_match, near_host, near_kmer, near_sub, near_blosum}.
+
+    self_match = konak self-k-mer'iyle TAM eşleşme (sert mimikri).
+    near_match = tam eşleşme yoksa, tek KONSERVATİF ikameyle KISMİ mimikri (BLOSUM62,
+    çapraz-reaktivite riski). İkisi de YUMUŞAK — epitopu elemez, işaretler.
+    DB'si olmayan konak atlanır (dürüst).
     """
     host_sets = [(h, _kmers(h, k)) for h in hosts if available(h)]
     host_sets = [(h, s) for h, s in host_sets if s]
@@ -84,6 +123,8 @@ def predict(peptides: list[str], hosts: list[str], k: int = 9) -> dict[str, dict
     for pep in set(peptides):
         s = pep.upper()
         hit_host, hit_kmer = "", ""
+        near = None
+        near_host = ""
         if len(s) >= k:
             for i in range(len(s) - k + 1):
                 sub = s[i:i + k]
@@ -93,5 +134,21 @@ def predict(peptides: list[str], hosts: list[str], k: int = 9) -> dict[str, dict
                         break
                 if hit_kmer:
                     break
-        out[pep] = {"self_match": bool(hit_kmer), "host": hit_host, "match": hit_kmer}
+            # tam eşleşme yoksa → kısmi (Hamming-1 konservatif) ara
+            if not hit_kmer:
+                for i in range(len(s) - k + 1):
+                    sub = s[i:i + k]
+                    for h, kset in host_sets:
+                        nh = _near_hit(sub, kset)
+                        if nh:
+                            near, near_host = (sub,) + nh, h
+                            break
+                    if near:
+                        break
+        rec = {"self_match": bool(hit_kmer), "host": hit_host, "match": hit_kmer,
+               "near_match": near is not None, "near_host": near_host,
+               "near_kmer": near[0] if near else "", "near_hostkmer": near[1] if near else "",
+               "near_sub": (f"{near[3]}{near[2]+1}{near[4]}" if near else ""),
+               "near_blosum": (near[5] if near else None)}
+        out[pep] = rec
     return out

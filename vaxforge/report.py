@@ -459,6 +459,34 @@ def _glyco_section(meta: dict) -> str:
     )
 
 
+def _mimicry_section(meta: dict) -> str:
+    """Moleküler mimikri — tam + BLOSUM62 kısmi konak self-eşleşme (Faz 7)."""
+    m = meta.get("mimicry")
+    if not m or not m.get("available"):
+        return ""
+    is_en = meta.get("lang", "tr") == "en"
+    ttl = "Molecular mimicry — host self-match" if is_en else "Moleküler mimikri — konak self-eşleşme"
+    disc = ("Exact k-mer match = strong autoimmunity risk; BLOSUM62 Hamming-1 (single "
+            "conservative substitution) = partial cross-reactivity risk. SOFT — flags, "
+            "does not filter." if is_en else
+            "Tam k-mer eşleşme = güçlü otoimmünite riski; BLOSUM62 Hamming-1 (tek konservatif "
+            "ikame) = kısmi çapraz-reaktivite riski. YUMUŞAK — işaretler, elemez.")
+    rows = [
+        (("k-mer length" if is_en else "k-mer uzunluğu"), m.get("k", "—")),
+        (("Candidates" if is_en else "Aday"), m.get("n_candidates", "—")),
+        (("Exact mimics (hard)" if is_en else "Tam mimik (sert)"), m.get("n_exact", "—")),
+        (("Partial mimics (BLOSUM Hamming-1)" if is_en else "Kısmi mimik (BLOSUM Hamming-1)"),
+         m.get("n_near", "—")),
+        (("Hosts" if is_en else "Konaklar"), ", ".join(m.get("hosts", [])) or "—"),
+    ]
+    trs = "".join(f"<tr><td>{k}</td><td>{v}</td></tr>" for k, v in rows)
+    return (
+        f"<h2>🧩 {ttl}</h2>"
+        f"<p style='font-size:.8rem;background:#fff7e6;border:1px solid #f0c36d;padding:.5rem;border-radius:6px'>⚠ {disc}</p>"
+        f"<table>{trs}</table>"
+    )
+
+
 def _cloning_section(meta: dict) -> str:
     """In silico klonlama — kodon optimizasyonu + CAI + restriksiyon + vektör (Faz 5)."""
     cl = meta.get("cloning")
@@ -547,6 +575,7 @@ def _html(df: pd.DataFrame, meta: dict, peptides=None) -> str:
     immuno_html = _immuno_section(meta)
     structure_html = _structure_section(meta)
     glyco_html = _glyco_section(meta)
+    mimicry_html = _mimicry_section(meta)
     cloning_html = _cloning_section(meta)
     methods_html = _methods_section(meta)
     popcov = meta.get("population_coverage") or {}
@@ -613,6 +642,7 @@ summary{{cursor:pointer;font-size:.95rem}}</style></head><body>
 {structure_html}
 {cloning_html}
 {glyco_html}
+{mimicry_html}
 {immuno_html}
 
 {iedb_html}

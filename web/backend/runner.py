@@ -53,6 +53,8 @@ _PIPELINE_STEPS = [
      "BepiPred-1.0", "Parker hidrofilisite"),
     ("glycosylation", "glyco", "Glikozilasyon (glikan-maske)", "Glycosylation (glycan-mask)",
      "N-X-S/T sequon + O Ser/Thr heuristik", None),
+    ("mimicry", "mimicry", "Moleküler mimikri (otoimmünite)", "Molecular mimicry (autoimmunity)",
+     "Tam k-mer + BLOSUM62 Hamming-1 kısmi", None),
     ("mhc", "netmhc_local", "MHC-I/II bağlanma", "MHC-I/II binding",
      "NetMHCpan / NetMHCIIpan", "SMM/proxy bağlanma"),
     ("allergen", "allergen", "Alerjenite", "Allergenicity",
