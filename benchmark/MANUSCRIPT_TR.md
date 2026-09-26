@@ -38,21 +38,25 @@ VaxForge bu üç eksiği tek bir deterministik hatta kapatır. Sert virülans fi
 
 **Benchmark patojenleri ve ground-truth antijenleri.** Bakteri kolunda serogrup B *N. meningitidis* MC58 (UniProt proteom UP000000425, 2.003 protein; RefSeq NC_003112.2), ground-truth olarak dört 4CMenB antijeniyle, fHbp (Q9JXV4), NadA (Q9JXK7), NHBA (Q7DD37) ve PorA (P0DH58), kullanıldı. Buna tam proteom ölçeğinde üç tür daha eklendi: *S. aureus* NCTC 8325 (UP000008816, 2.889 protein), *L. monocytogenes* EGD-e (UP000000817, 2.844) ve *S.* Typhimurium LT2 (UP000001014, 4.533); her biri, kanıtı ve DOI'leri `PROTECTIVE_ANTIGENS.md`'de listelenen beşer koruyucu ya da aday antijenle. Virüs kolunda kuduz virüsü (tür *Lyssavirus rabies*; NC_001542; glikoprotein G, NP_056796), veziküler stomatit Indiana virüsü (*Vesiculovirus indiana*) ve ensefalomiyokardit virüsü (*Cardiovirus A*) kullanıldı. Tüm aksesyonlar NCBI ve UniProt'a karşı doğrulandı (`PATHOGEN_ACCESSIONS.md`). Meningokokta, tam-proteom VaxForge koşuları CPU-yalnız donanımda pratik olmadığından proteomun sabit-seed alt örneklemi (64 ve 204 protein; dört koruyucu antijen artı arka plan) kullanıldı ve aynı alt örneklem her araca verildi.
 
-**Karşılaştırma araçları ve rolleri.** VaxForge, bakteriyel antijen tahmininde güncel, yerel kurulabilir ve en yaygın kullanılan iki ters aşı bilişimi aracıyla karşılaştırıldı; böylece karşılaştırma bir kullanıcının gerçekte koşacağı araçları yansıtır (Tablo 1). Vaxign-ML (Ong vd., 2020), bir protein proteomunu girdi alıp her protein için bir korujenite (protegenicity) olasılığı döndüren, adayları sıralayan ama epitop, konak bilgisi ya da konstrukt üretmeyen denetimli bir makine-öğrenmesi sınıflandırıcısıdır. NERVE 2.0 (Conte vd., 2024), bir bakteriyel proteomu ve Gram etiketini alıp bir dizi sert seçim filtresinden sonra aday protein kısa listesi döndüren uçtan uca bir bakteriyel ters aşı bilişimi ortamıdır. VaxForge ise bakteri ya da virüs için proteom, kodlayan diziler veya genom alır ve sıralı antijenlerle birlikte konak-özgü epitoplar, çok-epitoplu bir konstrukt ve in silico immünizasyon çıktısı döndürür. İki karşılaştırma aracı da yerelde konteynerlerde kuruldu ve özdeş girdi üzerinde, eşik ayarı yapılmadan, varsayılan parametrelerle koşuldu; ground-truth antijenlerdeki recall ve antijen sıraları her aracın kendi çıktısından okundu.
+**Karşılaştırma araçları ve rolleri.** VaxForge, bakteriyel antijen tahmininde güncel, yerel kurulabilir ve en yaygın kullanılan iki ters aşı bilişimi aracıyla karşılaştırıldı; böylece karşılaştırma bir kullanıcının gerçekte koşacağı araçları yansıtır (Tablo 1). Vaxign-ML (Ong vd., 2020), bir protein proteomunu girdi alıp her protein için bir korujenite (protegenicity) olasılığı döndüren, adayları sıralayan ama epitop, konak bilgisi ya da konstrukt üretmeyen denetimli bir makine-öğrenmesi sınıflandırıcısıdır. NERVE 2.0 (Conte vd., 2024), bir bakteriyel proteomu ve Gram etiketini alıp bir dizi sert seçim filtresinden sonra aday protein kısa listesi döndüren, ardından seçenekli bir epitop-tahmin modülüyle insan HLA süpertipleri için lineer MHC-I/II bağlayıcılarını ve popülasyon kapsamını raporlayan (Conte vd., 2024) uçtan uca bir bakteriyel ters aşı bilişimi ortamıdır. VaxForge ise bakteri ya da virüs için proteom, kodlayan diziler veya genom alır ve sıralı antijenlerle birlikte konak-özgü epitoplar, çok-epitoplu bir konstrukt ve in silico immünizasyon çıktısı döndürür. İki karşılaştırma aracı da yerelde konteynerlerde kuruldu ve özdeş girdi üzerinde, eşik ayarı yapılmadan, varsayılan parametrelerle koşuldu; ground-truth antijenlerdeki recall ve antijen sıraları her aracın kendi çıktısından okundu.
 
-**Tablo 1.** Karşılaştırılan üç aracın girdileri, çıktıları ve yetenekleri (✓ var, ✗ yok).
+**Tablo 1.** Karşılaştırılan üç aracın girdileri, çıktıları ve yetenekleri (✓ var, ✗ yok). Karşılaştırma araçlarının yetenekleri kendi kaynak yayınlarında tanımlandığı gibi verilmiştir (NERVE 2.0, Conte vd., 2024; Vaxign-ML, Ong vd., 2020).
 
 | Yetenek | VaxForge | NERVE 2.0 | Vaxign-ML |
 |---|---|---|---|
-| Girdi | proteom, CDS veya genom | bakteriyel proteom + Gram | protein proteomu |
-| Virüslere uygulanabilir | ✓ | ✗ | sınırlı |
-| Antijen sıralama | ✓ | ✓ | ✓ |
-| Virülans-veritabanı-negatif antijenleri korur | ✓ | ✗ | ✓ |
-| Konak-özgü MHC epitopları | ✓ | ✗ | ✗ |
-| B- ve T-hücre epitop çıktısı | ✓ | ✗ | ✗ |
-| Çok-epitoplu konstrukt | ✓ | ✗ | ✗ |
+| Girdi | proteom, CDS ya da ham genom (otomatik tanıma) | bakteriyel proteom + Gram tipi | bakteriyel protein proteomu |
+| Desteklenen patojen | bakteri ve virüs | yalnız bakteri | bakteri (virüs yayında tanımlı değil) |
+| Yaklaşım | kural + ML hibrit huni + immünolojik katman | kural tabanlı modüler ortam + AI modülleri | denetimli ML sınıflandırıcı (XGBoost) |
+| Antijen sıralama | ✓ ağırlıklı adaylık skoru | ✓ Select + skor | ✓ korujenite (protegenicity) skoru |
+| Otoimmünite (konak-homoloji) elemesi | ✓ insan, zorunlu | ✓ insan + fare (seçenekli) | ✗ |
+| Virülans-negatif antijeni koruma | ✓ yumuşak huni | ✗ sert Select eler | ✓ skor tabanlı |
+| T-hücre / MHC epitop tahmini | ✓ NetMHCpan/II + işleme + immünojenite | ✓ MHC-I/II, lineer, insan HLA süpertipleri | ✗ |
+| B-hücre epitop tahmini | ✓ BepiPred-3.0 | ✗ | ✗ |
+| Konak-özgü MHC allel seçimi | ✓ insan/fare/sığır/domuz | kısmi (epitop yalnız insan HLA; fare yalnız güvenlik) | ✗ |
+| Popülasyon kapsamı | ✓ insan HLA (diğer konak "veri yok") | ✓ insan HLA | ✗ |
+| Çok-epitoplu (MEV) konstrukt | ✓ linker + adjuvan | ✗ | ✗ |
 | In silico immünizasyon | ✓ | ✗ | ✗ |
-| Ana çıktı | sıralı antijen, epitop ve konstrukt | aday protein kısa listesi | protein başına korujenite skoru |
+| Ana çıktı | sıralı antijen + konak-özgü epitop + konstrukt + immünizasyon | PVC kısa listesi + T-hücre epitop / popülasyon kapsamı | protein başına korujenite skoru |
 
 **İstatistiksel analiz.** Ground-truth antijenlerin adaylar arasındaki zenginleşmesi Fisher kesin testiyle, antijen sıraları ise dağılımdan bağımsız bir permütasyon testiyle sınandı. Ayrım gücü ROC-AUC ve bootstrap güven aralıklarıyla, AUC farkları DeLong testiyle özetlendi; her patojende yalnız dört ila beş pozitif olduğundan AUC küçük-örneklem uyarısıyla ikincil olarak verildi. Konak epitop kümelerinin örtüşmesi Jaccard indeksiyle ölçüldü. Tüm testler `benchmark/stats.py`'de uygulanmıştır.
 

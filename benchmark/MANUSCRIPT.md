@@ -38,21 +38,25 @@ VaxForge was built to close these three gaps within one deterministic pipeline. 
 
 **Benchmark pathogens and ground-truth antigens.** The bacterial arm used serogroup B *N. meningitidis* MC58 (UniProt proteome UP000000425, 2,003 proteins; RefSeq NC_003112.2) with the four 4CMenB antigens fHbp (Q9JXV4), NadA (Q9JXK7), NHBA (Q7DD37) and PorA (P0DH58) as ground truth, together with three further species at full proteome scale: *S. aureus* NCTC 8325 (UP000008816, 2,889 proteins), *L. monocytogenes* EGD-e (UP000000817, 2,844) and *S.* Typhimurium LT2 (UP000001014, 4,533), each with five protective or candidate antigens whose evidence and DOIs are listed in `PROTECTIVE_ANTIGENS.md`. The viral arm used rabies virus (species *Lyssavirus rabies*; NC_001542, glycoprotein G at NP_056796), vesicular stomatitis Indiana virus (*Vesiculovirus indiana*) and encephalomyocarditis virus (*Cardiovirus A*). All accessions were verified against NCBI and UniProt (`PATHOGEN_ACCESSIONS.md`). For meningococcus a fixed-seed subsample of the proteome (64 and 204 proteins, four protective antigens plus background) was used, because whole-proteome VaxForge runs are impractical on CPU-only hardware, and the same subsample was given to every tool.
 
-**Comparator tools and their roles.** VaxForge was compared with the two reverse vaccinology tools that are current, locally installable and most widely used for bacterial antigen prediction, so that the comparison reflects what a user would actually run (Table 1). Vaxign-ML (Ong et al., 2020) is a supervised machine-learning classifier that takes a protein proteome and returns a protegenicity probability for each protein, ranking candidates but producing no epitopes, host information or construct. NERVE 2.0 (Conte et al., 2024) is an end-to-end bacterial reverse vaccinology environment that takes a bacterial proteome and a Gram label and returns a shortlist of candidate proteins after a cascade of hard selection filters. VaxForge takes a proteome, coding sequences or a genome, for bacteria or viruses, and returns ranked antigens together with host-specific epitopes, a multi-epitope construct and an in silico immunisation readout. Both comparators were installed locally in containers and run with default parameters on identical input, with no threshold tuning; recall over ground-truth antigens and the antigen ranks were read from each tool's native output.
+**Comparator tools and their roles.** VaxForge was compared with the two reverse vaccinology tools that are current, locally installable and most widely used for bacterial antigen prediction, so that the comparison reflects what a user would actually run (Table 1). Vaxign-ML (Ong et al., 2020) is a supervised machine-learning classifier that takes a protein proteome and returns a protegenicity probability for each protein, ranking candidates but producing no epitopes, host information or construct. NERVE 2.0 (Conte et al., 2024) is an end-to-end bacterial reverse vaccinology environment that takes a bacterial proteome and a Gram label and returns a shortlist of candidate proteins after a cascade of hard selection filters, followed by an optional epitope-prediction module that reports linear MHC-I/II binders and population coverage for human HLA supertypes (Conte et al., 2024). VaxForge takes a proteome, coding sequences or a genome, for bacteria or viruses, and returns ranked antigens together with host-specific epitopes, a multi-epitope construct and an in silico immunisation readout. Both comparators were installed locally in containers and run with default parameters on identical input, with no threshold tuning; recall over ground-truth antigens and the antigen ranks were read from each tool's native output.
 
-**Table 1.** Inputs, outputs and capabilities of the three compared tools (✓ present, ✗ absent).
+**Table 1.** Inputs, outputs and capabilities of the three compared tools (✓ present, ✗ absent). Comparator capabilities are stated as described in their source publications (NERVE 2.0, Conte et al., 2024; Vaxign-ML, Ong et al., 2020).
 
 | Capability | VaxForge | NERVE 2.0 | Vaxign-ML |
 |---|---|---|---|
-| Input | proteome, CDS or genome | bacterial proteome + Gram | protein proteome |
-| Applicable to viruses | ✓ | ✗ | limited |
-| Antigen ranking | ✓ | ✓ | ✓ |
-| Keeps virulence-database-negative antigens | ✓ | ✗ | ✓ |
-| Host-specific MHC epitopes | ✓ | ✗ | ✗ |
-| B-cell and T-cell epitope output | ✓ | ✗ | ✗ |
-| Multi-epitope construct | ✓ | ✗ | ✗ |
+| Input | proteome, CDS or genome (auto-detected) | bacterial proteome + Gram type | bacterial protein proteome |
+| Supported pathogens | bacteria and viruses | bacteria only | bacteria (viruses not described in publication) |
+| Approach | rule + ML hybrid funnel with an immunological layer | rule-based modular pipeline with AI modules | supervised ML classifier (XGBoost) |
+| Antigen ranking | ✓ weighted candidacy score | ✓ Select + score | ✓ protegenicity score |
+| Autoimmunity (host-homology) filter | ✓ human, mandatory | ✓ human + optional mouse | ✗ |
+| Retains virulence-negative antigens | ✓ soft funnel | ✗ hard Select removes them | ✓ score-based |
+| T-cell / MHC epitope prediction | ✓ NetMHCpan/II + processing + immunogenicity | ✓ MHC-I/II, linear, human HLA supertypes | ✗ |
+| B-cell epitope prediction | ✓ BepiPred-3.0 | ✗ | ✗ |
+| Host-specific MHC allele selection | ✓ human/mouse/cattle/pig | partial (epitopes human HLA only; mouse for safety) | ✗ |
+| Population coverage | ✓ human HLA (other hosts reported "no data") | ✓ human HLA | ✗ |
+| Multi-epitope construct | ✓ linkers + adjuvant | ✗ | ✗ |
 | In silico immunisation | ✓ | ✗ | ✗ |
-| Primary output | ranked antigens, epitopes and construct | shortlist of candidate proteins | protegenicity score per protein |
+| Primary output | ranked antigens + host-specific epitopes + construct + immunisation | PVC shortlist + T-cell epitopes / population coverage | protegenicity score per protein |
 
 **Statistical analysis.** Enrichment of ground-truth antigens among candidates was tested with the Fisher exact test, and antigen ranks with a distribution-free permutation test. Discrimination was summarised with ROC-AUC and bootstrap confidence intervals, and AUC differences with the DeLong test; because each pathogen carries only four to five positives, AUC is reported as secondary with a small-sample caveat. Overlap of host epitope sets was quantified with the Jaccard index. All tests are implemented in `benchmark/stats.py`.
 

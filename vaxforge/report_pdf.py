@@ -362,21 +362,31 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
             el.append(Paragraph(im.get("note", t(lang,"iedb_unavail")), small))
         else:
             el.append(Paragraph(
-                t(lang,"iedb_intro").format(src=im.get('source',''), n=im.get('n_matched',0), tot=im.get('n_candidates','?')), small))
-            mrows = [["#", t(lang, "col_epitope"), t(lang, "col_type"), t(lang, "col_match"),
-                      t(lang, "col_iedb_epi"), t(lang, "col_organism"), "PMID"]]
-            for i, p in enumerate(peptides, 1):
-                ie = p.metrics.get("iedb") or {}
-                if ie.get("matched") is not True:
-                    continue
+                t(lang,"iedb_intro").format(src=im.get('source',''), n_val=im.get('n_validated',0),
+                                            n_weak=im.get('n_weak',0), tot=im.get('n_candidates','?')), small))
+            el.append(Paragraph(t(lang,"iedb_caveat"), small))
+            mrows = [["#", t(lang, "col_epitope"), t(lang, "col_type"), t(lang, "col_strength"),
+                      t(lang, "col_iedb_epi"), t(lang, "col_organism"), t(lang, "col_assay"), "Ref"]]
+            matched = [(i, p, p.metrics.get("iedb") or {})
+                       for i, p in enumerate(peptides, 1)
+                       if (p.metrics.get("iedb") or {}).get("matched") is True]
+            matched.sort(key=lambda t3: (0 if t3[2].get("evidence") == "validated" else 1,
+                                         -(t3[2].get("overlap") or 0)))
+            for i, p, ie in matched:
                 pmids = ie.get("pmids") or []
-                ref = ", ".join(pmids[:3]) or (f"IEDB {ie.get('iedb_id')}" if ie.get("iedb_id") else "—")
+                ref = ", ".join(pmids[:2])
+                if ie.get("iedb_id"):
+                    ref = (ref + f", IEDB {ie.get('iedb_id')}") if ref else f"IEDB {ie.get('iedb_id')}"
                 org = (ie.get("organisms") or ["—"])[0].split(" (")[0]   # uzun suş parantezini at
-                mrows.append([str(i), P(p.seq), p.kind, P(ie.get("match_type", "")),
-                              P(ie.get("epitope_seq", "")), P(org), P(ref)])
+                assay = "; ".join((ie.get("assay_evidence") or [])[:1]) or "—"
+                ev = ie.get("evidence")
+                strength = (t(lang, "strength_validated") if ev == "validated"
+                            else t(lang, "strength_weak")) + f" ({ie.get('overlap','')})"
+                mrows.append([str(i), P(p.seq), p.kind, P(strength),
+                              P(ie.get("epitope_seq", "")), P(org), P(assay), P(ref or "—")])
             if len(mrows) > 1:
                 el.append(Spacer(1, 4))
-                el.append(tbl(mrows, widths=[0.7*cm, 2.6*cm, 1.1*cm, 2.6*cm, 3.0*cm, 3.6*cm, 2.4*cm]))
+                el.append(tbl(mrows, widths=[0.6*cm, 2.4*cm, 0.9*cm, 1.9*cm, 2.5*cm, 2.8*cm, 2.2*cm, 2.2*cm]))
             else:
                 el.append(Paragraph(f"<i>{t(lang,'iedb_none')}</i>", small))
             bm = im.get("benchmark") or {}
@@ -385,11 +395,16 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
                 el.append(Paragraph(t(lang,"iedb_val_title"), body))
                 el.append(Paragraph(
                     t(lang,"iedb_val_text").format(k=bm.get("k",8)), small))
-                brows = [[t(lang,"col_known"), t(lang,"col_captured"), t(lang,"col_recall"), t(lang,"col_pred"), t(lang,"col_pred_match"), t(lang,"col_matchrate")],
-                         [bm["n_known"], bm["n_known_hit"], f"{round(bm['recall']*100,1)}%",
+                rex = bm.get("recall_exact")
+                rex_s = f"{round(rex*100,1)}%" if rex is not None else "—"
+                brows = [[t(lang,"col_known"), t(lang,"col_captured"), t(lang,"col_recall"), t(lang,"col_recall_exact"), t(lang,"col_pred"), t(lang,"col_pred_match"), t(lang,"col_matchrate")],
+                         [bm["n_known"], bm["n_known_hit"], f"{round(bm['recall']*100,1)}%", rex_s,
                           bm["n_pred"], bm["n_pred_matched"],
                           f"{round((bm['precision_like'] or 0)*100,1)}%"]]
                 el.append(tbl(brows))
+                if bm.get("top_ref_share") and bm.get("top_ref_share") >= 0.5:
+                    el.append(Paragraph(t(lang,"iedb_ref_dominance").format(
+                        share=round(bm['top_ref_share']*100), pmid=bm.get('top_ref') or '—'), small))
 
     # -- Popülasyon kapsamı (IEDB)
     popcov = meta.get("population_coverage") or {}

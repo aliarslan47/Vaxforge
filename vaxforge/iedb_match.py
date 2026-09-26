@@ -44,6 +44,17 @@ _PAGE = 10000  # IQ-API sayfa başına maksimum satır
 METHOD = "GERÇEK (IEDB IQ-API, deneysel epitop kaydı)"
 DEFAULT_K = 8  # minimum örtüşme çekirdek uzunluğu (aa)
 
+# Kanıt gücü sınıflandırması. Birebir (exact) veya kısa tarafın tam-içerilmesi
+# = "validated" (doğrulanmış); yalnız ortak k-mer çekirdek = "weak" (zayıf benzerlik).
+# Sebep: salt paylaşılan çekirdek, tam bir bilinen epitobu yeniden üretmez; onu
+# "doğrulanmış pozitif kontrol" saymak kanıtı abartır. Bkz. Pei ve ark. denetimi.
+_VALIDATED_TYPES = {"exact", "aday_epitop_içinde", "epitop_aday_içinde"}
+
+
+def evidence_of(match_type: str) -> str:
+    """match_type -> 'validated' | 'weak'."""
+    return "validated" if match_type in _VALIDATED_TYPES else "weak"
+
 
 # --------------------------------------------------------------------------- #
 # Düşük seviye API
@@ -209,6 +220,7 @@ class Index:
         return {
             "matched": True,
             "match_type": match_type,
+            "evidence": evidence_of(match_type),
             "overlap": overlap if overlap is not None else len(query),
             "epitope_seq": rec["seq"],
             "iedb_id": rec.get("iedb_id"),
@@ -301,10 +313,13 @@ def annotate_candidates(peptides, taxon_iri: str | None = None,
             for h in hits:
                 h["pmids"] = sorted({pmap[r] for r in (h.get("reference_ids") or [])
                                      if r in pmap})
+        n_validated = sum(1 for h in hits if h.get("evidence") == "validated")
         summary = {
             "available": True, "source": source, "taxon": taxon_iri,
             "n_records": len(records), "n_candidates": len(peptides),
             "n_matched": n_matched,
+            "n_validated": n_validated,
+            "n_weak": n_matched - n_validated,
             "benchmark": benchmark([p.seq for p in peptides], records, k=k),
         }
         return summary
@@ -373,6 +388,8 @@ def benchmark(predicted_seqs: list[str], records: list[dict],
         for i in range(len(s) - k + 1):
             pred_kmers.setdefault(s[i:i + k], set()).add(pi)
 
+    pred_set = set(preds)
+
     def overlaps(ep: str) -> bool:
         for i in range(len(ep) - k + 1):
             if ep[i:i + k] in pred_kmers:
@@ -380,16 +397,37 @@ def benchmark(predicted_seqs: list[str], records: list[dict],
         # ep, bir tahminin içinde tümüyle yer alıyor mu (kısa ep için)
         return any(ep in s or s in ep for s in preds)
 
+    def overlaps_exact(ep: str) -> bool:
+        # yalnız birebir veya kısa-tarafın tam-içerilmesi (salt k-mer çekirdek sayılmaz)
+        return ep in pred_set or any(ep in s or s in ep for s in preds)
+
     hit = sum(1 for ep in known if overlaps(ep))
-    # tersi: kaç tahmin bilinen bir epitopla eşleşti
+    hit_exact = sum(1 for ep in known if overlaps_exact(ep))
+    # tersi: kaç tahmin bilinen bir epitopla eşleşti (exact/içerme = doğrulanmış)
     idx = Index(records, k=k)
-    pred_matched = sum(1 for s in preds if idx.match(s))
+    matches = [m for m in (idx.match(s) for s in preds) if m]
+    pred_matched = len(matches)
+    pred_validated = sum(1 for m in matches if m.get("evidence") == "validated")
+    # zemin şeffaflığı: tek referansın baskınlığı (döngüsellik uyarısı)
+    ref_counts: dict[int, int] = {}
+    for r in records:
+        for rid in (r.get("reference_ids") or []):
+            ref_counts[rid] = ref_counts.get(rid, 0) + 1
+    top_ref, top_ref_n = (max(ref_counts.items(), key=lambda kv: kv[1])
+                          if ref_counts else (None, 0))
     return {
         "n_known": len(known),
         "n_known_hit": hit,
+        "n_known_hit_exact": hit_exact,
         "recall": round(hit / len(known), 4) if known else None,
+        "recall_exact": round(hit_exact / len(known), 4) if known else None,
         "n_pred": len(preds),
         "n_pred_matched": pred_matched,
+        "n_pred_validated": pred_validated,
         "precision_like": round(pred_matched / len(preds), 4) if preds else None,
+        "n_refs": len(ref_counts),
+        "top_ref": top_ref,
+        "top_ref_n": top_ref_n,
+        "top_ref_share": round(top_ref_n / len(records), 4) if records else None,
         "k": k,
     }

@@ -49,8 +49,12 @@ def _candidates_df(peptides: list[Peptide], lang: str = "tr") -> pd.DataFrame:
             "allergen": p.metrics.get("allergen"),
             "toxicity": p.metrics.get("toxicity"),
             "iedb_match": _iedb_cell(p, "type"),
+            "iedb_evidence": _iedb_cell(p, "evidence"),
+            "iedb_overlap": _iedb_cell(p, "overlap"),
             "iedb_epitope": _iedb_cell(p, "epitope"),
             "iedb_organism": _iedb_cell(p, "organism"),
+            "iedb_assay": _iedb_cell(p, "assay"),
+            "iedb_id": _iedb_cell(p, "iedb_id"),
             "iedb_pmids": _iedb_cell(p, "pmids"),
             "method": method_label(p.methods.get("mhc_score"), lang),
             "passed": p.passed,
@@ -64,10 +68,18 @@ def _iedb_cell(p: Peptide, field: str):
         return "" if field != "type" else ("yok" if ie.get("matched") is False else "n/a")
     if field == "type":
         return ie.get("match_type", "eşleşme")
+    if field == "evidence":
+        return ie.get("evidence", "")
+    if field == "overlap":
+        return ie.get("overlap", "")
     if field == "epitope":
         return ie.get("epitope_seq", "")
     if field == "organism":
         return (ie.get("organisms") or [""])[0]
+    if field == "assay":
+        return ";".join(ie.get("assay_evidence") or [])
+    if field == "iedb_id":
+        return ie.get("iedb_id") or ""
     if field == "pmids":
         return ";".join(ie.get("pmids") or [])
     return ""
@@ -217,44 +229,62 @@ def _iedb_section(meta: dict, peptides) -> str:
         return (f'<h2>{t(lang,"iedb_title")}</h2>'
                 f'<div class="warn">{im.get("note", t(lang,"iedb_unavail"))}</div>')
     peptides = peptides or []
-    # eşleşen adaylar tablosu
+    # eşleşen adaylar — doğrulanmış (exact/içerme) önce, sonra zayıf benzerlik
+    matched = [(i, p, p.metrics.get("iedb") or {})
+               for i, p in enumerate(peptides, 1)
+               if (p.metrics.get("iedb") or {}).get("matched") is True]
+    matched.sort(key=lambda t3: (0 if t3[2].get("evidence") == "validated" else 1,
+                                 -(t3[2].get("overlap") or 0)))
     trs = ""
-    for i, p in enumerate(peptides, 1):
-        ie = p.metrics.get("iedb") or {}
-        if ie.get("matched") is not True:
-            continue
+    for i, p, ie in matched:
         org = "; ".join(o.split(" (")[0] for o in (ie.get("organisms") or [])[:2]) or "—"
         ag = "; ".join((ie.get("antigens") or [])[:2]) or "—"
+        assay = "; ".join((ie.get("assay_evidence") or [])[:2]) or "—"
         pmids = ie.get("pmids") or []
-        plinks = ", ".join(
-            f'<a href="https://pubmed.ncbi.nlm.nih.gov/{pm}/">{pm}</a>' for pm in pmids[:5]
-        ) or (f'<a href="https://www.iedb.org/epitope/{ie.get("iedb_id")}">IEDB {ie.get("iedb_id")}</a>'
-              if ie.get("iedb_id") else "—")
+        refs = [f'<a href="https://pubmed.ncbi.nlm.nih.gov/{pm}/">{pm}</a>' for pm in pmids[:5]]
+        if ie.get("iedb_id"):
+            refs.append(f'<a href="https://www.iedb.org/epitope/{ie.get("iedb_id")}">'
+                        f'IEDB {ie.get("iedb_id")}</a>')
+        plinks = ", ".join(refs) or "—"
+        ev = ie.get("evidence")
+        strength = t(lang, "strength_validated") if ev == "validated" else t(lang, "strength_weak")
+        color = "#1a7f37" if ev == "validated" else "#b26a00"
         trs += (f"<tr><td>#{i}</td><td class='mono'>{p.seq}</td><td>{p.kind}</td>"
+                f"<td style='color:{color};font-weight:600'>{strength}</td><td>{ie.get('overlap','')}</td>"
                 f"<td>{ie.get('match_type','')}</td><td class='mono'>{ie.get('epitope_seq','')}</td>"
-                f"<td>{org}</td><td>{ag}</td><td>{plinks}</td></tr>")
+                f"<td>{org}</td><td>{ag}</td><td>{assay}</td><td>{plinks}</td></tr>")
     if not trs:
-        trs = f"<tr><td colspan='8'><i>{t(lang,'iedb_none')}</i></td></tr>"
+        trs = f"<tr><td colspan='11'><i>{t(lang,'iedb_none')}</i></td></tr>"
     bm = im.get("benchmark") or {}
     bm_html = ""
     if bm and bm.get("recall") is not None:
         k = bm.get("k", 8)
+        dom = ""
+        if bm.get("top_ref_share") and bm.get("top_ref_share") >= 0.5:
+            dom = (f"<p class='warn' style='font-size:.82rem'>"
+                   f"{t(lang,'iedb_ref_dominance').format(share=round(bm['top_ref_share']*100), pmid=bm.get('top_ref') or '—')}</p>")
+        rex = bm.get("recall_exact")
+        rex_cell = f"<td><b>{round(rex*100,1)}%</b></td>" if rex is not None else "<td>—</td>"
         bm_html = (
             f"<h3>{t(lang,'iedb_val_title')}</h3>"
             f"<p style='font-size:.85rem'>{t(lang,'iedb_val_text').format(k=k)}</p>"
             f"<table><tr><th>{t(lang,'col_known')}</th><th>{t(lang,'col_captured')}</th>"
-            f"<th>{t(lang,'col_recall')}</th><th>{t(lang,'col_pred')}</th><th>{t(lang,'col_pred_match')}</th>"
+            f"<th>{t(lang,'col_recall')}</th><th>{t(lang,'col_recall_exact')}</th>"
+            f"<th>{t(lang,'col_pred')}</th><th>{t(lang,'col_pred_match')}</th>"
             f"<th>{t(lang,'col_matchrate')}</th></tr>"
             f"<tr><td>{bm['n_known']}</td><td>{bm['n_known_hit']}</td>"
-            f"<td><b>{round(bm['recall']*100,1)}%</b></td><td>{bm['n_pred']}</td>"
+            f"<td><b>{round(bm['recall']*100,1)}%</b></td>{rex_cell}<td>{bm['n_pred']}</td>"
             f"<td>{bm['n_pred_matched']}</td>"
-            f"<td><b>{round((bm['precision_like'] or 0)*100,1)}%</b></td></tr></table>"
+            f"<td><b>{round((bm['precision_like'] or 0)*100,1)}%</b></td></tr></table>{dom}"
         )
     return (
         f"<h2>{t(lang,'iedb_title')}</h2>"
-        f"<p style='font-size:.85rem'>{t(lang,'iedb_intro').format(src=im.get('source',''), n=im.get('n_matched',0), tot=im.get('n_candidates','?'))}</p>"
-        f"<table><tr><th>{t(lang,'col_order')}</th><th>{t(lang,'col_candidate')}</th><th>{t(lang,'col_type')}</th><th>{t(lang,'col_match')}</th>"
-        f"<th>{t(lang,'col_iedb_epi')}</th><th>{t(lang,'col_organism')}</th><th>{t(lang,'col_antigen')}</th><th>{t(lang,'col_reference')}</th></tr>"
+        f"<p style='font-size:.85rem'>{t(lang,'iedb_intro').format(src=im.get('source',''), n_val=im.get('n_validated',0), n_weak=im.get('n_weak',0), tot=im.get('n_candidates','?'))}</p>"
+        f"<p class='warn' style='font-size:.82rem'>{t(lang,'iedb_caveat')}</p>"
+        f"<table><tr><th>{t(lang,'col_order')}</th><th>{t(lang,'col_candidate')}</th><th>{t(lang,'col_type')}</th>"
+        f"<th>{t(lang,'col_strength')}</th><th>{t(lang,'col_overlap')}</th><th>{t(lang,'col_match')}</th>"
+        f"<th>{t(lang,'col_iedb_epi')}</th><th>{t(lang,'col_organism')}</th><th>{t(lang,'col_antigen')}</th>"
+        f"<th>{t(lang,'col_assay')}</th><th>{t(lang,'col_reference')}</th></tr>"
         f"{trs}</table>{bm_html}"
     )
 

@@ -131,28 +131,31 @@ STRINGS: dict[str, dict[str, str]] = {
                            "en": "IEDB literature / known-epitope screening"},
     "iedb_none":          {"tr": "Hiçbir aday bilinen IEDB epitobuyla eşleşmedi.",
                            "en": "No candidate matched a known IEDB epitope."},
-    "iedb_intro":         {"tr": "Kaynak: {src} · eşleşen aday: <b>{n}/{tot}</b>. Eşleşme, adayın deneysel "
-                                 "doğrulanmış bir epitopla (exact/içerme/ortak çekirdek) örtüştüğünü gösterir "
-                                 "— güçlü pozitif kontrol sinyali. Bu adım adaylık puanını <b>değiştirmez</b> "
-                                 "(salt yorumlama).",
-                           "en": "Source: {src} · matched candidates: <b>{n}/{tot}</b>. A match means the "
-                                 "candidate overlaps an experimentally validated epitope (exact/containment/"
-                                 "shared core) — a strong positive-control signal. This step does <b>not</b> "
-                                 "change the candidacy score (interpretation only)."},
+    "iedb_intro":         {"tr": "Kaynak: {src} · doğrulanmış eşleşme: <b>{n_val}/{tot}</b> "
+                                 "(exact veya kısa tarafın tam-içerilmesi), ayrıca zayıf benzerlik: "
+                                 "<b>{n_weak}</b> (yalnız ortak çekirdek). Yalnız <b>doğrulanmış</b> eşleşmeler "
+                                 "pozitif kontrol sayılır; zayıf benzerlik tam bir bilinen epitobu yeniden "
+                                 "üretmez. Bu adım adaylık puanını <b>değiştirmez</b> (salt yorumlama).",
+                           "en": "Source: {src} · validated matches: <b>{n_val}/{tot}</b> "
+                                 "(exact or full containment of the shorter side), plus weak similarity: "
+                                 "<b>{n_weak}</b> (shared core only). Only <b>validated</b> matches count as "
+                                 "positive controls; a weak similarity does not reproduce a full known epitope. "
+                                 "This step does <b>not</b> change the candidacy score (interpretation only)."},
     "iedb_val_title":     {"tr": "Validasyon — bilinen epitop recall'ü",
                            "en": "Validation — known-epitope recall"},
     "iedb_val_text":      {"tr": "Bu organizma için IEDB'de deneysel doğrulanmış lineer epitoplar 'ground "
-                                 "truth' alınır; pipeline'ın tahminleri bunlarla örtüşme (≥{k} aa ortak "
-                                 "çekirdek / içerme / exact) üzerinden değerlendirilir. NOT: pipeline seçici "
+                                 "truth' alınır. İki recall gösterilir: gevşek (≥{k} aa ortak çekirdek / "
+                                 "içerme / exact) ve <b>tam</b> (yalnız exact/içerme). NOT: pipeline seçici "
                                  "olarak KISA bir öncelik listesi üretir; bu yüzden tüm epitop kataloğuna "
-                                 "karşı recall doğası gereği düşüktür — asıl anlamlı ölçüt, adayların ne "
-                                 "kadarının deneysel doğrulanmış olduğudur (eşleşme oranı).",
+                                 "karşı recall doğası gereği düşüktür. Ayrıca zemin tek bir referansa "
+                                 "yığılabilir (aşağıdaki uyarıya bakın), bu durumda ölçüt döngüselliğe eğilimlidir.",
                            "en": "For this organism, experimentally validated linear epitopes in IEDB are "
-                                 "taken as ground truth; the pipeline's predictions are evaluated by overlap "
-                                 "(≥{k} aa shared core / containment / exact). NOTE: the pipeline "
-                                 "deliberately produces a SHORT priority list; thus recall against the full "
-                                 "epitope catalog is inherently low — the meaningful metric is what fraction "
-                                 "of candidates are experimentally validated (match rate)."},
+                                 "taken as ground truth. Two recalls are shown: loose (≥{k} aa shared core / "
+                                 "containment / exact) and <b>exact</b> (exact/containment only). NOTE: the "
+                                 "pipeline deliberately produces a SHORT priority list; thus recall against "
+                                 "the full catalog is inherently low. The ground truth may also be dominated "
+                                 "by a single reference (see caveat below), which biases the metric toward "
+                                 "circularity."},
     "col_order":          {"tr": "Sıra", "en": "Rank"},
     "col_candidate":      {"tr": "Aday peptit", "en": "Candidate peptide"},
     "col_match":          {"tr": "Eşleşme", "en": "Match"},
@@ -162,6 +165,22 @@ STRINGS: dict[str, dict[str, str]] = {
     "col_pred":           {"tr": "Tahmin (aday)", "en": "Predicted (candidates)"},
     "col_pred_match":     {"tr": "Bilinene eşleşen aday", "en": "Candidates matching known"},
     "col_matchrate":      {"tr": "Eşleşme oranı", "en": "Match rate"},
+    "col_strength":       {"tr": "Kanıt gücü", "en": "Evidence"},
+    "col_overlap":        {"tr": "Örtüşme (aa)", "en": "Overlap (aa)"},
+    "col_assay":          {"tr": "Assay", "en": "Assay"},
+    "col_recall_exact":   {"tr": "Recall (tam)", "en": "Recall (exact)"},
+    "strength_validated": {"tr": "Tam", "en": "Validated"},
+    "strength_weak":      {"tr": "Kısmi", "en": "Weak"},
+    "iedb_caveat":        {"tr": "Not: Eşleşme, IEDB'nin ilgili referans için yatırdığı kayda dayanır; "
+                                 "dizi makalenin basılı tablosunda görünmeyebilir — IEDB kayıt kimliğinden "
+                                 "doğrulayın.",
+                           "en": "Note: A match is based on IEDB's deposited record for the cited reference; "
+                                 "the sequence may not appear in the article's printed table — verify via the "
+                                 "IEDB entry ID."},
+    "iedb_ref_dominance": {"tr": "Zemin uyarısı: bu organizmanın IEDB epitoplarının {share}%'i tek referanstan "
+                                 "(PMID {pmid}) — recall/eşleşme oranı bu kaynağa göre yorumlanmalı.",
+                           "en": "Ground-truth caveat: {share}% of this organism's IEDB epitopes come from a "
+                                 "single reference (PMID {pmid}) — recall/match rate should be read accordingly."},
     # ---- Popülasyon bölümü ----
     "pop_title":          {"tr": "Popülasyon kapsamı (IEDB HLA frekansları)",
                            "en": "Population coverage (IEDB HLA frequencies)"},
