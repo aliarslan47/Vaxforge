@@ -29,7 +29,7 @@ Plan dosyası: `~/.claude/plans/tender-munching-thacker.md`
 | 6 | VaxiJen antijenite çapraz-kontrol | #4 | ✅ | ✓ |
 | 7 | BLOSUM tabanlı kısmi mimikri | #5 | ✅ | ✓ |
 | 8 | Otomatik çok-suş konservasyonu | #6 | ✅ | ✓ |
-| 9 | Otoimmünite konak-DB genişletme | #9 | ⬜ | — |
+| 9 | Otoimmünite konak-DB genişletme | #9 | ✅ | ✓ |
 | 10 | Türe-özgü ImmForge kalibrasyonu | #11 | ⬜ | — |
 | 11 | Kapsamlı birim test paketi | #10 | ⬜ | — |
 
@@ -74,5 +74,10 @@ Durum: ⬜ bekliyor · 🔨 sürüyor · ✅ bitti
   ağ varsa otomatik 3 suş çeker → conservation koşar. Rapor `_conservation_section` + Next.js
   ConservationCard + Streamlit + runner katalog. CANLI test geçti (M. genitalium GCF_040556925.1
   219KB indirildi). tsc temiz.
-- **Sıradaki: Faz 9 (otoimmünite konak-DB genişletme)** — seçili konakta proteom DB yoksa
-  UniProt'tan otomatik indir + diamond DB (tools/db/); yoksa dürüst 'atlandı'.
+- **2026-09-27 Faz 9 ✅**: `vaxforge/host_db.py` — DB'si olmayan konak için UniProt reviewed
+  (Swiss-Prot) proteomu indir + diamond makedb (isim→taxid haritası; Host.taxid önceliklidir).
+  funnel _self_homology öncesi eksik DB'leri otomatik sağlar; summary self_homoloji'ye
+  'otomatik sağlandı' notu (Faz1 altyapısıyla rapor/UI'de görünür). runner katalog satırı.
+  CANLI test: tavşan (9986) → 980 protein Swiss-Prot + diamond DB (539KB). tsc temiz.
+- **Sıradaki: Faz 10 (türe-özgü ImmForge kalibrasyonu)** — immforge_score human-proxy'ye düşen
+  konaklar için tür-özgü parametreler; en az fare+insan gerçek, diğerleri açık 'proxy' notu.

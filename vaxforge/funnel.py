@@ -15,7 +15,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-from . import antigen_acc, deeploc, iapred, psortb, signalp, tmhmm_local, vaxijen
+from . import antigen_acc, deeploc, host_db, iapred, psortb, signalp, tmhmm_local, vaxijen
 from .config_loader import ResolvedTool
 from .hosts import Host
 from .models import ProteinRecord
@@ -125,6 +125,19 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
     hh_ev = float(tools["human_homology"].params["evalue"].value)
 
     survivors: list[ProteinRecord] = []
+    # -- FAZ 9: DB'si olmayan seçili konaklar için otomatik proteom DB sağla (UniProt).
+    # Otoimmünite filtresi her konak için çalışabilsin; ağ/diamond yoksa dürüstçe atlanır.
+    hh_provisioned: list[str] = []
+    for h in hosts:
+        if not (h.homology_db and (_TOOLS / h.homology_db).exists()):
+            try:
+                res = host_db.ensure(h.name, getattr(h, "taxid", None))
+                if res.get("ok") and res.get("path"):
+                    h.homology_db = res["path"]
+                    if res.get("provisioned"):
+                        hh_provisioned.append(f"{h.label} ({res.get('n_proteins','?')} protein)")
+            except Exception:
+                pass
     # -- host-driven self-homoloji (otoimmünite) — seçili her konak
     hh_data, hh_scanned, hh_missing = _self_homology(proteins, hosts, hh_ev)
     hh_available = bool(hh_scanned)
@@ -263,6 +276,8 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
                  else "ÇALIŞTIRILMADI (seçili konaklarda DB yok)")
     if hh_missing:
         hh_method += f" · DB'siz: {', '.join(hh_missing)}"
+    if hh_provisioned:
+        hh_method += f" · otomatik sağlandı: {', '.join(hh_provisioned)}"
     summary = {
         "girdi": len(proteins), "hayatta": len(survivors),
         "lokalizasyon": loc_method + (f" [sert:{profile}]" if loc_hard else f" [yumuşak:{profile}]"),

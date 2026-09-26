@@ -57,6 +57,8 @@ _PIPELINE_STEPS = [
      "N-X-S/T sequon + O Ser/Thr heuristik", None),
     ("mimicry", "mimicry", "Moleküler mimikri (otoimmünite)", "Molecular mimicry (autoimmunity)",
      "Tam k-mer + BLOSUM62 Hamming-1 kısmi", None),
+    ("autoimmunity", "host_db", "Otoimmünite (öz-homoloji)", "Autoimmunity (self-homology)",
+     "diamond blastp → konak proteomu (UniProt otomatik DB)", "atlanır (konak DB yok / çevrimdışı)"),
     ("mhc", "netmhc_local", "MHC-I/II bağlanma", "MHC-I/II binding",
      "NetMHCpan / NetMHCIIpan", "SMM/proxy bağlanma"),
     ("allergen", "allergen", "Alerjenite", "Allergenicity",
