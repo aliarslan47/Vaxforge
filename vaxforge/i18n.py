@@ -275,6 +275,8 @@ STRINGS: dict[str, dict[str, str]] = {
     "meth_signal":        {"tr": "Sinyal peptidi", "en": "Signal peptide"},
     "meth_antigenicity":  {"tr": "Antijenite", "en": "Antigenicity"},
     "meth_homology":      {"tr": "Öz-homoloji (otoimmünite)", "en": "Self-homology (autoimmunity)"},
+    "meth_antigenicity_vaxijen": {"tr": "Antijenite — 2. kanıt (VaxiJen-ACC)",
+                                  "en": "Antigenicity — 2nd evidence (VaxiJen-ACC)"},
 }
 
 # Dinamik 'method' etiketlerini (pipeline TR üretir) EN'e çeviren token haritası.

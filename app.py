@@ -402,6 +402,7 @@ if st.button(t(lang,"run_start"), type="primary"):
                 ("Transmembran topoloji", fmeth.get("transmembran")),
                 ("Sinyal peptidi", fmeth.get("sinyal_peptidi")),
                 ("Antijenite", fmeth.get("antijenite")),
+                ("Antijenite — 2. kanıt (VaxiJen-ACC)", fmeth.get("antijenite_caprazkontrol")),
                 ("Öz-homoloji (otoimmünite)", fmeth.get("self_homoloji")),
             ]
             st.dataframe(

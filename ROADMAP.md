@@ -26,7 +26,7 @@ Plan dosyası: `~/.claude/plans/tender-munching-thacker.md`
 | 3 | ESMFold yapı + konformasyonel B + RSA | #1 | ✅ | ✓ |
 | 4 | Glikozilasyon + glikan-maskeli epitop | #2 | ✅ | ✓ |
 | 5 | Kodon optimizasyonu + in silico klonlama | #3 | ✅ | ✓ |
-| 6 | VaxiJen antijenite çapraz-kontrol | #4 | ⬜ | — |
+| 6 | VaxiJen antijenite çapraz-kontrol | #4 | ✅ | ✓ |
 | 7 | BLOSUM tabanlı kısmi mimikri | #5 | ⬜ | — |
 | 8 | Otomatik çok-suş konservasyonu | #6 | ⬜ | — |
 | 9 | Otoimmünite konak-DB genişletme | #9 | ⬜ | — |
@@ -60,5 +60,10 @@ Durum: ⬜ bekliyor · 🔨 sürüyor · ✅ bitti
   kodon ters-translasyon, CAI (Sharp&Li), GC%, Bio.Restriction iç bölge taraması (8 enzim),
   pET-28a(+) His6 vektör/etiket önerisi. Pipeline 'cloning' aşaması (MEV sonrası). Rapor
   `_cloning_section` + Next.js CloningCard + Streamlit + runner katalog. tsc temiz; CAI/GC doğrulandı.
-- **Sıradaki: Faz 6 (VaxiJen çapraz-kontrol)** — funnel antijenite zincirine opsiyonel VaxiJen
-  (web API) çapraz-kontrol; IApred yanında ikinci kanıt. meta['antigenicity_vaxijen'].
+- **2026-09-27 Faz 6 ✅**: `vaxforge/vaxijen.py` — VaxiJen'in yayınlanmış özellik yöntemi
+  (antigen_acc: z-ölçek+ACC+lojistik) BAĞIMSIZ 2. antijenite kanıtı; canlı sunucu 403-toleranslı
+  (ARAÇ_YOK). funnel her adaya VaxiJen-ACC skoru + IApred ile UYUM sayacı; funnel_methods
+  ['antijenite_caprazkontrol']. Rapor/UI methods tablolarına satır eklendi (Faz1 altyapısı) +
+  runner katalog. tsc temiz.
+- **Sıradaki: Faz 7 (BLOSUM mimikri)** — `mimicry.py`: tam k-mer yanında BLOSUM62 benzerlik
+  tabanlı kısmi otoimmünite mimikri (Biopython); yumuşak.

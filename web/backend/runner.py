@@ -47,6 +47,8 @@ _PIPELINE_STEPS = [
      "SignalP-5.0", "Heuristik sinyal skoru"),
     ("antigenicity", "iapred", "Antijenite", "Antigenicity",
      "IApred (Miles 2025)", "antigen_acc (VaxiJen-tarzı proxy)"),
+    ("antigenicity_vaxijen", "vaxijen", "Antijenite — 2. kanıt (VaxiJen)",
+     "Antigenicity — 2nd (VaxiJen)", "VaxiJen-tarzı ACC (bağımsız çapraz-kontrol)", None),
     ("bcell", "bepipred", "B-hücre epitop", "B-cell epitope",
      "BepiPred-1.0", "Parker hidrofilisite"),
     ("glycosylation", "glyco", "Glikozilasyon (glikan-maske)", "Glycosylation (glycan-mask)",

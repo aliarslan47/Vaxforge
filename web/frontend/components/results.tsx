@@ -77,6 +77,7 @@ export function MethodsUsed({ methods }: { methods: Record<string, string> }) {
     transmembran: ["Transmembran topoloji", "Transmembrane topology"],
     sinyal_peptidi: ["Sinyal peptidi", "Signal peptide"],
     antijenite: ["Antijenite", "Antigenicity"],
+    antijenite_caprazkontrol: ["Antijenite — 2. kanıt (VaxiJen-ACC)", "Antigenicity — 2nd evidence (VaxiJen-ACC)"],
     self_homoloji: ["Öz-homoloji (otoimmünite)", "Self-homology (autoimmunity)"],
   };
   const rows = Object.keys(LABELS).filter((k) => methods[k]);

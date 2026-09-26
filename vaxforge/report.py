@@ -509,6 +509,7 @@ def _methods_section(meta: dict) -> str:
         ("meth_tm", fm.get("transmembran")),
         ("meth_signal", fm.get("sinyal_peptidi")),
         ("meth_antigenicity", fm.get("antijenite")),
+        ("meth_antigenicity_vaxijen", fm.get("antijenite_caprazkontrol")),
         ("meth_homology", fm.get("self_homoloji")),
     ]
     trs = "".join(

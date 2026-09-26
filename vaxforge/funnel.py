@@ -15,7 +15,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-from . import antigen_acc, deeploc, iapred, psortb, signalp, tmhmm_local
+from . import antigen_acc, deeploc, iapred, psortb, signalp, tmhmm_local, vaxijen
 from .config_loader import ResolvedTool
 from .hosts import Host
 from .models import ProteinRecord
@@ -141,6 +141,8 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
     ia_available = iapred.available()
     ia_res = iapred.predict(seq_pairs) if ia_available else {}
     ag_available = antigen_acc.available()
+    vj_available = vaxijen.available()   # FAZ 6: VaxiJen-tarzı ACC — 2. antijenite kanıtı
+    n_vj_agree = 0
     for pr in proteins:
         # -- lokalizasyon: PSORTb (prokaryota-özel) > heuristik (KD+sinyal)
         if psortb_ok and pr.id in psortb_real:
@@ -187,6 +189,18 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
             "antigenicity": ag,
             "method_antigenicity": ag_method,
         })
+
+        # -- FAZ 6: VaxiJen çapraz-kontrol — bağımsız 2. antijenite kanıtı.
+        # IApred birincil ise VaxiJen-ACC bağımsız doğrular; iki sinyal uyuşursa güven artar.
+        if vj_available:
+            vj = vaxijen.local_score(pr.seq)
+            pr.annotations["antigenicity_vaxijen"] = vj["score"]
+            pr.annotations["antigenic_vaxijen"] = vj["antigenic"]
+            pr.annotations["method_antigenicity_vaxijen"] = vj["method"]
+            # iki bağımsız yöntem aynı yönde mi? (her ikisi de antijenik / değil)
+            primary_antigenic = ag >= vaxijen_thr
+            if primary_antigenic == vj["antigenic"]:
+                n_vj_agree += 1
 
         # -- sert (yalnız bakteride): lokalizasyon
         if loc_hard and loc == "unknown":
@@ -255,6 +269,9 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
         "transmembran": "GERÇEK (TMHMM-2.0)" if tm_available else "Kyte-Doolittle (klasik)",
         "sinyal_peptidi": "GERÇEK (SignalP-5.0)" if sp_available else "heuristik",
         "antijenite": "GERÇEK (IApred)" if ia_available else ("z-ACC model" if ag_available else "heuristik"),
+        "antijenite_caprazkontrol": (
+            f"GERÇEK (VaxiJen-tarzı ACC — 2. kanıt) · {n_vj_agree}/{len(proteins)} adayda IApred ile uyumlu"
+            if vj_available else "ÇALIŞTIRILMADI (VaxiJen-ACC modeli yok)"),
         "self_homoloji": hh_method,
     }
     return survivors, summary
