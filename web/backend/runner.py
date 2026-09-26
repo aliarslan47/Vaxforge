@@ -70,6 +70,8 @@ _PIPELINE_STEPS = [
      "ImmForge (ABM+ODE) · NetMHCpan", "atlanır (NetMHCpan yok)"),
     ("structure", "structure", "Yapısal doğrulama (ESMFold)", "Structural validation (ESMFold)",
      "ESMFold (ESMAtlas API) · pLDDT+RSA+konformasyonel B", "ARAÇ_YOK (çevrimdışı / >400 aa)"),
+    ("cloning", "cloning", "In silico klonlama (kodon)", "In silico cloning (codon)",
+     "Kodon-opt (Kazusa E. coli) + CAI + restriksiyon + pET", None),
 ]
 
 

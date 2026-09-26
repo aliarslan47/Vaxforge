@@ -25,7 +25,7 @@ Plan dosyası: `~/.claude/plans/tender-munching-thacker.md`
 | 2 | DeepLoc2 lokalizasyon (ökaryot/virüs) | #8 | ✅ | ✓ |
 | 3 | ESMFold yapı + konformasyonel B + RSA | #1 | ✅ | ✓ |
 | 4 | Glikozilasyon + glikan-maskeli epitop | #2 | ✅ | ✓ |
-| 5 | Kodon optimizasyonu + in silico klonlama | #3 | ⬜ | — |
+| 5 | Kodon optimizasyonu + in silico klonlama | #3 | ✅ | ✓ |
 | 6 | VaxiJen antijenite çapraz-kontrol | #4 | ⬜ | — |
 | 7 | BLOSUM tabanlı kısmi mimikri | #5 | ⬜ | — |
 | 8 | Otomatik çok-suş konservasyonu | #6 | ⬜ | — |
@@ -56,5 +56,9 @@ Durum: ⬜ bekliyor · 🔨 sürüyor · ✅ bitti
   heuristik. Pipeline mimikri sonrası 'glycosylation' aşaması B-epitopları işaretler (YUMUŞAK,
   elenmez); meta['glycosylation']. Rapor `_glyco_section` + Next.js GlycoCard + Streamlit paneli
   + runner katalog. tsc temiz. Doğrulandı (N-sequon saptama).
-- **Sıradaki: Faz 5 (kodon opt + in silico klonlama)** — `vaxforge/cloning.py`: MEV dizisi →
-  konak kodon-adaptasyonu (CAI), GC%, ters-translasyon, restriksiyon bölgesi, pET vektör. Saf Python.
+- **2026-09-27 Faz 5 ✅**: `vaxforge/cloning.py` — E. coli K-12 kodon tablosu (Kazusa), en-sık
+  kodon ters-translasyon, CAI (Sharp&Li), GC%, Bio.Restriction iç bölge taraması (8 enzim),
+  pET-28a(+) His6 vektör/etiket önerisi. Pipeline 'cloning' aşaması (MEV sonrası). Rapor
+  `_cloning_section` + Next.js CloningCard + Streamlit + runner katalog. tsc temiz; CAI/GC doğrulandı.
+- **Sıradaki: Faz 6 (VaxiJen çapraz-kontrol)** — funnel antijenite zincirine opsiyonel VaxiJen
+  (web API) çapraz-kontrol; IApred yanında ikinci kanıt. meta['antigenicity_vaxijen'].

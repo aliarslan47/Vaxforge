@@ -266,6 +266,26 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
             meta["structure"] = None
             yield _ev("structure", "done", f"Yapısal doğrulama atlandı ({type(e).__name__})", {})
 
+    # 6e-3) IN SILICO KLONLAMA — MEV proteini E. coli kodonlarına uyarlanır (CAI),
+    # GC% + iç restriksiyon bölgeleri + pET vektör/etiket önerisi. Üretilebilirlik halkası.
+    mev_seq_cl = (meta.get("mev") or {}).get("sequence")
+    if mev_seq_cl:
+        yield _ev("cloning", "running",
+                  "In silico klonlama (kodon-optimizasyon · CAI · restriksiyon · vektör)…")
+        try:
+            from . import cloning
+            cl = cloning.run(mev_seq_cl, host="ecoli")
+            meta["cloning"] = cl
+            if cl:
+                yield _ev("cloning", "done",
+                          f"Klonlama: {cl['dna_len_bp']} bp · CAI {cl['cai']} · GC %{cl['gc_percent']} · "
+                          f"iç kesim {cl['n_internal_sites']} · {cl['suggested_vector']}", cl)
+            else:
+                yield _ev("cloning", "done", "Klonlama atlandı (dizi yok)", {})
+        except Exception as e:  # opsiyonel: pipeline'ı düşürmesin
+            meta["cloning"] = None
+            yield _ev("cloning", "done", f"Klonlama atlandı ({type(e).__name__})", {})
+
     # 6f) İMMÜNİZASYON TESTİ — ImmForge: aday MEV in silico immünize edilir → OLUR/OLMAZ.
     # Ters aşı bilişimi döngü kapanışı: konak MHC allelleri için GERÇEK NetMHCpan → motor → karar.
     mev_seq = (meta.get("mev") or {}).get("sequence")

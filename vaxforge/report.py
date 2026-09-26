@@ -459,6 +459,40 @@ def _glyco_section(meta: dict) -> str:
     )
 
 
+def _cloning_section(meta: dict) -> str:
+    """In silico klonlama — kodon optimizasyonu + CAI + restriksiyon + vektör (Faz 5)."""
+    cl = meta.get("cloning")
+    if not cl or not cl.get("available"):
+        return ""
+    is_en = meta.get("lang", "tr") == "en"
+    ttl = "In silico cloning — codon optimization" if is_en else "In silico klonlama — kodon optimizasyonu"
+    disc = ("Codon-optimized for E. coli (Kazusa); CAI/GC computed. PREDICTION — not a "
+            "guarantee of expression. Internal restriction sites break classic cloning." if is_en else
+            "E. coli için kodon-optimize (Kazusa); CAI/GC hesaplandı. ÖNGÖRÜ — ekspresyon "
+            "garantisi değil. İç restriksiyon bölgeleri klasik klonlamayı bozar.")
+    sites = cl.get("restriction_sites") or {}
+    sites_str = ", ".join(f"{e}×{len(p)}" for e, p in sites.items()) or ("none" if is_en else "yok")
+    rows = [
+        (("Host" if is_en else "Konak"), cl.get("host", "—")),
+        (("Protein length (aa)" if is_en else "Protein (aa)"), cl.get("protein_len", "—")),
+        (("DNA length (bp)" if is_en else "DNA (bp)"), cl.get("dna_len_bp", "—")),
+        ("CAI", cl.get("cai", "—")),
+        ("GC %", f"{cl.get('gc_percent', '—')}%"),
+        (("Internal restriction sites" if is_en else "İç restriksiyon bölgeleri"), sites_str),
+        (("Suggested vector" if is_en else "Önerilen vektör"), cl.get("suggested_vector", "—")),
+        (("Tag / strategy" if is_en else "Etiket / strateji"), cl.get("tag", "—")),
+    ]
+    trs = "".join(f"<tr><td>{k}</td><td>{v}</td></tr>" for k, v in rows)
+    dna = cl.get("dna", "")
+    dna_prev = (dna[:120] + "…") if len(dna) > 120 else dna
+    return (
+        f"<h2>🧫 {ttl}</h2>"
+        f"<p style='font-size:.8rem;background:#eef6ff;border:1px solid #9cc3e6;padding:.5rem;border-radius:6px'>ℹ {disc}</p>"
+        f"<table>{trs}</table>"
+        f"<p class='mono' style='margin-top:.4rem'>5'-{dna_prev}-3'</p>"
+    )
+
+
 def _methods_section(meta: dict) -> str:
     """Kullanılan yöntemler — funnel özetinden GERÇEK/vekil araç etiketleri (Faz 1).
 
@@ -512,6 +546,7 @@ def _html(df: pd.DataFrame, meta: dict, peptides=None) -> str:
     immuno_html = _immuno_section(meta)
     structure_html = _structure_section(meta)
     glyco_html = _glyco_section(meta)
+    cloning_html = _cloning_section(meta)
     methods_html = _methods_section(meta)
     popcov = meta.get("population_coverage") or {}
     pop_html = ""
@@ -575,6 +610,7 @@ summary{{cursor:pointer;font-size:.95rem}}</style></head><body>
 
 {mev_html}
 {structure_html}
+{cloning_html}
 {glyco_html}
 {immuno_html}
 

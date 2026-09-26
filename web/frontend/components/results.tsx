@@ -454,6 +454,57 @@ export function MevConstruct({ mev }: { mev: MevData }) {
   );
 }
 
+// ---------- In silico klonlama (kodon optimizasyonu — Faz 5) ----------
+export function CloningCard({ cloning }: { cloning: any }) {
+  const { lang } = useLang();
+  if (!cloning || cloning.available === false) return null;
+  const sites = cloning.restriction_sites ?? {};
+  const siteStr = Object.entries(sites).map(([e, p]: [string, any]) => `${e}×${p.length}`).join(", ")
+    || (lang === "tr" ? "yok" : "none");
+  const caiTone = typeof cloning.cai === "number" ? (cloning.cai >= 0.8 ? "ok" : "warn") : undefined;
+  const gc = cloning.gc_percent;
+  const gcTone = typeof gc === "number" ? (gc >= 30 && gc <= 70 ? "ok" : "warn") : undefined;
+  return (
+    <Card className="p-5 sm:p-6">
+      <div className="flex items-center gap-2.5">
+        <span className="grid h-9 w-9 place-items-center rounded-xl bg-bio/10 ring-1 ring-bio/25">
+          <FileCode2 className="h-5 w-5 text-bio-soft" />
+        </span>
+        <div>
+          <h3 className="font-display text-lg font-semibold text-fg">
+            {lang === "tr" ? "In silico klonlama — kodon optimizasyonu" : "In silico cloning — codon optimization"}
+          </h3>
+          <p className="text-xs text-fg-muted">
+            {lang === "tr"
+              ? "MEV proteini E. coli kodonlarına uyarlandı (üretilebilirlik) — öngörü."
+              : "MEV protein codon-optimized for E. coli (manufacturability) — prediction."}
+          </p>
+        </div>
+      </div>
+      <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+        <PropStat label={lang === "tr" ? "DNA (bp)" : "DNA (bp)"} value={cloning.dna_len_bp ?? "—"} />
+        <PropStat label="CAI" value={cloning.cai ?? "—"} tone={caiTone} />
+        <PropStat label="GC %" value={`${gc ?? "—"}%`} tone={gcTone} />
+        <PropStat label={lang === "tr" ? "İç kesim" : "Internal cuts"} value={cloning.n_internal_sites ?? "—"} tone={(cloning.n_internal_sites ?? 0) > 0 ? "warn" : "ok"} />
+      </div>
+      <div className="mt-3 space-y-1 text-[12px] text-fg-muted">
+        <div>{lang === "tr" ? "Konak" : "Host"}: <span className="text-fg">{cloning.host}</span></div>
+        <div>{lang === "tr" ? "Restriksiyon" : "Restriction"}: <span className="font-mono text-fg">{siteStr}</span></div>
+        <div>{lang === "tr" ? "Vektör" : "Vector"}: <span className="text-fg">{cloning.suggested_vector}</span> · {cloning.tag}</div>
+      </div>
+      {cloning.dna && (
+        <div className="mt-3">
+          <div className="mb-1 text-[11px] uppercase tracking-wide text-fg-faint">{lang === "tr" ? "Optimize DNA" : "Optimized DNA"}</div>
+          <div className="max-h-24 overflow-y-auto rounded-lg border border-line bg-ink/40 p-2.5 font-mono text-[11px] leading-relaxed tracking-wide text-fg-muted break-all">
+            5'-{cloning.dna}-3'
+          </div>
+        </div>
+      )}
+      {cloning.note && <p className="mt-2 text-[10.5px] leading-snug text-fg-faint">{cloning.note}</p>}
+    </Card>
+  );
+}
+
 // ---------- Glikozilasyon (glikan-maskeli epitop — Faz 4) ----------
 export function GlycoCard({ glyco }: { glyco: any }) {
   const { lang } = useLang();

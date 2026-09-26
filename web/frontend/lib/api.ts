@@ -131,6 +131,7 @@ export interface RunDetail {
   funnel_methods?: Record<string, string>;
   structure?: any;
   glycosylation?: any;
+  cloning?: any;
   [key: string]: unknown;
 }
 export interface SSEEvent {

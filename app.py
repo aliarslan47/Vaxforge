@@ -539,6 +539,22 @@ if st.button(t(lang,"run_start"), type="primary"):
                               f"{round((bm['precision_like'] or 0)*100,1)}%",
                               f"{bm['n_pred_matched']}/{bm['n_pred']}")
 
+        # --- In silico klonlama (kodon optimizasyonu — Faz 5) ---------------
+        cln = rmeta.get("cloning")
+        if cln and cln.get("available"):
+            st.subheader("🧫 In silico klonlama — kodon optimizasyonu")
+            st.caption(f"MEV proteini {cln.get('host','E. coli')} kodonlarına uyarlandı. "
+                       "CAI>0.8 iyi ekspresyon beklentisi; GC %30-70 tercih. İç restriksiyon "
+                       "bölgeleri klasik klonlamayı bozar. Öngörü — ekspresyon garantisi değil.")
+            c1, c2, c3, c4 = st.columns(4)
+            c1.metric("DNA (bp)", cln.get("dna_len_bp", "—"))
+            c2.metric("CAI", cln.get("cai", "—"))
+            c3.metric("GC %", f"{cln.get('gc_percent','—')}%")
+            c4.metric("İç kesim", cln.get("n_internal_sites", "—"))
+            _sites = cln.get("restriction_sites") or {}
+            _sstr = ", ".join(f"{e}×{len(p)}" for e, p in _sites.items()) or "yok"
+            st.write(f"**Restriksiyon:** {_sstr} · **Vektör:** {cln.get('suggested_vector','—')} · {cln.get('tag','')}")
+
         # --- Glikozilasyon (glikan-maskeli epitop — Faz 4) ------------------
         gly = rmeta.get("glycosylation")
         if gly and gly.get("available"):
