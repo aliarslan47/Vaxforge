@@ -206,6 +206,51 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
         meta["mev"] = None
         yield _ev("mev", "done", f"MEV atlandı ({type(e).__name__})", {})
 
+    # 6e-2) YAPISAL DOĞRULAMA — ESMFold (ESMAtlas API) → pLDDT (katlanma güveni) +
+    # RSA (yüzey erişilebilirliği) + konformasyonel/yüzey B-epitop yamaları. MEV
+    # konstruktun DÜZGÜN KATLANIP KATLANMADIĞINI ve B-epitopların yüzeye açık olup
+    # olmadığını sayısal doğrular. Ağ yok / >400 aa → dürüst ARAÇ_YOK (uydurma yok).
+    mev_seq_st = (meta.get("mev") or {}).get("sequence")
+    if mev_seq_st:
+        yield _ev("structure", "running",
+                  "Yapısal doğrulama (ESMFold · ESMAtlas → pLDDT / RSA / konformasyonel B)…")
+        try:
+            from . import bcell_conf, rsa as rsa_mod, structure
+            st = None
+            note = ""
+            if not structure.available():
+                note = "ESMAtlas erişilemedi (çevrimdışı) — yapı öngörülmedi (ARAÇ_YOK)"
+            else:
+                pred = structure.predict(mev_seq_st)
+                if not pred:
+                    note = (f"MEV {len(mev_seq_st)} aa > {structure.MAX_LEN} aa (ESMAtlas sınırı) "
+                            "— yapı öngörülmedi" if len(mev_seq_st) > structure.MAX_LEN
+                            else "ESMFold öngörüsü alınamadı (API hatası)")
+                else:
+                    rsa_list = rsa_mod.rsa_from_pdb(pred["pdb"])
+                    surf = rsa_mod.surface_summary(rsa_list) if rsa_list else {}
+                    conf = bcell_conf.predict(mev_seq_st, rsa_list) if rsa_list else None
+                    st = {
+                        "available": True, "source": "MEV konstrukt",
+                        "tool": "ESMFold (ESMAtlas API) — öngörü, deneysel değil",
+                        "n_res": pred["n_res"], "plddt_mean": pred["plddt_mean"],
+                        "plddt_min": pred["plddt_min"], "surface": surf,
+                        "conformational_b": conf,
+                    }
+            meta["structure"] = st or {"available": False, "note": note}
+            if st:
+                cb = st.get("conformational_b") or {}
+                yield _ev("structure", "done",
+                          f"MEV yapısı: pLDDT {st['plddt_mean']} (min {st['plddt_min']}) · "
+                          f"yüzey %{st['surface'].get('percent_surface', '—')} · "
+                          f"konformasyonel B yaması {cb.get('n_patches', 0)}", st)
+            else:
+                yield _ev("structure", "done", f"Yapısal doğrulama atlandı — {note}",
+                          {"available": False})
+        except Exception as e:  # opsiyonel: pipeline'ı düşürmesin
+            meta["structure"] = None
+            yield _ev("structure", "done", f"Yapısal doğrulama atlandı ({type(e).__name__})", {})
+
     # 6f) İMMÜNİZASYON TESTİ — ImmForge: aday MEV in silico immünize edilir → OLUR/OLMAZ.
     # Ters aşı bilişimi döngü kapanışı: konak MHC allelleri için GERÇEK NetMHCpan → motor → karar.
     mev_seq = (meta.get("mev") or {}).get("sequence")

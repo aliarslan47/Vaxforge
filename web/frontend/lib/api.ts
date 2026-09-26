@@ -129,6 +129,7 @@ export interface RunDetail {
   population_coverage?: any;
   iedb_match?: any;
   funnel_methods?: Record<string, string>;
+  structure?: any;
   [key: string]: unknown;
 }
 export interface SSEEvent {

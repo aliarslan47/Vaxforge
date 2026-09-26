@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Download, FileText, FileSpreadsheet, FileCode2, FileDown, Search, Syringe, Globe2, ShieldCheck } from "lucide-react";
+import { Download, FileText, FileSpreadsheet, FileCode2, FileDown, Search, Syringe, Globe2, ShieldCheck, Atom } from "lucide-react";
 import { RunDetail, Candidate, MevData, Immunogenicity, ImmunogenicityHost, fileUrl } from "@/lib/api";
 import { useLang } from "./lang-provider";
 import { Card, Badge } from "./ui";
@@ -450,6 +450,70 @@ export function MevConstruct({ mev }: { mev: MevData }) {
         {p.allergen && <PropStat label={t("col_allergen")} value={p.allergen.allergenic ? "⚠" : t("mev_nonallergen")} tone={p.allergen.allergenic ? "warn" : "ok"} />}
         {p.toxicity && <PropStat label={t("col_tox")} value={p.toxicity.toxic ? "⚠" : t("mev_nontoxic")} tone={p.toxicity.toxic ? "warn" : "ok"} />}
       </div>
+    </Card>
+  );
+}
+
+// ---------- Yapısal doğrulama (ESMFold — Faz 3) ----------
+export function StructureCard({ st }: { st: any }) {
+  const { lang } = useLang();
+  if (!st) return null;
+  const surf = st.surface ?? {};
+  const cb = st.conformational_b ?? {};
+  const plddt = typeof st.plddt_mean === "number" ? st.plddt_mean : undefined;
+  const plddtTone = plddt === undefined ? undefined : plddt >= 70 ? "ok" : "warn";
+  return (
+    <Card className="p-5 sm:p-6">
+      <div className="flex items-center gap-2.5">
+        <span className="grid h-9 w-9 place-items-center rounded-xl bg-epi-i/10 ring-1 ring-epi-i/25">
+          <Atom className="h-5 w-5 text-epi-i" />
+        </span>
+        <div>
+          <h3 className="font-display text-lg font-semibold text-fg">
+            {lang === "tr" ? "Yapısal doğrulama — ESMFold" : "Structural validation — ESMFold"}
+          </h3>
+          <p className="text-xs text-fg-muted">
+            {lang === "tr"
+              ? "ESMAtlas API üzerinden ESMFold öngörüsü — deneysel yapı değil."
+              : "ESMFold prediction via ESMAtlas API — not an experimental structure."}
+          </p>
+        </div>
+      </div>
+
+      {!st.available ? (
+        <p className="mt-4 text-sm text-fg-muted">
+          {st.note || (lang === "tr" ? "Yapı öngörülmedi." : "Structure not predicted.")}
+        </p>
+      ) : (
+        <>
+          <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+            <PropStat label="pLDDT (ort.)" value={plddt ?? "—"} tone={plddtTone} />
+            <PropStat label={lang === "tr" ? "pLDDT (min)" : "pLDDT (min)"} value={st.plddt_min ?? "—"} />
+            <PropStat label={lang === "tr" ? "Yüzey %" : "Surface %"} value={`${surf.percent_surface ?? "—"}%`} />
+            <PropStat label={lang === "tr" ? "Konf. B yaması" : "Conf. B patches"} value={cb.n_patches ?? "—"} />
+          </div>
+          {(cb.patches ?? []).length > 0 && (
+            <div className="mt-4">
+              <div className="mb-1 text-[11px] uppercase tracking-wide text-fg-faint">
+                {lang === "tr" ? "Yüzey B-hücre yamaları" : "Surface B-cell patches"}
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {cb.patches.slice(0, 8).map((p: any, i: number) => (
+                  <span key={i} title={`${p.start}–${p.end} · score ${p.mean_score}`}
+                    className="rounded-md border border-epi-b/25 bg-epi-b/10 px-2 py-1 font-mono text-[10px] text-epi-b">
+                    {p.start}–{p.end} ({p.length})
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          <p className="mt-3 text-[10.5px] leading-snug text-fg-faint">
+            {lang === "tr"
+              ? "Konformasyonel-B DiscoTope-benzeri (RSA+Parker) öngörü; resmi DiscoTope değil. pLDDT>70 güvenilir, <50 düzensiz."
+              : "Conformational-B is DiscoTope-like (RSA+Parker); not official DiscoTope. pLDDT>70 confident, <50 disordered."}
+          </p>
+        </>
+      )}
     </Card>
   );
 }

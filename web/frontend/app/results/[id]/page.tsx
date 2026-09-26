@@ -6,7 +6,7 @@ import { useParams } from "next/navigation";
 import { ArrowLeft, Loader2, Calendar, FileText } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { Card, Badge, SectionHeading } from "@/components/ui";
-import { FunnelChart, CandidatesTable, DownloadBar, MevConstruct, ImmunogenicityCard, PopulationCoverage, IedbValidation, MethodsUsed } from "@/components/results";
+import { FunnelChart, CandidatesTable, DownloadBar, MevConstruct, ImmunogenicityCard, PopulationCoverage, IedbValidation, MethodsUsed, StructureCard } from "@/components/results";
 import { useLang } from "@/components/lang-provider";
 import { getRun, RunDetail } from "@/lib/api";
 
@@ -91,6 +91,7 @@ export default function ResultsPage() {
             )}
 
             {detail.mev && <MevConstruct mev={detail.mev} />}
+            {detail.structure && <StructureCard st={detail.structure} />}
             {detail.immunogenicity && <ImmunogenicityCard imm={detail.immunogenicity} />}
             {(detail as any).population_coverage && <PopulationCoverage pc={(detail as any).population_coverage} />}
             {(detail as any).iedb_match && <IedbValidation iedb={(detail as any).iedb_match} />}

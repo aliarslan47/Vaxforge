@@ -386,6 +386,51 @@ def _immuno_section(meta: dict) -> str:
     )
 
 
+def _structure_section(meta: dict) -> str:
+    """Yapısal doğrulama — ESMFold (pLDDT) + RSA + konformasyonel yüzey B (Faz 3)."""
+    st = meta.get("structure")
+    if not st:
+        return ""
+    is_en = meta.get("lang", "tr") == "en"
+    ttl = "Structural validation — ESMFold" if is_en else "Yapısal doğrulama — ESMFold"
+    if not st.get("available"):
+        note = st.get("note", "")
+        body = (f"<p><i>{note}</i></p>" if note else
+                ("<p><i>Structure not predicted.</i></p>" if is_en else "<p><i>Yapı öngörülmedi.</i></p>"))
+        return f"<h2>🧬 {ttl}</h2>{body}"
+    surf = st.get("surface") or {}
+    cb = st.get("conformational_b") or {}
+    disc = ("ESMFold PREDICTION via ESMAtlas API — not an experimental structure. "
+            "pLDDT>70 confident, <50 disordered. Conformational-B is DiscoTope-LIKE "
+            "(RSA+Parker), not the official DiscoTope." if is_en else
+            "ESMAtlas API üzerinden ESMFold ÖNGÖRÜSÜ — deneysel yapı değil. pLDDT>70 "
+            "güvenilir, <50 düzensiz. Konformasyonel-B, DiscoTope-BENZERİ (RSA+Parker); "
+            "resmi DiscoTope değil.")
+    rows = [
+        (("Source" if is_en else "Kaynak"), st.get("source", "—")),
+        (("Residues" if is_en else "Kalıntı"), st.get("n_res", "—")),
+        ("pLDDT (mean/min)", f"{st.get('plddt_mean','—')} / {st.get('plddt_min','—')}"),
+        (("Surface %" if is_en else "Yüzey %"), f"{surf.get('percent_surface','—')}%"),
+        (("Conformational B patches" if is_en else "Konformasyonel B yaması"),
+         cb.get("n_patches", "—")),
+    ]
+    trs = "".join(f"<tr><td>{k}</td><td>{v}</td></tr>" for k, v in rows)
+    patch_html = ""
+    for p in (cb.get("patches") or [])[:6]:
+        patch_html += (f"<tr><td>{p['start']}–{p['end']}</td><td>{p['length']}</td>"
+                       f"<td class='mono'>{p['peptide']}</td><td>{p['mean_score']}</td></tr>")
+    if patch_html:
+        ph = ("<p style='margin-top:.6rem'><b>Surface B-cell patches</b></p>" if is_en
+              else "<p style='margin-top:.6rem'><b>Yüzey B-hücre yamaları</b></p>")
+        hh = (["Range", "Len", "Peptide", "Score"] if is_en else ["Aralık", "Uzunluk", "Peptit", "Skor"])
+        patch_html = ph + "<table><tr>" + "".join(f"<th>{h}</th>" for h in hh) + f"</tr>{patch_html}</table>"
+    return (
+        f"<h2>🧬 {ttl}</h2>"
+        f"<p style='font-size:.8rem;background:#eef6ff;border:1px solid #9cc3e6;padding:.5rem;border-radius:6px'>ℹ {disc}</p>"
+        f"<table>{trs}</table>{patch_html}"
+    )
+
+
 def _methods_section(meta: dict) -> str:
     """Kullanılan yöntemler — funnel özetinden GERÇEK/vekil araç etiketleri (Faz 1).
 
@@ -437,6 +482,7 @@ def _html(df: pd.DataFrame, meta: dict, peptides=None) -> str:
     iedb_html = _iedb_section(meta, peptides)
     mev_html = _mev_section(meta)
     immuno_html = _immuno_section(meta)
+    structure_html = _structure_section(meta)
     methods_html = _methods_section(meta)
     popcov = meta.get("population_coverage") or {}
     pop_html = ""
@@ -499,6 +545,7 @@ summary{{cursor:pointer;font-size:.95rem}}</style></head><body>
 {_type_tables_html(peptides or [], meta)}
 
 {mev_html}
+{structure_html}
 {immuno_html}
 
 {iedb_html}

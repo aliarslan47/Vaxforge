@@ -66,6 +66,8 @@ _PIPELINE_STEPS = [
     ("immunization", "immforge_score", "İn silico immünizasyon (OLUR/OLMAZ)",
      "In silico immunization (pass/fail)",
      "ImmForge (ABM+ODE) · NetMHCpan", "atlanır (NetMHCpan yok)"),
+    ("structure", "structure", "Yapısal doğrulama (ESMFold)", "Structural validation (ESMFold)",
+     "ESMFold (ESMAtlas API) · pLDDT+RSA+konformasyonel B", "ARAÇ_YOK (çevrimdışı / >400 aa)"),
 ]
 
 

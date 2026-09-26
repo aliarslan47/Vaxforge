@@ -539,6 +539,30 @@ if st.button(t(lang,"run_start"), type="primary"):
                               f"{round((bm['precision_like'] or 0)*100,1)}%",
                               f"{bm['n_pred_matched']}/{bm['n_pred']}")
 
+        # --- Yapısal doğrulama (ESMFold — Faz 3) ----------------------------
+        stx = rmeta.get("structure")
+        if stx:
+            st.subheader("🧬 Yapısal doğrulama — ESMFold")
+            st.caption("ESMAtlas API üzerinden ESMFold öngörüsü — deneysel yapı DEĞİL. "
+                       "pLDDT>70 güvenilir, <50 düzensiz. Konformasyonel-B DiscoTope-benzeri "
+                       "(RSA+Parker), resmi DiscoTope değil.")
+            if not stx.get("available"):
+                st.info(stx.get("note", "Yapı öngörülmedi."))
+            else:
+                _surf = stx.get("surface") or {}
+                _cb = stx.get("conformational_b") or {}
+                s1, s2, s3, s4 = st.columns(4)
+                s1.metric("pLDDT (ort.)", stx.get("plddt_mean", "—"))
+                s2.metric("pLDDT (min)", stx.get("plddt_min", "—"))
+                s3.metric("Yüzey %", f"{_surf.get('percent_surface','—')}%")
+                s4.metric("Konf. B yaması", _cb.get("n_patches", "—"))
+                _patches = _cb.get("patches") or []
+                if _patches:
+                    st.dataframe(pd.DataFrame([
+                        {"aralık": f"{p['start']}–{p['end']}", "uzunluk": p["length"],
+                         "peptit": p["peptide"], "skor": p["mean_score"]}
+                        for p in _patches[:8]]), use_container_width=True, hide_index=True)
+
         st.subheader(t(lang,"res_downloads"))
         cols = st.columns(len(paths))
         labels = {"csv": "Adaylar (CSV)", "xlsx": "Tam liste (Excel)",
