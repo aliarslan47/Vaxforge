@@ -391,6 +391,23 @@ if st.button(t(lang,"run_start"), type="primary"):
         st.caption("Not: epitop adımında sliding-window ile her proteinden çok sayıda "
                    "peptit üretilir; sonraki adımlar bunları eler.")
 
+        # --- Kullanılan yöntemler (funnel method özeti — Faz 1) --------------
+        fmeth = rmeta.get("funnel_methods") or {}
+        if fmeth:
+            st.subheader("🧪 Kullanılan yöntemler")
+            st.caption("Her adımda GERÇEKTE çalışan araç — GERÇEK araç ya da dürüst "
+                       "vekil/heuristik (uydurma yok).")
+            _mrows = [
+                ("Hücre-altı lokalizasyon", fmeth.get("lokalizasyon")),
+                ("Transmembran topoloji", fmeth.get("transmembran")),
+                ("Sinyal peptidi", fmeth.get("sinyal_peptidi")),
+                ("Antijenite", fmeth.get("antijenite")),
+                ("Öz-homoloji (otoimmünite)", fmeth.get("self_homoloji")),
+            ]
+            st.dataframe(
+                pd.DataFrame([{"Adım": s, "Yöntem": v} for s, v in _mrows if v]),
+                use_container_width=True, hide_index=True)
+
         st.subheader(t(lang,"result_header"))
         rows = [{"sıra": i + 1, "peptit": p.seq, "tip": p.kind, "skor": p.candidacy,
                  "CDS / kaynak protein": p.parent,

@@ -260,6 +260,21 @@ STRINGS: dict[str, dict[str, str]] = {
     "col_pocket":         {"tr": "Allel cep tercihi", "en": "Allele pocket pref."},
     "col_match2":         {"tr": "Uyum", "en": "Match"},
     "disc_short":         {"tr": "gösteriliyor", "en": "shown"},
+    # ---- Kullanılan yöntemler (funnel method özeti — Faz 1) ----
+    "rep_methods":        {"tr": "Kullanılan yöntemler", "en": "Methods used"},
+    "rep_methods_sub":    {"tr": "Her adımda GERÇEKTE çalışan araç. Araç kuruluysa "
+                                 "\"GERÇEK\", değilse dürüst vekil/heuristik gösterilir "
+                                 "(uydurma yok).",
+                           "en": "The tool that ACTUALLY ran at each step. \"REAL\" if the "
+                                 "tool is installed, otherwise an honest proxy/heuristic "
+                                 "(no fabrication)."},
+    "meth_step":          {"tr": "Adım", "en": "Step"},
+    "meth_method":        {"tr": "Yöntem", "en": "Method"},
+    "meth_localization":  {"tr": "Hücre-altı lokalizasyon", "en": "Subcellular localization"},
+    "meth_tm":            {"tr": "Transmembran topoloji", "en": "Transmembrane topology"},
+    "meth_signal":        {"tr": "Sinyal peptidi", "en": "Signal peptide"},
+    "meth_antigenicity":  {"tr": "Antijenite", "en": "Antigenicity"},
+    "meth_homology":      {"tr": "Öz-homoloji (otoimmünite)", "en": "Self-homology (autoimmunity)"},
 }
 
 # Dinamik 'method' etiketlerini (pipeline TR üretir) EN'e çeviren token haritası.

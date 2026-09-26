@@ -16,7 +16,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from .i18n import t
+from .i18n import method_label, t
 from .models import Peptide
 
 
@@ -386,6 +386,37 @@ def _immuno_section(meta: dict) -> str:
     )
 
 
+def _methods_section(meta: dict) -> str:
+    """Kullanılan yöntemler — funnel özetinden GERÇEK/vekil araç etiketleri (Faz 1).
+
+    Lokalizasyonun PSORTb (GERÇEK) mı yoksa heuristik mi olduğunu; TM/sinyal/
+    antijenite/öz-homoloji araçlarını açıkça gösterir. Bilim değişmez — yalnız
+    'hangi araç koştu' şeffaf raporlanır (uydurma yok — çekirdek ilke).
+    """
+    fm = meta.get("funnel_methods") or {}
+    if not fm:
+        return ""
+    lang = meta.get("lang", "tr")
+    rows = [
+        ("meth_localization", fm.get("lokalizasyon")),
+        ("meth_tm", fm.get("transmembran")),
+        ("meth_signal", fm.get("sinyal_peptidi")),
+        ("meth_antigenicity", fm.get("antijenite")),
+        ("meth_homology", fm.get("self_homoloji")),
+    ]
+    trs = "".join(
+        f"<tr><td>{t(lang, key)}</td><td>{method_label(str(val), lang)}</td></tr>"
+        for key, val in rows if val
+    )
+    if not trs:
+        return ""
+    return (
+        f"<h2>🧪 {t(lang, 'rep_methods')}</h2>"
+        f"<p style='font-size:.85rem'>{t(lang, 'rep_methods_sub')}</p>"
+        f"<table><tr><th>{t(lang, 'meth_step')}</th><th>{t(lang, 'meth_method')}</th></tr>{trs}</table>"
+    )
+
+
 def _html(df: pd.DataFrame, meta: dict, peptides=None) -> str:
     lang = meta.get("lang", "tr")
     thr_rows = "".join(
@@ -406,6 +437,7 @@ def _html(df: pd.DataFrame, meta: dict, peptides=None) -> str:
     iedb_html = _iedb_section(meta, peptides)
     mev_html = _mev_section(meta)
     immuno_html = _immuno_section(meta)
+    methods_html = _methods_section(meta)
     popcov = meta.get("population_coverage") or {}
     pop_html = ""
     if popcov:
@@ -457,6 +489,8 @@ summary{{cursor:pointer;font-size:.95rem}}</style></head><body>
 <tr><td>{meta.get('n_input','?')}</td><td>{meta.get('n_discovery','?')}</td>
 <td>{meta.get('n_funnel','?')}</td><td>{meta.get('n_epitope','?')}</td>
 <td>{meta.get('n_survivors','?')}</td></tr></table>
+
+{methods_html}
 
 <h2>{t(lang,'rep_top15')}</h2>
 {df.head(15).to_html(index=False)}

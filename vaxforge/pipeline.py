@@ -84,6 +84,7 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
     proteins, fsum = funnel.run(proteins, resolved, profile=profile,
                                 hosts=hosts, gram=gram)
     meta["n_funnel"] = len(proteins)
+    meta["funnel_methods"] = fsum   # rapor/UI "Kullanılan yöntemler" bölümü (Faz 1)
     yield _ev("funnel", "done", f"{len(proteins)} antijen huniden geçti", fsum)
     if not proteins:
         yield _ev("__error__", "error", "Huniden aday çıkmadı.")

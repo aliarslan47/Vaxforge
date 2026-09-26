@@ -20,8 +20,8 @@ Plan dosyası: `~/.claude/plans/tender-munching-thacker.md`
 
 | # | Faz | Eksik | Durum | Commit |
 |---|-----|-------|-------|--------|
-| 0 | Güvenlik ağı + kayıt (smoke test, ROADMAP) | #10-kısmi | 🔨 | — |
-| 1 | PSORTb lokalizasyon (bakteri, Gram) | #7 | ⬜ | — |
+| 0 | Güvenlik ağı + kayıt (smoke test, ROADMAP) | #10-kısmi | ✅ | f70f4b0 |
+| 1 | PSORTb lokalizasyon (bakteri, Gram) | #7 | ✅ | ✓ |
 | 2 | DeepLoc2 lokalizasyon (ökaryot/virüs) | #8 | ⬜ | — |
 | 3 | ESMFold yapı + konformasyonel B + RSA | #1 | ⬜ | — |
 | 4 | Glikozilasyon + glikan-maskeli epitop | #2 | ⬜ | — |
@@ -36,5 +36,12 @@ Plan dosyası: `~/.claude/plans/tender-munching-thacker.md`
 Durum: ⬜ bekliyor · 🔨 sürüyor · ✅ bitti
 
 ## Kaldığın yer / notlar
-- **2026-09-26**: Faz 0 başladı. `tests/test_smoke.py` yazıldı (3-protein demo ile uçtan
-  uca pipeline koşuyor). Smoke doğrulanınca baz commit + Faz 1'e geçilecek.
+- **2026-09-26 Faz 0 ✅**: smoke testi (module-scope fixture, ~4dk) + ROADMAP. Baz commit f70f4b0.
+- **2026-09-26 Faz 1 ✅**: PSORTb podman image çekildi (`psortb.available()=True`); funnel
+  otomatik GERÇEK'e geçti. Funnel yöntem-özeti artık `meta['funnel_methods']`'e yazılıyor →
+  rapor (`_methods_section`) + Next.js (`MethodsUsed` kartı, run+results sayfaları) + Streamlit
+  (yöntem tablosu) + i18n TR/EN. Smoke geçti (2 passed, 4:15), tsc temiz.
+- **Sıradaki: Faz 2** — DeepLoc2 (`tools/deeploc2_package` venv'de import edilebilir; CLI
+  entry-point `deeploc2=DeepLoc2.deeploc2:predict`). `vaxforge/deeploc.py` yazılıp funnel
+  lokalizasyon zincirine (PSORTb→DeepLoc2→heuristik) bağlanacak; virüs/parazit lokalizasyonu
+  çalışır hale gelecek.

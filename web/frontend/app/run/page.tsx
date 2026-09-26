@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { Button, Card, Badge, SectionHeading } from "@/components/ui";
-import { FunnelChart, CandidatesTable, DownloadBar, MevConstruct, ImmunogenicityCard, PopulationCoverage, IedbValidation } from "@/components/results";
+import { FunnelChart, CandidatesTable, DownloadBar, MevConstruct, ImmunogenicityCard, PopulationCoverage, IedbValidation, MethodsUsed } from "@/components/results";
 import { useLang } from "@/components/lang-provider";
 import {
   getConfig,
@@ -796,6 +796,8 @@ export default function RunPage() {
                     <FunnelChart meta={detail} />
                   </div>
                 </div>
+
+                {detail.funnel_methods && <MethodsUsed methods={detail.funnel_methods} />}
 
                 <div>
                   <div className="mb-4 flex items-center justify-between">

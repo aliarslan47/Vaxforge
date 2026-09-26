@@ -56,6 +56,69 @@ export function FunnelChart({ meta }: { meta: RunDetail }) {
   );
 }
 
+// ---------- Kullanılan yöntemler (funnel method özeti — Faz 1) ----------
+// TR üretilen 'method' etiketlerini EN'e çevirir (i18n.method_label ile aynı token seti).
+const METHOD_TOKENS: [RegExp, string][] = [
+  [/GERÇEK/g, "REAL"], [/heuristik proxy/g, "heuristic proxy"], [/heuristik/g, "heuristic"],
+  [/ÇALIŞTIRILMADI/g, "NOT RUN"], [/çalıştırılmadı/g, "not run"], [/yerel/g, "local"],
+  [/yedek/g, "fallback"], [/proteom/g, "proteome"], [/klasik yöntem/g, "classical method"],
+  [/DEĞİL/g, "NOT"], [/sert:bakteri/g, "hard:bacteria"], [/atlandı/g, "skipped"],
+];
+function methodLabel(s: string, lang: string): string {
+  if (lang !== "en" || !s) return s;
+  return METHOD_TOKENS.reduce((acc, [re, en]) => acc.replace(re, en), s);
+}
+const isReal = (s: string) => /GERÇEK|REAL/.test(s);
+
+export function MethodsUsed({ methods }: { methods: Record<string, string> }) {
+  const { t, lang } = useLang();
+  const LABELS: Record<string, [string, string]> = {
+    lokalizasyon: ["Hücre-altı lokalizasyon", "Subcellular localization"],
+    transmembran: ["Transmembran topoloji", "Transmembrane topology"],
+    sinyal_peptidi: ["Sinyal peptidi", "Signal peptide"],
+    antijenite: ["Antijenite", "Antigenicity"],
+    self_homoloji: ["Öz-homoloji (otoimmünite)", "Self-homology (autoimmunity)"],
+  };
+  const rows = Object.keys(LABELS).filter((k) => methods[k]);
+  if (rows.length === 0) return null;
+  return (
+    <Card className="p-5 sm:p-6">
+      <div className="flex items-center gap-2.5">
+        <span className="grid h-9 w-9 place-items-center rounded-xl bg-bio/10 ring-1 ring-bio/25">
+          <ShieldCheck className="h-5 w-5 text-bio-soft" />
+        </span>
+        <div>
+          <h3 className="font-display text-lg font-semibold text-fg">
+            {lang === "tr" ? "Kullanılan yöntemler" : "Methods used"}
+          </h3>
+          <p className="text-xs text-fg-muted">
+            {lang === "tr"
+              ? "Her adımda GERÇEKTE çalışan araç — GERÇEK araç ya da dürüst vekil (uydurma yok)."
+              : "The tool that ACTUALLY ran at each step — real tool or honest proxy (no fabrication)."}
+          </p>
+        </div>
+      </div>
+      <div className="mt-4 divide-y divide-line/60">
+        {rows.map((k) => {
+          const val = methods[k];
+          const real = isReal(val);
+          return (
+            <div key={k} className="flex items-center justify-between gap-3 py-2.5">
+              <span className="text-[13px] text-fg-muted">{LABELS[k][lang === "tr" ? 0 : 1]}</span>
+              <span className="flex items-center gap-2">
+                <span className={cn("h-1.5 w-1.5 rounded-full", real ? "bg-bio" : "bg-warn")} />
+                <span className={cn("font-mono text-[12px]", real ? "text-bio-soft" : "text-fg-muted")}>
+                  {methodLabel(val, lang)}
+                </span>
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </Card>
+  );
+}
+
 // ---------- Aday tablosu ----------
 export function CandidatesTable({ candidates }: { candidates: Candidate[] }) {
   const { t, lang } = useLang();

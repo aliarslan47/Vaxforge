@@ -128,6 +128,7 @@ export interface RunDetail {
   immunogenicity?: Immunogenicity;
   population_coverage?: any;
   iedb_match?: any;
+  funnel_methods?: Record<string, string>;
   [key: string]: unknown;
 }
 export interface SSEEvent {

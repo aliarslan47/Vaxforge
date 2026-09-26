@@ -6,7 +6,7 @@ import { useParams } from "next/navigation";
 import { ArrowLeft, Loader2, Calendar, FileText } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { Card, Badge, SectionHeading } from "@/components/ui";
-import { FunnelChart, CandidatesTable, DownloadBar, MevConstruct, ImmunogenicityCard, PopulationCoverage, IedbValidation } from "@/components/results";
+import { FunnelChart, CandidatesTable, DownloadBar, MevConstruct, ImmunogenicityCard, PopulationCoverage, IedbValidation, MethodsUsed } from "@/components/results";
 import { useLang } from "@/components/lang-provider";
 import { getRun, RunDetail } from "@/lib/api";
 
@@ -78,6 +78,8 @@ export default function ResultsPage() {
                 <FunnelChart meta={detail} />
               </div>
             </div>
+
+            {detail.funnel_methods && <MethodsUsed methods={detail.funnel_methods} />}
 
             {detail.candidates && detail.candidates.length > 0 && (
               <div>
