@@ -454,6 +454,43 @@ export function MevConstruct({ mev }: { mev: MevData }) {
   );
 }
 
+// ---------- Glikozilasyon (glikan-maskeli epitop — Faz 4) ----------
+export function GlycoCard({ glyco }: { glyco: any }) {
+  const { lang } = useLang();
+  if (!glyco || glyco.available === false) return null;
+  const items = [
+    { label: lang === "tr" ? "Taranan aday" : "Candidates", value: glyco.n_candidates ?? "—" },
+    { label: lang === "tr" ? "B-hücre epitobu" : "B-cell epitopes", value: glyco.n_bcell ?? "—" },
+    { label: lang === "tr" ? "B-hücre glikan-maskeli" : "B-cell glycan-masked", value: glyco.n_bcell_masked ?? "—", warn: (glyco.n_bcell_masked ?? 0) > 0 },
+    { label: lang === "tr" ? "Tüm maskeli (N-sequon)" : "All masked (N-sequon)", value: glyco.n_masked ?? "—" },
+  ];
+  return (
+    <Card className="p-5 sm:p-6">
+      <div className="flex items-center gap-2.5">
+        <span className="grid h-9 w-9 place-items-center rounded-xl bg-warn/10 ring-1 ring-warn/25">
+          <ShieldCheck className="h-5 w-5 text-warn" />
+        </span>
+        <div>
+          <h3 className="font-display text-lg font-semibold text-fg">
+            {lang === "tr" ? "Glikozilasyon — glikan-maskeli epitoplar" : "Glycosylation — glycan-masked epitopes"}
+          </h3>
+          <p className="text-xs text-fg-muted">
+            {lang === "tr"
+              ? "N-X-S/T sequon → glikan kalkanı antikoru engelleyebilir (yumuşak uyarı, elenmez)."
+              : "N-X-S/T sequon → glycan shield may block antibody (soft flag, not filtered)."}
+          </p>
+        </div>
+      </div>
+      <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+        {items.map((it) => (
+          <PropStat key={it.label} label={it.label} value={it.value} tone={it.warn ? "warn" : undefined} />
+        ))}
+      </div>
+      {glyco.note && <p className="mt-3 text-[10.5px] leading-snug text-fg-faint">{glyco.note}</p>}
+    </Card>
+  );
+}
+
 // ---------- Yapısal doğrulama (ESMFold — Faz 3) ----------
 export function StructureCard({ st }: { st: any }) {
   const { lang } = useLang();

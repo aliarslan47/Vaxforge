@@ -24,7 +24,7 @@ Plan dosyası: `~/.claude/plans/tender-munching-thacker.md`
 | 1 | PSORTb lokalizasyon (bakteri, Gram) | #7 | ✅ | ✓ |
 | 2 | DeepLoc2 lokalizasyon (ökaryot/virüs) | #8 | ✅ | ✓ |
 | 3 | ESMFold yapı + konformasyonel B + RSA | #1 | ✅ | ✓ |
-| 4 | Glikozilasyon + glikan-maskeli epitop | #2 | ⬜ | — |
+| 4 | Glikozilasyon + glikan-maskeli epitop | #2 | ✅ | ✓ |
 | 5 | Kodon optimizasyonu + in silico klonlama | #3 | ⬜ | — |
 | 6 | VaxiJen antijenite çapraz-kontrol | #4 | ⬜ | — |
 | 7 | BLOSUM tabanlı kısmi mimikri | #5 | ⬜ | — |
@@ -52,6 +52,9 @@ Durum: ⬜ bekliyor · 🔨 sürüyor · ✅ bitti
   Pipeline: MEV sonrası "structure" aşaması MEV konstruktu katlar → pLDDT/yüzey%/konf-B.
   Rapor `_structure_section` + Next.js `StructureCard` + Streamlit paneli + runner katalog satırı.
   Ağ yok/>400aa → dürüst ARAÇ_YOK (BepiPred lineer korunur). Chain doğrulandı (pLDDT 42.4).
-- **Sıradaki: Faz 4 (glikozilasyon)** — `vaxforge/glyco.py`: N-X-S/T sequon + O-glikozilasyon
-  hotspot; epitop listesiyle çakıştır → glikan-maskeli B-epitop yumuşak işaret (RSA ile birlikte
-  'erişilebilirlik'). meta['glycosylation']. glycoengineering skill araçlarına başvur.
+- **2026-09-27 Faz 4 ✅**: `vaxforge/glyco.py` — N-X-S/T sequon (kesin motif) + O Ser/Thr-yoğun
+  heuristik. Pipeline mimikri sonrası 'glycosylation' aşaması B-epitopları işaretler (YUMUŞAK,
+  elenmez); meta['glycosylation']. Rapor `_glyco_section` + Next.js GlycoCard + Streamlit paneli
+  + runner katalog. tsc temiz. Doğrulandı (N-sequon saptama).
+- **Sıradaki: Faz 5 (kodon opt + in silico klonlama)** — `vaxforge/cloning.py`: MEV dizisi →
+  konak kodon-adaptasyonu (CAI), GC%, ters-translasyon, restriksiyon bölgesi, pET vektör. Saf Python.

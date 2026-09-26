@@ -49,6 +49,8 @@ _PIPELINE_STEPS = [
      "IApred (Miles 2025)", "antigen_acc (VaxiJen-tarzı proxy)"),
     ("bcell", "bepipred", "B-hücre epitop", "B-cell epitope",
      "BepiPred-1.0", "Parker hidrofilisite"),
+    ("glycosylation", "glyco", "Glikozilasyon (glikan-maske)", "Glycosylation (glycan-mask)",
+     "N-X-S/T sequon + O Ser/Thr heuristik", None),
     ("mhc", "netmhc_local", "MHC-I/II bağlanma", "MHC-I/II binding",
      "NetMHCpan / NetMHCIIpan", "SMM/proxy bağlanma"),
     ("allergen", "allergen", "Alerjenite", "Allergenicity",

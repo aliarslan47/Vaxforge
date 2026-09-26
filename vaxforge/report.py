@@ -431,6 +431,34 @@ def _structure_section(meta: dict) -> str:
     )
 
 
+def _glyco_section(meta: dict) -> str:
+    """Glikozilasyon — glikan-maskeli B-epitop filtresi (Faz 4)."""
+    g = meta.get("glycosylation")
+    if not g or not g.get("available"):
+        return ""
+    is_en = meta.get("lang", "tr") == "en"
+    ttl = "Glycosylation — glycan-masked epitopes" if is_en else "Glikozilasyon — glikan-maskeli epitoplar"
+    disc = ("N-X-S/T is an exact sequon motif, but actual glycan occupancy needs "
+            "experimental proof; O-glyco here is a Ser/Thr-rich heuristic. PREDICTION — "
+            "masked B-cell epitopes may be antibody-inaccessible in vivo (soft flag, not filtered)."
+            if is_en else
+            "N-X-S/T kesin bir sequon motifidir; gerçek glikan işgali deneysel doğrulanmalı. "
+            "O-gliko burada Ser/Thr-yoğun heuristiktir. ÖNGÖRÜ — maskeli B-epitopları in vivo "
+            "antikora erişilemeyebilir (yumuşak uyarı; aday elenmedi).")
+    rows = [
+        (("Candidates scanned" if is_en else "Taranan aday"), g.get("n_candidates", "—")),
+        (("B-cell epitopes" if is_en else "B-hücre epitobu"), g.get("n_bcell", "—")),
+        (("B-cell glycan-masked" if is_en else "B-hücre glikan-maskeli"), g.get("n_bcell_masked", "—")),
+        (("All masked (N-sequon)" if is_en else "Tüm maskeli (N-sequon)"), g.get("n_masked", "—")),
+    ]
+    trs = "".join(f"<tr><td>{k}</td><td>{v}</td></tr>" for k, v in rows)
+    return (
+        f"<h2>🍬 {ttl}</h2>"
+        f"<p style='font-size:.8rem;background:#fff7e6;border:1px solid #f0c36d;padding:.5rem;border-radius:6px'>⚠ {disc}</p>"
+        f"<table>{trs}</table>"
+    )
+
+
 def _methods_section(meta: dict) -> str:
     """Kullanılan yöntemler — funnel özetinden GERÇEK/vekil araç etiketleri (Faz 1).
 
@@ -483,6 +511,7 @@ def _html(df: pd.DataFrame, meta: dict, peptides=None) -> str:
     mev_html = _mev_section(meta)
     immuno_html = _immuno_section(meta)
     structure_html = _structure_section(meta)
+    glyco_html = _glyco_section(meta)
     methods_html = _methods_section(meta)
     popcov = meta.get("population_coverage") or {}
     pop_html = ""
@@ -546,6 +575,7 @@ summary{{cursor:pointer;font-size:.95rem}}</style></head><body>
 
 {mev_html}
 {structure_html}
+{glyco_html}
 {immuno_html}
 
 {iedb_html}

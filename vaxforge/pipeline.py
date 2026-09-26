@@ -156,6 +156,21 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
               f"Moleküler mimikri taraması: {n_mim}/{len(peptides)} peptit konak self "
               f"{mim_k}-mer eşleşmesi (yumuşak uyarı)", {"n_flagged": n_mim, "k": mim_k})
 
+    # 5c) Glikozilasyon — glikan-maskeli B-epitop filtresi (YUMUŞAK: işaretler, elemez).
+    # N-X-S/T sequon ile örtüşen B-epitobu in vivo glikanla kaplı olabilir → antikor erişemez.
+    yield _ev("glycosylation", "running",
+              "Glikozilasyon taraması (N-X-S/T sequon → glikan-maskeli epitop)…")
+    try:
+        from . import glyco
+        gsum = glyco.annotate_peptides(peptides)
+        meta["glycosylation"] = gsum
+        yield _ev("glycosylation", "done",
+                  f"Glikozilasyon: {gsum['n_bcell_masked']}/{gsum['n_bcell']} B-epitobu "
+                  f"glikan-maskeli sequon içeriyor (yumuşak uyarı)", gsum)
+    except Exception as e:  # opsiyonel: pipeline'ı düşürmesin
+        meta["glycosylation"] = None
+        yield _ev("glycosylation", "done", f"Glikozilasyon atlandı ({type(e).__name__})", {})
+
     # 6b) Scoring
     yield _ev("scoring", "running", "Adaylık puanı hesaplanıyor…")
     peptides = scoring.score(peptides, cfg.candidacy_weights())

@@ -539,6 +539,17 @@ if st.button(t(lang,"run_start"), type="primary"):
                               f"{round((bm['precision_like'] or 0)*100,1)}%",
                               f"{bm['n_pred_matched']}/{bm['n_pred']}")
 
+        # --- Glikozilasyon (glikan-maskeli epitop — Faz 4) ------------------
+        gly = rmeta.get("glycosylation")
+        if gly and gly.get("available"):
+            st.subheader("🍬 Glikozilasyon — glikan-maskeli epitoplar")
+            st.caption("N-X-S/T sequon içeren B-epitobu glikan kalkanıyla maskelenebilir "
+                       "(antikor erişemez). Yumuşak uyarı — aday ELENMEZ. O-gliko heuristiktir.")
+            g1, g2, g3 = st.columns(3)
+            g1.metric("B-hücre epitobu", gly.get("n_bcell", "—"))
+            g2.metric("B-hücre glikan-maskeli", gly.get("n_bcell_masked", "—"))
+            g3.metric("Tüm maskeli (N-sequon)", gly.get("n_masked", "—"))
+
         # --- Yapısal doğrulama (ESMFold — Faz 3) ----------------------------
         stx = rmeta.get("structure")
         if stx:
