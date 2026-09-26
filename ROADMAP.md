@@ -22,7 +22,7 @@ Plan dosyası: `~/.claude/plans/tender-munching-thacker.md`
 |---|-----|-------|-------|--------|
 | 0 | Güvenlik ağı + kayıt (smoke test, ROADMAP) | #10-kısmi | ✅ | f70f4b0 |
 | 1 | PSORTb lokalizasyon (bakteri, Gram) | #7 | ✅ | ✓ |
-| 2 | DeepLoc2 lokalizasyon (ökaryot/virüs) | #8 | ⬜ | — |
+| 2 | DeepLoc2 lokalizasyon (ökaryot/virüs) | #8 | ✅ | ✓ |
 | 3 | ESMFold yapı + konformasyonel B + RSA | #1 | ⬜ | — |
 | 4 | Glikozilasyon + glikan-maskeli epitop | #2 | ⬜ | — |
 | 5 | Kodon optimizasyonu + in silico klonlama | #3 | ⬜ | — |
@@ -41,7 +41,12 @@ Durum: ⬜ bekliyor · 🔨 sürüyor · ✅ bitti
   otomatik GERÇEK'e geçti. Funnel yöntem-özeti artık `meta['funnel_methods']`'e yazılıyor →
   rapor (`_methods_section`) + Next.js (`MethodsUsed` kartı, run+results sayfaları) + Streamlit
   (yöntem tablosu) + i18n TR/EN. Smoke geçti (2 passed, 4:15), tsc temiz.
-- **Sıradaki: Faz 2** — DeepLoc2 (`tools/deeploc2_package` venv'de import edilebilir; CLI
-  entry-point `deeploc2=DeepLoc2.deeploc2:predict`). `vaxforge/deeploc.py` yazılıp funnel
-  lokalizasyon zincirine (PSORTb→DeepLoc2→heuristik) bağlanacak; virüs/parazit lokalizasyonu
-  çalışır hale gelecek.
+- **2026-09-26 Faz 2 ✅**: `vaxforge/deeploc.py` (Fast/ESM1b, venv CLI; ESM1b 7.3GB önbellekte).
+  funnel: **parazit** → DeepLoc SERT filtre (config allowed), **virüs** → DeepLoc YUMUŞAK
+  (virionlar için güvenilmez, sadece etiket). Bakteri PSORTb'de kaldı (DeepLoc ökaryot-yanlı).
+  Doğrulandı: parazit koşusu "GERÇEK (DeepLoc-2.0, Fast) [sert:parasite]". Rapor/UI görünürlüğü
+  Faz 1'in funnel_methods altyapısından otomatik. runner katalog + EN token (sert/yumuşak) eklendi.
+- **Sıradaki: Faz 3 (ESMFold yapı)** — YEREL ESMFold modeli önbellekte YOK + GPU yok → yerel
+  folding pratik değil. Plan: **ESMAtlas fold API** (`api.esmatlas.com/foldSequence/v1/pdb/`,
+  ≤400aa, anahtarsız) → PDB; RSA (Shrake-Rupley) + konformasyonel-B (yüzey/RSA tabanlı).
+  Offline/uzun dizi → dürüst ARAÇ_YOK; BepiPred lineer korunur.

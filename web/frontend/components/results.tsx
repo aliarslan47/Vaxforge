@@ -62,7 +62,7 @@ const METHOD_TOKENS: [RegExp, string][] = [
   [/GERÇEK/g, "REAL"], [/heuristik proxy/g, "heuristic proxy"], [/heuristik/g, "heuristic"],
   [/ÇALIŞTIRILMADI/g, "NOT RUN"], [/çalıştırılmadı/g, "not run"], [/yerel/g, "local"],
   [/yedek/g, "fallback"], [/proteom/g, "proteome"], [/klasik yöntem/g, "classical method"],
-  [/DEĞİL/g, "NOT"], [/sert:bakteri/g, "hard:bacteria"], [/atlandı/g, "skipped"],
+  [/DEĞİL/g, "NOT"], [/sert:/g, "hard:"], [/yumuşak:/g, "soft:"], [/atlandı/g, "skipped"],
 ];
 function methodLabel(s: string, lang: string): string {
   if (lang !== "en" || !s) return s;

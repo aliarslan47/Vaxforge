@@ -282,6 +282,7 @@ _METHOD_TOKENS = [
     ("GERÇEK", "REAL"), ("heuristik proxy", "heuristic proxy"), ("heuristik", "heuristic"),
     ("ÇALIŞTIRILMADI", "NOT RUN"), ("çalıştırılmadı", "not run"),
     ("yerel", "local"), ("çevrimdışı", "offline"), ("yedek", "fallback"),
+    ("sert:", "hard:"), ("yumuşak:", "soft:"),
     ("yok", "n/a"), ("klasik yöntemler", "classical methods"), ("klasik yöntem", "classical method"),
     ("İnsan", "Human"), ("Fare", "Mouse"), ("Sığır", "Cattle"), ("Domuz", "Pig"), ("Tavuk", "Chicken"),
     ("insan", "human"), ("Homo sapiens", "Homo sapiens"),

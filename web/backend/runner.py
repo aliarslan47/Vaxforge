@@ -40,7 +40,7 @@ _PIPELINE_STEPS = [
     ("discovery", "discovery", "Virülans keşfi", "Virulence discovery",
      "DIAMOND 2.1.9 + VFDB", "VFDB anahtar-kelime + yerel hizalama"),
     ("localization", "psortb", "Hücre-altı lokalizasyon", "Subcellular localization",
-     "PSORTb 3.0 (Gram)", "Kyte-Doolittle + sinyal peptid"),
+     "PSORTb 3.0 (bakteri, Gram) / DeepLoc-2.0 (ökaryot·virüs)", "Kyte-Doolittle + sinyal peptid"),
     ("tm", "tmhmm_local", "Transmembran topoloji", "Transmembrane topology",
      "TMHMM-2.0", "Kyte-Doolittle hidropati"),
     ("signal", "signalp", "Sinyal peptidi", "Signal peptide",

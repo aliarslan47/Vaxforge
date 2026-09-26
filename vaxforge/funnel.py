@@ -15,7 +15,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-from . import antigen_acc, iapred, psortb, signalp, tmhmm_local
+from . import antigen_acc, deeploc, iapred, psortb, signalp, tmhmm_local
 from .config_loader import ResolvedTool
 from .hosts import Host
 from .models import ProteinRecord
@@ -113,7 +113,10 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
     karşı taranır (yalnız insan değil). DB'si olmayan konak için dürüst 'atlandı'.
     """
     hosts = hosts or []
-    loc_hard = profile == "bacteria"
+    # Parazit (ökaryot) DeepLoc kuruluysa lokalizasyon SERT filtre olur (bakteri gibi);
+    # virüste DeepLoc YUMUŞAK (virionlar için güvenilmez → sadece etiketle).
+    deeploc_ok = profile in ("parasite", "virus") and deeploc.available()
+    loc_hard = profile == "bacteria" or (profile == "parasite" and deeploc_ok)
     loc_allowed = set(tools["localization"].params["allowed"].value)
     max_tm = int(tools["transmembrane"].params["max_helices"].value)
     vaxijen_thr = float(tools["antigenicity_vaxijen"].params["threshold"].value)
@@ -129,8 +132,10 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
     tm_available = tmhmm_local.available()
     tm_real = tmhmm_local.predict(seq_pairs) if tm_available else {}
     # -- lokalizasyon: bakteride PSORTb (Gram) > heuristik (Kyte-Doolittle + sinyal)
-    psortb_ok = loc_hard and gram in ("positive", "negative") and psortb.available()
+    psortb_ok = profile == "bacteria" and gram in ("positive", "negative") and psortb.available()
     psortb_real = psortb.predict(seq_pairs, gram) if psortb_ok else {}
+    # -- parazit/virüs: DeepLoc-2.0 (ökaryot lokalizasyon). Hata → {} → heuristik (dürüst).
+    deeploc_real = deeploc.predict(seq_pairs) if deeploc_ok else {}
     sp_available = signalp.available()
     sp_real = signalp.predict(seq_pairs, profile=profile) if sp_available else {}
     ia_available = iapred.available()
@@ -143,6 +148,11 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
             pr.annotations["localization_raw"] = psortb_real[pr.id]["raw"]
             pr.annotations["localization_score"] = psortb_real[pr.id]["score"]
             pr.annotations["method_localization"] = f"GERÇEK (PSORTb, Gram{'+' if gram=='positive' else '−'})"
+        elif deeploc_ok and pr.id in deeploc_real:
+            loc = deeploc_real[pr.id]["localization"]
+            pr.annotations["localization_raw"] = deeploc_real[pr.id]["raw"]
+            pr.annotations["localization_score"] = deeploc_real[pr.id]["score"]
+            pr.annotations["method_localization"] = "GERÇEK (DeepLoc-2.0, Fast)"
         else:
             loc = _LOC_MAP.get(predict_localization(pr.seq), "cytoplasm")
             pr.annotations["method_localization"] = "heuristik (KD+sinyal)"
@@ -188,6 +198,11 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
         elif loc_hard:
             ok_loc = loc in loc_allowed
             pr.mark("funnel:localization", ok_loc, f"{loc} {'∈' if ok_loc else '∉'} izinli", localization=loc)
+        elif deeploc_ok and pr.id in deeploc_real:
+            # Virüs: DeepLoc etiketlendi ama SERT eleme yok (virionlar için güvenilmez) — yumuşak.
+            pr.trace.append({"step": "funnel:localization", "ok": True,
+                             "reason": f"DeepLoc etiketi '{loc}' — virüste yumuşak (eleme yok)",
+                             "warning": True})
         else:
             pr.annotations["method_localization"] = f"ÇALIŞTIRILMADI ({profile}: bakteri-dışı, DeepLoc gerekir)"
             pr.trace.append({"step": "funnel:localization", "ok": True,
@@ -226,6 +241,8 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
 
     if psortb_ok:
         loc_method = f"GERÇEK (PSORTb, Gram{'+' if gram=='positive' else '−'})"
+    elif deeploc_ok:
+        loc_method = "GERÇEK (DeepLoc-2.0, Fast)"
     else:
         loc_method = "heuristik (Kyte-Doolittle + sinyal)"
     hh_method = (f"GERÇEK (diamond → {', '.join(hh_scanned)})" if hh_available
@@ -234,7 +251,7 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
         hh_method += f" · DB'siz: {', '.join(hh_missing)}"
     summary = {
         "girdi": len(proteins), "hayatta": len(survivors),
-        "lokalizasyon": loc_method + (" [sert:bakteri]" if loc_hard else f" [atlandı:{profile}]"),
+        "lokalizasyon": loc_method + (f" [sert:{profile}]" if loc_hard else f" [yumuşak:{profile}]"),
         "transmembran": "GERÇEK (TMHMM-2.0)" if tm_available else "Kyte-Doolittle (klasik)",
         "sinyal_peptidi": "GERÇEK (SignalP-5.0)" if sp_available else "heuristik",
         "antijenite": "GERÇEK (IApred)" if ia_available else ("z-ACC model" if ag_available else "heuristik"),
