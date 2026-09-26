@@ -459,6 +459,30 @@ def _glyco_section(meta: dict) -> str:
     )
 
 
+def _conservation_section(meta: dict) -> str:
+    """Suşlar-arası konservasyon — otomatik çok-suş dahil (Faz 8)."""
+    c = meta.get("conservation")
+    if not c:
+        return ""
+    is_en = meta.get("lang", "tr") == "en"
+    ttl = "Cross-strain conservation" if is_en else "Suşlar-arası konservasyon"
+    if not c.get("computed"):
+        auto = meta.get("conservation_auto_strains") or {}
+        note = auto.get("note") or ("no strain data" if is_en else "suş verisi yok")
+        body = (f"<p><i>{'Not computed' if is_en else 'Hesaplanmadı'} — {note}.</i></p>")
+        return f"<h2>🧬 {ttl}</h2>{body}"
+    rows = [
+        (("Strains" if is_en else "Suş sayısı"), c.get("n_strains", "—")),
+        (("Conserved candidates" if is_en else "Korunmuş aday"), c.get("n_conserved", "—")),
+        (("Threshold" if is_en else "Eşik"), f"≥%{c.get('min_percent', '—')}"),
+        (("Method" if is_en else "Yöntem"), c.get("method", "—")),
+    ]
+    if c.get("auto_fetched"):
+        rows.append((("Auto-fetched" if is_en else "Otomatik çekilen"), c.get("auto_note", "—")))
+    trs = "".join(f"<tr><td>{k}</td><td>{v}</td></tr>" for k, v in rows)
+    return f"<h2>🧬 {ttl}</h2><table>{trs}</table>"
+
+
 def _mimicry_section(meta: dict) -> str:
     """Moleküler mimikri — tam + BLOSUM62 kısmi konak self-eşleşme (Faz 7)."""
     m = meta.get("mimicry")
@@ -575,6 +599,7 @@ def _html(df: pd.DataFrame, meta: dict, peptides=None) -> str:
     immuno_html = _immuno_section(meta)
     structure_html = _structure_section(meta)
     glyco_html = _glyco_section(meta)
+    conservation_html = _conservation_section(meta)
     mimicry_html = _mimicry_section(meta)
     cloning_html = _cloning_section(meta)
     methods_html = _methods_section(meta)
@@ -641,6 +666,7 @@ summary{{cursor:pointer;font-size:.95rem}}</style></head><body>
 {mev_html}
 {structure_html}
 {cloning_html}
+{conservation_html}
 {glyco_html}
 {mimicry_html}
 {immuno_html}

@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { Button, Card, Badge, SectionHeading } from "@/components/ui";
-import { FunnelChart, CandidatesTable, DownloadBar, MevConstruct, ImmunogenicityCard, PopulationCoverage, IedbValidation, MethodsUsed, StructureCard, GlycoCard, CloningCard, MimicryCard } from "@/components/results";
+import { FunnelChart, CandidatesTable, DownloadBar, MevConstruct, ImmunogenicityCard, PopulationCoverage, IedbValidation, MethodsUsed, StructureCard, GlycoCard, CloningCard, MimicryCard, ConservationCard } from "@/components/results";
 import { useLang } from "@/components/lang-provider";
 import {
   getConfig,
@@ -798,6 +798,7 @@ export default function RunPage() {
                 </div>
 
                 {detail.funnel_methods && <MethodsUsed methods={detail.funnel_methods} />}
+                {detail.conservation && <ConservationCard cons={detail.conservation} />}
 
                 <div>
                   <div className="mb-4 flex items-center justify-between">

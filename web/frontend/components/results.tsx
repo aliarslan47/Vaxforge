@@ -455,6 +455,47 @@ export function MevConstruct({ mev }: { mev: MevData }) {
   );
 }
 
+// ---------- Suşlar-arası konservasyon (Faz 8) ----------
+export function ConservationCard({ cons }: { cons: any }) {
+  const { lang } = useLang();
+  if (!cons) return null;
+  return (
+    <Card className="p-5 sm:p-6">
+      <div className="flex items-center gap-2.5">
+        <span className="grid h-9 w-9 place-items-center rounded-xl bg-bio/10 ring-1 ring-bio/25">
+          <ShieldCheck className="h-5 w-5 text-bio-soft" />
+        </span>
+        <div>
+          <h3 className="font-display text-lg font-semibold text-fg">
+            {lang === "tr" ? "Suşlar-arası konservasyon" : "Cross-strain conservation"}
+          </h3>
+          <p className="text-xs text-fg-muted">
+            {lang === "tr"
+              ? "Geniş-suş koruması — korunmuş epitoplar daha güçlü aşı hedefi."
+              : "Broad-strain coverage — conserved epitopes are stronger vaccine targets."}
+          </p>
+        </div>
+      </div>
+      {!cons.computed ? (
+        <p className="mt-4 text-sm text-fg-muted">
+          {lang === "tr" ? "Hesaplanmadı" : "Not computed"}
+          {cons.auto_note ? ` — ${cons.auto_note}` : ""}
+        </p>
+      ) : (
+        <>
+          <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+            <PropStat label={lang === "tr" ? "Suş" : "Strains"} value={cons.n_strains ?? "—"} />
+            <PropStat label={lang === "tr" ? "Korunmuş aday" : "Conserved"} value={String(cons.n_conserved ?? "—")} />
+            <PropStat label={lang === "tr" ? "Eşik" : "Threshold"} value={`≥${cons.min_percent ?? "—"}%`} />
+            <PropStat label={lang === "tr" ? "Otomatik" : "Auto"} value={cons.auto_fetched ? (lang === "tr" ? "evet" : "yes") : "—"} tone={cons.auto_fetched ? "ok" : undefined} />
+          </div>
+          {cons.auto_note && <p className="mt-3 text-[11px] text-fg-faint">{cons.auto_note}</p>}
+        </>
+      )}
+    </Card>
+  );
+}
+
 // ---------- Moleküler mimikri (otoimmünite — Faz 7) ----------
 export function MimicryCard({ mimicry }: { mimicry: any }) {
   const { lang } = useLang();

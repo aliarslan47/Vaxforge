@@ -6,7 +6,7 @@ import { useParams } from "next/navigation";
 import { ArrowLeft, Loader2, Calendar, FileText } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { Card, Badge, SectionHeading } from "@/components/ui";
-import { FunnelChart, CandidatesTable, DownloadBar, MevConstruct, ImmunogenicityCard, PopulationCoverage, IedbValidation, MethodsUsed, StructureCard, GlycoCard, CloningCard, MimicryCard } from "@/components/results";
+import { FunnelChart, CandidatesTable, DownloadBar, MevConstruct, ImmunogenicityCard, PopulationCoverage, IedbValidation, MethodsUsed, StructureCard, GlycoCard, CloningCard, MimicryCard, ConservationCard } from "@/components/results";
 import { useLang } from "@/components/lang-provider";
 import { getRun, RunDetail } from "@/lib/api";
 
@@ -80,6 +80,7 @@ export default function ResultsPage() {
             </div>
 
             {detail.funnel_methods && <MethodsUsed methods={detail.funnel_methods} />}
+            {detail.conservation && <ConservationCard cons={detail.conservation} />}
 
             {detail.candidates && detail.candidates.length > 0 && (
               <div>

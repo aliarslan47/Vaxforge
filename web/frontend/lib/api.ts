@@ -133,6 +133,7 @@ export interface RunDetail {
   glycosylation?: any;
   cloning?: any;
   mimicry?: any;
+  conservation?: any;
   [key: string]: unknown;
 }
 export interface SSEEvent {

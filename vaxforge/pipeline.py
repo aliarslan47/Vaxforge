@@ -90,18 +90,40 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
         yield _ev("__error__", "error", "Huniden aday çıkmadı.")
         return
 
-    # 3b) Konservasyon — suşlar arası korunmuşluk (yalnız kullanıcı ek suş verirse).
+    # 3b) Konservasyon — suşlar arası korunmuşluk.
     # Yalnız funnel-survivor adaylarda; diamond ortolog + BLOSUM62 hizalama (hafif).
     cons_min = float(resolved["conservation"].params["min_percent"].value) \
         if "conservation" in resolved else 80.0
+    # FAZ 8: kullanıcı suş vermediyse ama organizma taxon'u varsa NCBI'den otomatik suş çek.
+    auto_strain_note = None
+    if not strain_paths and organism_taxon:
+        try:
+            from . import strain_fetch
+            if strain_fetch.available(organism_taxon):
+                yield _ev("conservation", "running",
+                          "Suş verisi yok — NCBI Datasets'ten otomatik suş çekiliyor…")
+                fetched = strain_fetch.fetch_strains(organism_taxon, n=3)
+                if fetched.get("ok"):
+                    strain_paths = fetched["paths"]
+                    auto_strain_note = fetched["note"]
+                    meta["conservation_auto_strains"] = {
+                        "accessions": fetched["accessions"], "note": fetched["note"]}
+                else:
+                    meta["conservation_auto_strains"] = {"accessions": [], "note": fetched.get("note")}
+        except Exception as e:
+            meta["conservation_auto_strains"] = {"accessions": [], "note": f"otomatik çekme atlandı ({type(e).__name__})"}
     if conservation.available(strain_paths):
         yield _ev("conservation", "running",
                   f"Suş konservasyonu ({len(strain_paths)} suş) hesaplanıyor…")
         proteins, csum = conservation.run(proteins, strain_paths, min_percent=cons_min)
+        if auto_strain_note:
+            csum["auto_fetched"] = True
+            csum["auto_note"] = auto_strain_note
         meta["conservation"] = csum
+        src = f" · {auto_strain_note}" if auto_strain_note else ""
         yield _ev("conservation", "done",
                   f"{csum.get('n_conserved', 0)}/{len(proteins)} aday ≥%{cons_min} korunmuş "
-                  f"({csum.get('n_strains', 0)} suş)", csum)
+                  f"({csum.get('n_strains', 0)} suş){src}", csum)
     else:
         proteins, csum = conservation.run(proteins, strain_paths, min_percent=cons_min)
         meta["conservation"] = csum

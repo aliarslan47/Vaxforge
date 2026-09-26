@@ -409,6 +409,21 @@ if st.button(t(lang,"run_start"), type="primary"):
                 pd.DataFrame([{"Adım": s, "Yöntem": v} for s, v in _mrows if v]),
                 use_container_width=True, hide_index=True)
 
+        # --- Suşlar-arası konservasyon (Faz 8) ------------------------------
+        cons = rmeta.get("conservation")
+        if cons:
+            st.subheader("🧬 Suşlar-arası konservasyon")
+            if not cons.get("computed"):
+                _an = (rmeta.get("conservation_auto_strains") or {}).get("note")
+                st.info(f"Hesaplanmadı{(' — ' + _an) if _an else ''}.")
+            else:
+                k1, k2, k3 = st.columns(3)
+                k1.metric("Suş sayısı", cons.get("n_strains", "—"))
+                k2.metric("Korunmuş aday", str(cons.get("n_conserved", "—")))
+                k3.metric("Eşik", f"≥%{cons.get('min_percent','—')}")
+                if cons.get("auto_fetched"):
+                    st.caption(f"Otomatik: {cons.get('auto_note','')}")
+
         st.subheader(t(lang,"result_header"))
         rows = [{"sıra": i + 1, "peptit": p.seq, "tip": p.kind, "skor": p.candidacy,
                  "CDS / kaynak protein": p.parent,

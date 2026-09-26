@@ -28,7 +28,7 @@ Plan dosyası: `~/.claude/plans/tender-munching-thacker.md`
 | 5 | Kodon optimizasyonu + in silico klonlama | #3 | ✅ | ✓ |
 | 6 | VaxiJen antijenite çapraz-kontrol | #4 | ✅ | ✓ |
 | 7 | BLOSUM tabanlı kısmi mimikri | #5 | ✅ | ✓ |
-| 8 | Otomatik çok-suş konservasyonu | #6 | ⬜ | — |
+| 8 | Otomatik çok-suş konservasyonu | #6 | ✅ | ✓ |
 | 9 | Otoimmünite konak-DB genişletme | #9 | ⬜ | — |
 | 10 | Türe-özgü ImmForge kalibrasyonu | #11 | ⬜ | — |
 | 11 | Kapsamlı birim test paketi | #10 | ⬜ | — |
@@ -69,5 +69,10 @@ Durum: ⬜ bekliyor · 🔨 sürüyor · ✅ bitti
   konservatif ikame** kısmi mimikri (komşu-üretme → hızlı, brute-force yok). Pipeline mimikri
   bloğu n_exact+n_near sayar; meta['mimicry']. Rapor `_mimicry_section` + Next.js MimicryCard +
   Streamlit + runner katalog. Doğrulandı (I→V BLOSUM 3.0). tsc temiz.
-- **Sıradaki: Faz 8 (otomatik çok-suş konservasyonu)** — `proteome_fetch` ile NCBI'den suş çekme;
-  conservation epitop-seviyesi varsayılan (kullanıcı suş vermese de). Ağ yoksa dürüst 'hesaplanmadı'.
+- **2026-09-27 Faz 8 ✅**: `vaxforge/strain_fetch.py` — NCBI Datasets v2'den taxon'a göre N suş
+  proteomu (önbellekli, dürüst boş-dönüş). Pipeline: kullanıcı suş vermediyse + taxon varsa +
+  ağ varsa otomatik 3 suş çeker → conservation koşar. Rapor `_conservation_section` + Next.js
+  ConservationCard + Streamlit + runner katalog. CANLI test geçti (M. genitalium GCF_040556925.1
+  219KB indirildi). tsc temiz.
+- **Sıradaki: Faz 9 (otoimmünite konak-DB genişletme)** — seçili konakta proteom DB yoksa
+  UniProt'tan otomatik indir + diamond DB (tools/db/); yoksa dürüst 'atlandı'.
