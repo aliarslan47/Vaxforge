@@ -796,7 +796,7 @@ function ImmuneProfile({ profile }: { profile: NonNullable<ImmunogenicityHost["p
 }
 
 export function ImmunogenicityCard({ imm }: { imm: Immunogenicity }) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const hosts = imm.per_host ?? [];
   const toolMissing = imm.tool === "none" || hosts.length === 0;
 
@@ -844,7 +844,9 @@ export function ImmunogenicityCard({ imm }: { imm: Immunogenicity }) {
                     <span>MHC-I: <span className="text-fg">{h.n_mhci}</span></span>
                     <span>MHC-II: <span className="text-fg">{h.n_mhcii}</span></span>
                     <span>{t("immuno_clearance")}: <span className="text-fg">{Math.round(h.cleared_fraction * 100)}%</span></span>
-                    {h.species_calibrated === false && <span className="text-amber-400">{t("immuno_proxy")}</span>}
+                    {h.species_calibrated === false
+                      ? <span className="text-amber-400">{(h as any).calibration_species ? `${(h as any).calibration_species}-proxy` : t("immuno_proxy")}</span>
+                      : (h as any).calibration_species && <span className="text-bio-soft">{(lang === "tr" ? "kalibre" : "calibrated")}: {(h as any).calibration_species}</span>}
                   </div>
                   {h.reasons?.length > 0 && (
                     <ul className="mt-2 space-y-1 text-[12px] text-fg-muted">

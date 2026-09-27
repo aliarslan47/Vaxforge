@@ -583,6 +583,25 @@ if st.button(t(lang,"run_start"), type="primary"):
             _sstr = ", ".join(f"{e}×{len(p)}" for e, p in _sites.items()) or "yok"
             st.write(f"**Restriksiyon:** {_sstr} · **Vektör:** {cln.get('suggested_vector','—')} · {cln.get('tag','')}")
 
+        # --- İn silico immünizasyon + türe-özgü kalibrasyon (ImmForge — Faz 10) ---
+        imm = rmeta.get("immunogenicity")
+        if imm and imm.get("per_host"):
+            st.subheader("🛡️ İn silico immünizasyon (ImmForge) — türe-özgü kalibrasyon")
+            st.caption("Mekanistik motor ÖNGÖRÜSÜ (in vivo etkinlik değil). Kalibrasyon: "
+                       "konağın kendi ABC-kalibre motoru varsa GERÇEK, yoksa 'human-proxy' "
+                       "(türe-özgü immün farkları modellenmedi — dürüst).")
+            _vmap = {"OLUR": "OLUR", "ZAYIF": "ZAYIF", "OLMAZ": "OLMAZ"}
+            _irows = []
+            for ph in imm["per_host"]:
+                _cs = ph.get("calibration_species", "?")
+                _irows.append({
+                    "Konak": ph.get("host_label", ph.get("host", "")),
+                    "Karar": _vmap.get(ph.get("verdict", ""), ph.get("verdict", "")),
+                    "Skor": f"{round(ph.get('score', 0))}/100",
+                    "Kalibrasyon": _cs if ph.get("species_calibrated") else f"{_cs}-proxy",
+                })
+            st.dataframe(pd.DataFrame(_irows), use_container_width=True, hide_index=True)
+
         # --- Glikozilasyon (glikan-maskeli epitop — Faz 4) ------------------
         gly = rmeta.get("glycosylation")
         if gly and gly.get("available"):

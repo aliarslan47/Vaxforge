@@ -21,8 +21,21 @@ from vaxforge import bepipred, netmhc_local
 
 IMMFORGE_PATH = os.environ.get("IMMFORGE_PATH", str(Path.home() / "immforge"))
 
-# ImmForge'un kalibre (motor+K1+K3) türleri — bkz. immforge/config/calibration.*.yaml
-_CALIBRATED = {"human", "mouse", "bovine", "pig", "goat", "sheep", "rabbit", "fish", "horse"}
+def _calib_file(species: str) -> Path:
+    return Path(IMMFORGE_PATH) / "config" / f"calibration.{species}.yaml"
+
+
+def calibrated_species() -> set[str]:
+    """GERÇEKTE kalibrasyon YAML'ı olan türler (dosya-tabanlı — hardcoded liste DEĞİL).
+
+    Dürüstlük: bir tür yalnız calibration.{tür}.yaml gerçekten varsa 'kalibre' sayılır;
+    dosya yoksa o konak human motoruyla proxy'lenir (uydurma yok).
+    """
+    d = Path(IMMFORGE_PATH) / "config"
+    if not d.is_dir():
+        return set()
+    return {p.stem.split(".", 1)[1] for p in d.glob("calibration.*.yaml")
+            if "." in p.stem}
 
 
 def _ensure_immforge() -> None:
@@ -38,13 +51,28 @@ def available() -> bool:
 
 
 def _immforge_species(host_name: str) -> str:
-    return host_name if host_name in _CALIBRATED else "human"
+    """Konağın kendi kalibrasyonu varsa onu, yoksa 'human' (proxy) kullan."""
+    return host_name if _calib_file(host_name).exists() else "human"
+
+
+def _provenance(species: str) -> str:
+    """Kalibrasyon YAML meta.provenance'ından kısa köken bilgisi (varsa)."""
+    cfg = _calib_file(species)
+    if not cfg.exists():
+        return ""
+    try:
+        import yaml
+        meta = (yaml.safe_load(cfg.read_text()) or {}).get("meta", {})
+        prov = str(meta.get("provenance", "")).replace("\n", " ").strip()
+        return (prov[:180] + "…") if len(prov) > 180 else prov
+    except Exception:
+        return ""
 
 
 def _load_params(species: str):
     _ensure_immforge()
     from immforge.params import load_params
-    cfg = Path(IMMFORGE_PATH) / "config" / f"calibration.{species}.yaml"
+    cfg = _calib_file(species)
     return load_params(calibration_path=str(cfg)) if cfg.exists() else load_params()
 
 
@@ -90,10 +118,13 @@ def score_construct(seq: str, hosts, *, name: str = "MEV") -> dict:
         d = v.to_dict()
         d["host"] = h.name
         d["host_label"] = getattr(h, "label", h.name)
-        d["species_calibrated"] = h.name in _CALIBRATED
+        d["species_calibrated"] = (species == h.name)
+        d["calibration_species"] = species   # gerçekte kullanılan kalibrasyon türü
+        d["calibration_provenance"] = _provenance(species)
         if not d["species_calibrated"]:
             d["reasons"] = list(d.get("reasons", [])) + [
-                f"'{h.name}' için ImmForge tür-özgü kalibrasyonu yok → human motoru proxy (dürüst)."]
+                f"'{h.name}' için ImmForge tür-özgü kalibrasyonu YOK → '{species}' motoru "
+                "proxy (dürüst; türe-özgü immün farkları modellenmedi)."]
         per_host.append(d)
 
     headline = per_host[0]

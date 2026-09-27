@@ -364,19 +364,22 @@ def _immuno_section(meta: dict) -> str:
             "(Th1/Th2 dengesine bağlı, per-konstrukt valide değil).")
     vmap = {"OLUR": ("WORKS" if is_en else "OLUR"), "ZAYIF": ("WEAK" if is_en else "ZAYIF"),
             "OLMAZ": ("FAILS" if is_en else "OLMAZ")}
-    hdr = (["Host", "Verdict", "Score", "MHC-I", "MHC-II", "Clearance", "Profile", "Ig"] if is_en
-           else ["Konak", "Karar", "Skor", "MHC-I", "MHC-II", "Temizlik", "Profil", "Ig"])
+    hdr = (["Host", "Verdict", "Score", "MHC-I", "MHC-II", "Clearance", "Profile", "Ig", "Calibration"] if is_en
+           else ["Konak", "Karar", "Skor", "MHC-I", "MHC-II", "Temizlik", "Profil", "Ig", "Kalibrasyon"])
     trs = ""
     for ph in imm["per_host"]:
         pr = ph.get("profile") or {}
         prof = f"{pr.get('polarization', '—')} ({round(pr.get('th1', 0) * 100)}/{round(pr.get('th2', 0) * 100)})"
+        cal_sp = ph.get("calibration_species", "?")
+        cal = (cal_sp if ph.get("species_calibrated")
+               else (f"{cal_sp}-proxy" if is_en else f"{cal_sp}-proxy"))
         trs += ("<tr>"
                 f"<td>{ph.get('host_label', ph.get('host', ''))}</td>"
                 f"<td>{vmap.get(ph.get('verdict', ''), ph.get('verdict', ''))}</td>"
                 f"<td>{round(ph.get('score', 0))}/100</td>"
                 f"<td>{ph.get('n_mhci', '')}</td><td>{ph.get('n_mhcii', '')}</td>"
                 f"<td>{round(ph.get('cleared_fraction', 0) * 100)}%</td>"
-                f"<td>{prof}</td><td>{pr.get('dominant_isotype') or '—'}</td></tr>")
+                f"<td>{prof}</td><td>{pr.get('dominant_isotype') or '—'}</td><td>{cal}</td></tr>")
     r0 = imm["per_host"][0].get("reasons") or []
     reasons_html = ("<p style='font-size:.8rem;color:#555'>· " + " · ".join(r0) + "</p>") if r0 else ""
     return (

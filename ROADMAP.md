@@ -30,7 +30,7 @@ Plan dosyası: `~/.claude/plans/tender-munching-thacker.md`
 | 7 | BLOSUM tabanlı kısmi mimikri | #5 | ✅ | ✓ |
 | 8 | Otomatik çok-suş konservasyonu | #6 | ✅ | ✓ |
 | 9 | Otoimmünite konak-DB genişletme | #9 | ✅ | ✓ |
-| 10 | Türe-özgü ImmForge kalibrasyonu | #11 | ⬜ | — |
+| 10 | Türe-özgü ImmForge kalibrasyonu | #11 | ✅ | ✓ |
 | 11 | Kapsamlı birim test paketi | #10 | ⬜ | — |
 
 Durum: ⬜ bekliyor · 🔨 sürüyor · ✅ bitti
@@ -79,5 +79,10 @@ Durum: ⬜ bekliyor · 🔨 sürüyor · ✅ bitti
   funnel _self_homology öncesi eksik DB'leri otomatik sağlar; summary self_homoloji'ye
   'otomatik sağlandı' notu (Faz1 altyapısıyla rapor/UI'de görünür). runner katalog satırı.
   CANLI test: tavşan (9986) → 980 protein Swiss-Prot + diamond DB (539KB). tsc temiz.
-- **Sıradaki: Faz 10 (türe-özgü ImmForge kalibrasyonu)** — immforge_score human-proxy'ye düşen
-  konaklar için tür-özgü parametreler; en az fare+insan gerçek, diğerleri açık 'proxy' notu.
+- **2026-09-27 Faz 10 ✅**: `immforge_score.py` — kalibrasyon DOSYA-TABANLI (`calibrated_species()`
+  = gerçekte var olan calibration.*.yaml; hardcoded liste kaldırıldı). 9 tür kalibre (human/mouse/
+  bovine/pig/goat/sheep/rabbit/fish/horse); chicken → human-proxy (DÜRÜST: avian ABC kalibrasyonu
+  ayrı literatür-çapalı mini-proje, sayı UYDURULMADI). Per-host calibration_species + provenance;
+  rapor immüno tablosuna 'Kalibrasyon' sütunu + Next.js/Streamlit kalibrasyon türü. tsc temiz.
+- **Sıradaki: Faz 11 (kapsamlı birim test paketi)** — tests/test_<modül>.py; yeni 9 modül +
+  funnel/mev/scoring için regresyon; pytest yeşil = kalıcı bozulma güvencesi.
