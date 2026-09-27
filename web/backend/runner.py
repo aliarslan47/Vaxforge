@@ -117,15 +117,24 @@ def tool_status() -> list[dict]:
 
 def get_config() -> dict:
     """Frontend'in ihtiyaç duyduğu tüm seçenekler: profiller, konaklar, araçlar."""
+    try:
+        from vaxforge import hla_disease as _hla_disease
+    except Exception:
+        _hla_disease = None
     hosts = []
     for name in HOSTS.names():
         h = HOSTS.get(name)
+        disease = (_hla_disease.summarize(list(h.mhc_i) + list(h.mhc_ii))
+                   if _hla_disease is not None else {"available": False, "entries": {}})
         hosts.append({
             "name": name,
             "label": h.label,
             "source": getattr(h, "source", ""),
             "n_mhc_i": len(h.mhc_i),
             "n_mhc_ii": len(h.mhc_ii),
+            "mhc_i": list(h.mhc_i),
+            "mhc_ii": list(h.mhc_ii),
+            "hla_disease": disease,   # patojenite/hastalık anotasyonu (atıflı)
             "default": name in HOSTS.default_hosts,
         })
     try:

@@ -134,3 +134,21 @@ def test_immforge_calibration_filebased():
     assert im._immforge_species("chicken") == "human"
     if "mouse" in cs:
         assert im._immforge_species("mouse") == "mouse"
+
+
+# ── HLA-hastalık anotasyonu (patojenite katmanı) ────────────────────
+def test_hla_disease_annotation():
+    from vaxforge import hla_disease as hd
+    assert hd.available() is True
+    # bilinen doğrulanmış allel — advers kategori + DOI taşımalı
+    ann = hd.annotate("HLA-B*57:01")
+    assert ann and ann[0]["category"] == "adverse"
+    assert ann[0]["doi"] == "10.1056/NEJMoa0706135" and ann[0]["pmid"]
+    # her kayıt PMID + DOI taşımalı (uydurma-yok güvencesi)
+    for lst in hd._load().values():
+        for e in lst:
+            assert e.get("pmid") and e.get("doi") and e.get("category") in hd.CATEGORY_TONE
+    # eşleşmeyen allel boş; panel özeti kategori sayar
+    assert hd.annotate("HLA-A*99:99") == []
+    s = hd.summarize(["HLA-B*57:01", "HLA-B*53:01", "HLA-A*99:99"])
+    assert s["n_adverse"] == 1 and s["n_protective"] == 1 and len(s["entries"]) == 2

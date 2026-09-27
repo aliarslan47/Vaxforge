@@ -17,12 +17,30 @@ export interface ToolStatus {
   label: string;
   available: boolean;
 }
+export interface HlaDiseaseEntry {
+  disease: string;
+  category: "risk" | "adverse" | "protective" | string;
+  note: string;
+  pmid: string;
+  doi: string;
+  citation: string;
+}
+export interface HlaDiseaseSummary {
+  available: boolean;
+  n_risk?: number;
+  n_adverse?: number;
+  n_protective?: number;
+  entries: Record<string, HlaDiseaseEntry[]>;
+}
 export interface HostInfo {
   name: string;
   label: string;
   source: string;
   n_mhc_i: number;
   n_mhc_ii: number;
+  mhc_i?: string[];
+  mhc_ii?: string[];
+  hla_disease?: HlaDiseaseSummary;
   default: boolean;
 }
 export interface PipelineStep {

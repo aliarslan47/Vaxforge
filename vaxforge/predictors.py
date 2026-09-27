@@ -62,6 +62,12 @@ def predict(peptides: list[str], host: Host, mhc_class: str, rank_weak: float) -
     alleles = host.alleles(mhc_class)
     backend = host.predictor(mhc_class)
 
+    # Bu konak için bu sınıfta allel tanımlı DEĞİL (ör. domuz MHC-II: NetMHCIIpan
+    # SLA-DR desteklemez → panel boş bırakıldı). Proxy'ye DÜŞME — sınıfı tamamen
+    # atla (boş sözlük). Aksi halde '?' alleliyle sahte epitop üretilirdi.
+    if not alleles:
+        return {}
+
     # GERÇEK: NetMHCpan / NetMHCIIpan
     if backend in ("netmhcpan", "netmhciipan"):
         # 1) yerel binary (varsa ve bu mimaride çalışıyorsa) — en hızlı, çevrimdışı

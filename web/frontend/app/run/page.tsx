@@ -418,6 +418,7 @@ export default function RunPage() {
                   <button
                     key={h.name}
                     onClick={() => toggleHost(h.name)}
+                    title={t("run_hosts_tip")}
                     className={cn(
                       "flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left transition cursor-pointer",
                       hosts.includes(h.name) ? "border-primary/40 bg-primary/[0.07]" : "border-line hover:border-line",

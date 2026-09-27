@@ -1,0 +1,75 @@
+# =============================================================================
+# HLA → hastalık / patojenite ilişki anotasyonu.
+# -----------------------------------------------------------------------------
+# Konak MHC panelindeki allellerin literatürde YERLEŞİK hastalık/ilaç/koruma
+# ilişkileri. Aşı adayı bir epitopun sunulacağı allel klinik olarak riskli mi,
+# koruyucu mu, advers ilaç reaksiyonuyla mı ilişkili — okur bunu görsün.
+#
+# KURAL (çekirdek ilke, bkz. vaxforge-literature-rule): her satır PubMed'den
+# TEK TEK doğrulanmış PMID + DOI taşır. Doğrulanmayan satır EKLENMEZ (uydurma yok).
+#
+# category:
+#   protective  — allel taşımak hastalığa karşı KORUYUCU / iyi prognoz
+#   risk        — allel hastalığa YATKINLIK / otoimmün risk
+#   adverse     — allel bir İLACA advers/aşırı-duyarlılık reaksiyonu (farmakogenetik)
+#
+# Anahtarlar hosts.yaml'daki allel biçimiyle BİREBİR eşleşir (ör. HLA-B*57:01).
+# =============================================================================
+
+associations:
+
+  HLA-B*57:01:
+    - disease: "Abacavir aşırı duyarlılık reaksiyonu (HIV tedavisi)"
+      category: adverse
+      note: "HLA-B*57:01 taşıyıcılarında abacavir aşırı duyarlılığı güçlü ilişkili; ilaç öncesi tarama önerilir."
+      pmid: "18256392"
+      doi: "10.1056/NEJMoa0706135"
+      citation: "Mallal et al. 2008, N Engl J Med 358:568-79"
+
+  HLA-B*53:01:
+    - disease: "Ağır Plasmodium falciparum sıtması"
+      category: protective
+      note: "HLA-B53 ağır sıtmaya karşı direnç ile ilişkili; koruyucu CD8+ CTL epitopları tanımlanmıştır (Batı Afrika)."
+      pmid: "10603392"
+      doi: "10.1128/IAI.68.1.227-232.2000"
+      citation: "Aidoo et al. (Hill grubu) 2000, Infect Immun 68:227-232"
+
+  HLA-B*51:01:
+    - disease: "Behçet hastalığı"
+      category: risk
+      note: "HLA-B51/B5 Behçet ile birincil ve nedensel risk belirleyicisi (havuzlanmış OR ~5.8, 78 çalışma meta-analizi)."
+      pmid: "19790126"
+      doi: "10.1002/art.24642"
+      citation: "de Menthon et al. 2009, Arthritis Rheum 61:1287-96"
+
+  HLA-DRB1*15:01:
+    - disease: "Multipl skleroz (MS)"
+      category: risk
+      note: "HLA-DRB1*15:01 MS yatkınlığı ile ilişkili; çevresel faktörlerle (D vitamini/güneş) etkileşir."
+      pmid: "31844981"
+      doi: "10.1007/s00415-019-09677-3"
+      citation: "Hedström et al. 2019, J Neurol 267:1045-1052"
+
+  HLA-DRB1*04:01:
+    - disease: "Romatoid artrit (paylaşılan epitop, anti-CCP+)"
+      category: risk
+      note: "DRB1 paylaşılan-epitop (SE) alleli; anti-CCP pozitif RA ile ilişkili (2 kopya OR ~11.8)."
+      pmid: "16255021"
+      doi: "10.1002/art.21385"
+      citation: "Huizinga et al. 2005, Arthritis Rheum 52:3433-8"
+
+  HLA-DRB1*04:05:
+    - disease: "Romatoid artrit (paylaşılan epitop, anti-CCP+)"
+      category: risk
+      note: "DRB1 paylaşılan-epitop (SE) alleli; anti-CCP pozitif RA ile ilişkili."
+      pmid: "16255021"
+      doi: "10.1002/art.21385"
+      citation: "Huizinga et al. 2005, Arthritis Rheum 52:3433-8"
+
+  HLA-DRB1*01:01:
+    - disease: "Romatoid artrit (paylaşılan epitop, anti-CCP+)"
+      category: risk
+      note: "DRB1 paylaşılan-epitop (SE) alleli; anti-CCP pozitif RA ile ilişkili."
+      pmid: "16255021"
+      doi: "10.1002/art.21385"
+      citation: "Huizinga et al. 2005, Arthritis Rheum 52:3433-8"

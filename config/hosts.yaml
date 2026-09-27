@@ -6,8 +6,20 @@
 # MHC-II allelleri taranır. Birden çok konak seçilebilir (tür-kapsamı haritası).
 #
 # Kaynak: insan allelleri IMGT/HLA, insan-dışı allelleri IPD-MHC.
-# UYARI: aşağıdaki listeler TEMSİLİ ALT KÜMELERDİR; tam/güncel liste ilgili
-# veritabanından çekilecek (bkz. sıradaki iş: allel çekme betiği).
+# -----------------------------------------------------------------------------
+# 2026-09-27 GENİŞLETİLDİ: paneller literatürde yerleşik REFERANS SETLERE çıkarıldı
+# ve her allel yerel NetMHCpan/NetMHCIIpan '-listMHC/-list' envanterine karşı
+# TEK TEK VALİDE edildi (geçersiz olan panele KONMADI). Atıflar her blokta.
+#   İnsan MHC-I  : 27-allel referans set — Sidney et al. 2008 BMC Immunol 9:1,
+#                  DOI 10.1186/1471-2172-9-1 (9 HLA süpertipini kapsar).
+#   İnsan MHC-II : DR referans locus seti — Greenbaum et al. 2011 Immunogenetics
+#                  63:325-335, DOI 10.1007/s00251-011-0513-0 (27 yaygın DR/DQ/DP).
+#   Sığır BoLA-I : Nielsen, Connelley, Ternette 2017 J Proteome Res 17:559-567,
+#                  DOI 10.1021/acs.jproteome.7b00675 (NetBoLApan).
+#   Sığır BoLA-DR: Fisch et al. 2021 J Immunol 206:2489-2497,
+#                  DOI 10.4049/jimmunol.2001409 (NetBoLAIIpan; Holstein DRB3).
+#   Fare/Domuz   : NetMHCpan/NetMHCIIpan destekli tam/yaygın set (araçça doğrulandı).
+# NOT: Domuz MHC-II ve tavuk, araçta desteklenmediği için (proxy) DEVRE DIŞI.
 #
 # predictors: her konak+sınıf için hangi gerçek yordayıcının uygun olduğu.
 #   mhcflurry -> yalnız insan MHC-I (kurulu, gerçek, GPU'suz)
@@ -23,10 +35,20 @@ hosts:
   human:
     label: "İnsan (Homo sapiens)"
     source: "IMGT/HLA"
-    mhc_i:  [HLA-A*01:01, HLA-A*02:01, HLA-A*03:01, HLA-A*11:01, HLA-A*24:02,
-             HLA-B*07:02, HLA-B*08:01, HLA-B*15:01, HLA-B*40:01]
-    mhc_ii: [HLA-DRB1*01:01, HLA-DRB1*03:01, HLA-DRB1*04:01, HLA-DRB1*07:01,
-             HLA-DRB1*11:01, HLA-DRB1*15:01]
+    # MHC-I: 27-allel referans set (Sidney 2008, DOI 10.1186/1471-2172-9-1) —
+    # 9 HLA-A/-B süpertipini kapsar; dünya nüfusunda geniş kapsam. 27/27 araçça doğrulandı.
+    mhc_i:  [HLA-A*01:01, HLA-A*02:01, HLA-A*02:03, HLA-A*02:06, HLA-A*03:01,
+             HLA-A*11:01, HLA-A*23:01, HLA-A*24:02, HLA-A*26:01, HLA-A*30:01,
+             HLA-A*30:02, HLA-A*31:01, HLA-A*32:01, HLA-A*33:01, HLA-A*68:01,
+             HLA-A*68:02, HLA-B*07:02, HLA-B*08:01, HLA-B*15:01, HLA-B*35:01,
+             HLA-B*40:01, HLA-B*44:02, HLA-B*44:03, HLA-B*51:01, HLA-B*53:01,
+             HLA-B*57:01, HLA-B*58:01]
+    # MHC-II: DR referans locus seti (Greenbaum 2011, DOI 10.1007/s00251-011-0513-0).
+    # 15/15 araçça doğrulandı (DRB1 + DRB3/4/5 paralogları).
+    mhc_ii: [HLA-DRB1*01:01, HLA-DRB1*03:01, HLA-DRB1*04:01, HLA-DRB1*04:05,
+             HLA-DRB1*07:01, HLA-DRB1*08:02, HLA-DRB1*09:01, HLA-DRB1*11:01,
+             HLA-DRB1*12:01, HLA-DRB1*13:02, HLA-DRB1*15:01, HLA-DRB3*01:01,
+             HLA-DRB3*02:02, HLA-DRB4*01:01, HLA-DRB5*01:01]
     # MHC-I/II: yerel NetMHCpan/NetMHCIIpan (gerçek); yoksa IEDB API; o da yoksa proxy
     predictors: {mhc_i: netmhcpan, mhc_ii: netmhciipan}
     # Otoimmünite (self-homoloji) DB — insan Swiss-Prot (kurulu, 20.431 protein)
@@ -37,41 +59,57 @@ hosts:
   mouse:
     label: "Fare (Mus musculus, H-2)"
     source: "IPD-MHC"
-    mhc_i:  [H-2-Kb, H-2-Db, H-2-Kd, H-2-Dd, H-2-Ld]   # H-2-Kb IEDB'de doğrulandı
+    # NetMHCpan'ın desteklediği klasik H-2 haplotiplerinin tamamı (9/9 doğrulandı):
+    # b/d/k/q laboratuvar suşları — model organizma kapsamı için genişletildi.
+    mhc_i:  [H-2-Kb, H-2-Db, H-2-Kd, H-2-Dd, H-2-Ld,
+             H-2-Kk, H-2-Kq, H-2-Dq, H-2-Lq]
     # DÜZELTİLDİ (2026-07-12): netMHCIIpan-4.3 biçimi 'H-2-IAb' (tireli). Eski 'H2-IAb'
     # araçta yoktu → sessizce proxy'ye düşüyordu. Şimdi GERÇEK NetMHCIIpan.
-    mhc_ii: [H-2-IAb, H-2-IAd, H-2-IEd, H-2-IAk, H-2-IEk]
+    # NetMHCIIpan destekli tam I-A/I-E seti (8/8 doğrulandı).
+    mhc_ii: [H-2-IAb, H-2-IAd, H-2-IAk, H-2-IAq, H-2-IAs, H-2-IAu, H-2-IEd, H-2-IEk]
     predictors: {mhc_i: netmhcpan, mhc_ii: netmhciipan}
     homology_db: db/mouse.dmnd   # Swiss-Prot reviewed fare (17.267 protein)
 
   bovine:
     label: "Sığır (Bos taurus, BoLA)"
     source: "IPD-MHC"
-    # DOĞRULANDI (kolon biçimi, yıldız yok):
-    mhc_i:  [BoLA-1:02301, BoLA-3:00101, BoLA-6:01301, BoLA-2:00801,
-             BoLA-4:02401, BoLA-6:04001, BoLA-2:01801, BoLA-1:00901]
-    # DOĞRULANDI: netMHCIIpan-4.3 -list'te GERÇEK BoLA-DRB3 (365 allel) — proxy DEĞİL.
-    # Yaygın Bos taurus DRB3 alleleri (*020:01 araçta yok → *020:02); *→_, :→sil ile
-    # araç biçimine map (BoLA-DRB3*011:01 → BoLA-DRB3_01101). Geçersizler runtime elenir.
-    mhc_ii: [BoLA-DRB3*011:01, BoLA-DRB3*016:01, BoLA-DRB3*024:01, BoLA-DRB3*008:01,
-             BoLA-DRB3*010:01, BoLA-DRB3*015:01, BoLA-DRB3*022:01, BoLA-DRB3*023:01]
+    # BoLA-I: Nielsen 2017 NetBoLApan yaygın allelleri (DOI 10.1021/acs.jproteome.7b00675).
+    # Kolon biçimi, yıldız yok. 12/12 araçça doğrulandı.
+    mhc_i:  [BoLA-1:00901, BoLA-1:01901, BoLA-1:02301, BoLA-2:00801, BoLA-2:01201,
+             BoLA-2:01801, BoLA-3:00101, BoLA-3:01701, BoLA-4:02401, BoLA-6:01301,
+             BoLA-6:04001, BoLA-6:04101]
+    # BoLA-DRB3: Fisch 2021 NetBoLAIIpan, Holstein-Friesian yaygın DRB3 (DOI 10.4049/jimmunol.2001409).
+    # *→_, :→sil ile araç biçimine map (BoLA-DRB3*011:01 → BoLA-DRB3_01101). 11/11 doğrulandı.
+    mhc_ii: [BoLA-DRB3*001:01, BoLA-DRB3*002:01, BoLA-DRB3*008:01, BoLA-DRB3*009:01,
+             BoLA-DRB3*010:01, BoLA-DRB3*011:01, BoLA-DRB3*012:01, BoLA-DRB3*015:01,
+             BoLA-DRB3*016:01, BoLA-DRB3*024:01, BoLA-DRB3*027:03]
     predictors: {mhc_i: netmhcpan, mhc_ii: netmhciipan}
     homology_db: db/bovine.dmnd  # Swiss-Prot reviewed sığır (6.053 protein)
 
   pig:
     label: "Domuz (Sus scrofa, SLA)"
     source: "IPD-MHC"
-    # DOĞRULANDI (yıldız biçimi, kolon yok):
-    mhc_i:  [SLA-1*0401, SLA-2*0401, SLA-3*0401, SLA-1*0101, SLA-2*0102, SLA-3*0304]
-    mhc_ii: [SLA-DRB1*0401]                              # çalışma-zamanı doğrular
+    # SLA-I: yaygın SLA-1/-2/-3 referans allelleri (yıldız biçimi, kolon yok).
+    # 11/11 araçça (NetMHCpan -listMHC) doğrulandı; 6 → 11'e genişletildi.
+    mhc_i:  [SLA-1*0101, SLA-1*0401, SLA-1*0701, SLA-1*0702, SLA-2*0101,
+             SLA-2*0102, SLA-2*0202, SLA-2*0401, SLA-3*0301, SLA-3*0304, SLA-3*0401]
+    # MHC-II DEVRE DIŞI (2026-09-27): NetMHCIIpan HİÇ SLA-DR alleli desteklemiyor (0 tane) →
+    # eski tek allel SLA-DRB1*0401 proxy'ye düşüyordu (yanıltıcı "II:1"). Tavukla tutarlı
+    # dürüst devre dışı. Araç SLA-II eklerse geri açılacak.
+    # mhc_ii: [SLA-DRB1*0401]
+    mhc_ii: []
     predictors: {mhc_i: netmhcpan, mhc_ii: netmhciipan}
     homology_db: db/pig.dmnd     # Swiss-Prot reviewed domuz (1.463 protein — seyrek kapsam)
 
-  chicken:
-    label: "Tavuk (Gallus gallus, BF) — IEDB NetMHCpan desteklemiyor → proxy"
-    source: "IPD-MHC"
-    # IEDB NetMHCpan tavuk allellerini kabul etmiyor (denendi); bu konak proxy'ye düşer.
-    mhc_i:  [BF2*21:01]
-    mhc_ii: [BLB2*21:01]
-    predictors: {mhc_i: netmhcpan, mhc_ii: netmhciipan}
-    homology_db: db/chicken.dmnd # Swiss-Prot reviewed tavuk (2.316 protein — seyrek kapsam)
+  # GEÇİCİ OLARAK DEVRE DIŞI (2026-09-27): NetMHCpan tavuk BF allellerini desteklemiyor,
+  # bu konak yalnız heuristik proxy veriyordu (I:1·II:1) → kullanıcıyı yanıltmaması için
+  # panelden çıkarıldı. Gerçek tahmine yükseltince (IPD-MHC BF dizisi → custom NetMHCpan)
+  # geri açılacak. Yorumu kaldırmak yeterli.
+  # chicken:
+  #   label: "Tavuk (Gallus gallus, BF) — IEDB NetMHCpan desteklemiyor → proxy"
+  #   source: "IPD-MHC"
+  #   # IEDB NetMHCpan tavuk allellerini kabul etmiyor (denendi); bu konak proxy'ye düşer.
+  #   mhc_i:  [BF2*21:01]
+  #   mhc_ii: [BLB2*21:01]
+  #   predictors: {mhc_i: netmhcpan, mhc_ii: netmhciipan}
+  #   homology_db: db/chicken.dmnd # Swiss-Prot reviewed tavuk (2.316 protein — seyrek kapsam)

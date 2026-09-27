@@ -95,3 +95,20 @@ Tüm eksikler kapatıldı; her biri pipeline + rapor + Next.js + Streamlit'te g�
 korunuyor. Kurulan araçlar: PSORTb (podman), DeepLoc2, ESMFold (ESMAtlas API), NCBI Datasets
 suş-çekme, UniProt konak-DB. Yeni modüller: deeploc, structure, rsa, bcell_conf, glyco, cloning,
 vaxijen, strain_fetch, host_db (+ mimicry/immforge_score genişletildi).
+
+## 2026-09-27 — Konak MHC panelleri referans setlere genişletildi + patojenite/HLA-hastalık anotasyonu
+- **hosts.yaml genişletildi** (hepsi yerel NetMHCpan `-listMHC/-list`'e karşı %100 valide, atıflı):
+  İnsan MHC-I 9→27 (Sidney 2008, DOI 10.1186/1471-2172-9-1), MHC-II 6→15 (Greenbaum 2011,
+  DOI 10.1007/s00251-011-0513-0); Fare 5→9 / 5→8; Sığır 8→12 / 8→11 (Nielsen 2017
+  DOI 10.1021/acs.jproteome.7b00675 + Fisch 2021 DOI 10.4049/jimmunol.2001409); Domuz-I 6→11.
+  **Domuz MHC-II DEVRE DIŞI** (NetMHCIIpan hiç SLA-DR desteklemiyor → eski "II:1" proxy'ydi;
+  tavukla tutarlı dürüst devre dışı). `predictors.py`: boş-allel guard (proxy'ye düşüp sahte
+  epitop üretmeyi engeller).
+- **YENİ patojenite katmanı**: `config/hla_disease.yaml` (7 allel, her satır PubMed PMID+DOI ile
+  doğrulanmış: B*57:01 abacavir-advers / B*53:01 sıtma-koruyucu / B*51:01 Behçet / DRB1*15:01 MS /
+  DRB1*04:01,*04:05,*01:01 RA) + `vaxforge/hla_disease.py` loader (annotate/summarize; salt-yorumlama,
+  skorlamayı etkilemez). `runner.py` /api/config'e allel listeleri + hla_disease özeti eklendi.
+- Patojen-tarafı virülans zaten mevcut (discovery.py VFDB) → yeniden inşa yok.
+- **UI NOTU**: klinik-not kartı + risk rozetleri kullanıcı isteğiyle KALDIRILDI (bileşen `results.tsx`'te
+  duruyor, veri backend'de duruyor; geri açmak tek satır). Panelde sadece I:x·II:y + tooltip kaldı.
+- `tests/test_modules.py`: hla_disease birim testi (12/12 yeşil). Plan: ~/.claude/plans/delegated-painting-liskov.md

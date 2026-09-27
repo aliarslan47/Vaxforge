@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Download, FileText, FileSpreadsheet, FileCode2, FileDown, Search, Syringe, Globe2, ShieldCheck, Atom } from "lucide-react";
-import { RunDetail, Candidate, MevData, Immunogenicity, ImmunogenicityHost, fileUrl } from "@/lib/api";
+import { RunDetail, Candidate, MevData, Immunogenicity, ImmunogenicityHost, HostInfo, HlaDiseaseEntry, fileUrl } from "@/lib/api";
 import { useLang } from "./lang-provider";
 import { Card, Badge } from "./ui";
 import { cn } from "@/lib/utils";
@@ -326,6 +326,20 @@ function compStyle(c: { role: string; kind?: string }) {
   return ROLE_STYLE[c.role] ?? { cls: "bg-white/5 text-fg-muted", ring: "ring-line" };
 }
 
+// Ham dizideki her segmentin harf/zemin rengi (blok şemasıyla aynı renk kodu).
+// Linker'lar sönük tutulur ki epitoplar öne çıksın.
+const SEG_TEXT: Record<string, string> = {
+  adjuvant: "text-primary bg-primary/10",
+  linker: "text-fg-faint bg-transparent",
+  "epitope:B": "text-epi-b bg-epi-b/10",
+  "epitope:MHC-I": "text-epi-i bg-epi-i/10",
+  "epitope:MHC-II": "text-epi-ii bg-epi-ii/10",
+};
+function segTextCls(c: { role: string; kind?: string }): string {
+  const key = c.role === "epitope" ? `epitope:${c.kind}` : c.role;
+  return SEG_TEXT[key] ?? "text-fg-muted";
+}
+
 function PropStat({ label, value, tone }: { label: string; value: React.ReactNode; tone?: "ok" | "warn" }) {
   return (
     <div className="rounded-xl border border-line bg-surface/40 px-3.5 py-3">
@@ -418,11 +432,37 @@ export function MevConstruct({ mev }: { mev: MevData }) {
         </div>
       )}
 
-      {/* tam dizi */}
+      {/* tam dizi — segmentlere göre renklendirilmiş (blok şemasıyla aynı renk kodu) */}
       <div className="mt-4">
         <div className="mb-1 text-[11px] uppercase tracking-wide text-fg-faint">{t("mev_seq")}</div>
-        <div className="max-h-32 overflow-y-auto rounded-xl border border-line bg-ink/40 p-3 font-mono text-[12px] leading-relaxed tracking-wide text-fg-muted break-all">
-          {mev.sequence}
+        <div className="max-h-32 overflow-y-auto rounded-xl border border-line bg-ink/40 p-3 font-mono text-[12px] leading-relaxed tracking-wide break-all">
+          {comps.length > 0 ? (
+            comps.map((c, i) => {
+              const kind = c.kind ?? (c.role.startsWith("epitope:") ? c.role.slice("epitope:".length) : undefined);
+              const roleLabel = c.role === "adjuvant" ? (c.source ?? "adjuvant")
+                : c.role === "linker" ? "linker"
+                : kind ?? "epitope";
+              return (
+                <span
+                  key={i}
+                  title={`${roleLabel}${c.source && c.role !== "adjuvant" ? " · " + c.source : ""} · ${c.seq.length} aa`}
+                  className={cn("rounded-[3px]", segTextCls(c))}
+                >
+                  {c.seq}
+                </span>
+              );
+            })
+          ) : (
+            <span className="text-fg-muted">{mev.sequence}</span>
+          )}
+        </div>
+        {/* aynı lejant kısaca */}
+        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-fg-faint">
+          <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-primary" />{t("mev_adjuvant")}</span>
+          <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-epi-b" />B</span>
+          <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-epi-i" />MHC-I</span>
+          <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-epi-ii" />MHC-II</span>
+          <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-fg-faint" />{t("mev_linker")}</span>
         </div>
       </div>
 
@@ -514,12 +554,12 @@ export function MimicryCard({ mimicry }: { mimicry: any }) {
         </span>
         <div>
           <h3 className="font-display text-lg font-semibold text-fg">
-            {lang === "tr" ? "Moleküler mimikri — konak self-eşleşme" : "Molecular mimicry — host self-match"}
+            {lang === "tr" ? "Moleküler mimikri — konak proteomuyla benzerlik" : "Molecular mimicry — similarity to host proteome"}
           </h3>
           <p className="text-xs text-fg-muted">
             {lang === "tr"
-              ? "Tam k-mer = güçlü otoimmünite; BLOSUM62 tek-ikame = kısmi çapraz-reaktivite (yumuşak)."
-              : "Exact k-mer = strong autoimmunity; BLOSUM62 single-sub = partial cross-reactivity (soft)."}
+              ? "Tam k-mer eşleşmesi = güçlü otoimmünite riski; BLOSUM62 tek-ikame = kısmi çapraz-reaktivite (yumuşak)."
+              : "Exact k-mer match = strong autoimmunity risk; BLOSUM62 single-sub = partial cross-reactivity (soft)."}
           </p>
         </div>
       </div>
@@ -949,6 +989,59 @@ export function IedbValidation({ iedb }: { iedb: any }) {
         ))}
       </div>
       {iedb.source && <p className="mt-3 text-[11px] text-fg-faint">{iedb.source}</p>}
+    </Card>
+  );
+}
+
+// ---------- Klinik / patojenite notları (HLA-hastalık ilişkileri) ----------
+const CLIN_CAT_STYLE: Record<string, string> = {
+  risk: "bg-warn/12 text-warn ring-warn/30",
+  adverse: "bg-danger/12 text-danger ring-danger/30",
+  protective: "bg-bio/12 text-bio-soft ring-bio/30",
+};
+
+export function ClinicalNotes({ hosts }: { hosts: HostInfo[] }) {
+  const { t } = useLang();
+  // Seçili konakların allel→ilişki kayıtlarını topla (allel + konak etiketiyle)
+  const rows: { allele: string; host: string; e: HlaDiseaseEntry }[] = [];
+  for (const h of hosts) {
+    const entries = h.hla_disease?.entries ?? {};
+    for (const [allele, list] of Object.entries(entries)) {
+      for (const e of list) rows.push({ allele, host: h.label, e });
+    }
+  }
+  if (rows.length === 0) return null;
+  const catLabel = (c: string) =>
+    c === "risk" ? t("clin_risk") : c === "adverse" ? t("clin_adverse") : c === "protective" ? t("clin_protective") : c;
+  return (
+    <Card className="p-4">
+      <div className="flex items-center gap-2.5">
+        <span className="grid h-8 w-8 place-items-center rounded-lg bg-warn/10 ring-1 ring-warn/25">
+          <ShieldCheck className="h-4 w-4 text-warn" />
+        </span>
+        <div>
+          <h3 className="font-display text-sm font-semibold text-fg">{t("clin_title")}</h3>
+          <p className="text-[11px] text-fg-muted">{t("clin_sub")}</p>
+        </div>
+      </div>
+      <div className="mt-3 space-y-2">
+        {rows.map((r, i) => (
+          <div key={i} className="rounded-lg border border-line bg-surface/40 px-3 py-2">
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-[11px] text-fg">{r.allele}</span>
+              <span className={cn("rounded-full px-1.5 py-0.5 text-[9px] font-semibold ring-1", CLIN_CAT_STYLE[r.e.category] ?? "bg-white/5 text-fg-muted ring-line")}>
+                {catLabel(r.e.category)}
+              </span>
+              <span className="text-[11px] text-fg-muted">{r.e.disease}</span>
+            </div>
+            <p className="mt-1 text-[11px] text-fg-muted">{r.e.note}</p>
+            <a href={`https://doi.org/${r.e.doi}`} target="_blank" rel="noreferrer"
+               className="mt-0.5 inline-block text-[10px] text-primary hover:underline">
+              {r.e.citation} · DOI {r.e.doi}
+            </a>
+          </div>
+        ))}
+      </div>
     </Card>
   );
 }
