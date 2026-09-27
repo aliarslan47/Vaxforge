@@ -31,7 +31,7 @@ Plan dosyası: `~/.claude/plans/tender-munching-thacker.md`
 | 8 | Otomatik çok-suş konservasyonu | #6 | ✅ | ✓ |
 | 9 | Otoimmünite konak-DB genişletme | #9 | ✅ | ✓ |
 | 10 | Türe-özgü ImmForge kalibrasyonu | #11 | ✅ | ✓ |
-| 11 | Kapsamlı birim test paketi | #10 | ⬜ | — |
+| 11 | Kapsamlı birim test paketi | #10 | ✅ | ✓ |
 
 Durum: ⬜ bekliyor · 🔨 sürüyor · ✅ bitti
 
@@ -84,5 +84,14 @@ Durum: ⬜ bekliyor · 🔨 sürüyor · ✅ bitti
   bovine/pig/goat/sheep/rabbit/fish/horse); chicken → human-proxy (DÜRÜST: avian ABC kalibrasyonu
   ayrı literatür-çapalı mini-proje, sayı UYDURULMADI). Per-host calibration_species + provenance;
   rapor immüno tablosuna 'Kalibrasyon' sütunu + Next.js/Streamlit kalibrasyon türü. tsc temiz.
-- **Sıradaki: Faz 11 (kapsamlı birim test paketi)** — tests/test_<modül>.py; yeni 9 modül +
-  funnel/mev/scoring için regresyon; pytest yeşil = kalıcı bozulma güvencesi.
+- **2026-09-27 Faz 11 ✅**: `tests/test_modules.py` — 11 birim testi (ağsız, deterministik):
+  deeploc eşleme, structure pLDDT-parse+ölçek, rsa matematiği, bcell_conf yamaları, glyco sequon,
+  cloning CAI/GC, vaxijen skor, mimicry BLOSUM Hamming-1 (konservatif-only), strain_fetch taxon,
+  host_db taxid, immforge dosya-tabanlı kalibrasyon. Ağ/ağır-araç yolları smoke + manuel canlı
+  testlerle kapsandı. `pytest tests/` yeşil = kalıcı regresyon güvencesi.
+
+## 🎉 11/11 FAZ TAMAMLANDI (2026-09-27)
+Tüm eksikler kapatıldı; her biri pipeline + rapor + Next.js + Streamlit'te görünür + smoke ile
+korunuyor. Kurulan araçlar: PSORTb (podman), DeepLoc2, ESMFold (ESMAtlas API), NCBI Datasets
+suş-çekme, UniProt konak-DB. Yeni modüller: deeploc, structure, rsa, bcell_conf, glyco, cloning,
+vaxijen, strain_fetch, host_db (+ mimicry/immforge_score genişletildi).
