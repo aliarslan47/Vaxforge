@@ -1,0 +1,42 @@
+{
+  "veev": {
+    "proteome": "/home/msi-nb/vaxforge/data/validation/veev_proteome.faa",
+    "taxon": "NCBITaxon:11036",
+    "n_protein": 10,
+    "accession": "NC_001449.1",
+    "gt_id": "NP_741966.1",
+    "gt_name": "E2 envelope glycoprotein",
+    "gt_acc": "NP_741966.1",
+    "note": "mat_peptide E2 (envelope glikoprotein)"
+  },
+  "getah": {
+    "proteome": "/home/msi-nb/vaxforge/data/validation/getah_proteome.faa",
+    "taxon": "NCBITaxon:59300",
+    "n_protein": 3,
+    "accession": "NC_006558.1",
+    "gt_id": "YP_164439.1",
+    "gt_name": "structural polyprotein (C-P62-6K-E1, E2 içerir)",
+    "gt_acc": "YP_164439.1",
+    "note": "RefSeq'te mat_peptide yok → E2 ayrı değil; yapısal poliprotein ground-truth (dürüst). Zayıf-kanıt virüs (subunit patenti yok)."
+  },
+  "vaccinia": {
+    "proteome": "/home/msi-nb/vaxforge/data/validation/vaccinia_proteome.faa",
+    "taxon": "NCBITaxon:10245",
+    "n_protein": 223,
+    "accession": "NC_006998.1",
+    "gt_id": "YP_232970.1",
+    "gt_name": "L1R ortoloğu (IMV membrane protein)",
+    "gt_acc": "YP_232970.1",
+    "note": "kanonik vaccinia-L1R'ye ortolog benzerlik 1.0"
+  },
+  "cowpox": {
+    "proteome": "/home/msi-nb/vaxforge/data/validation/cowpox_proteome.faa",
+    "taxon": "NCBITaxon:10243",
+    "n_protein": 233,
+    "accession": "NC_003663.2",
+    "gt_id": "NP_619885.1",
+    "gt_name": "L1R ortoloğu (CPXV099 protein)",
+    "gt_acc": "NP_619885.1",
+    "note": "kanonik vaccinia-L1R'ye ortolog benzerlik 0.987"
+  }
+}

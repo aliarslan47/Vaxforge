@@ -200,7 +200,7 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
             p.metrics["location"] = pr.annotations.get("location")
             p.metrics["protein_id"] = pr.annotations.get("protein_id")
             # kaynak proteinin funnel (araç) sonuçlarını adaya taşı (rapor için)
-            for k in ("localization", "tm_helices", "signalp", "human_homology",
+            for k in ("localization", "tm_helices", "signalp", "surface_glyco", "human_homology",
                       "antigenicity_raw", "antigenicity_category", "virulence",
                       "vf_identity", "vf_keyword", "vf_hit",
                       "conservation_percent", "conservation_entropy_mean",

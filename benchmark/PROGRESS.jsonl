@@ -1,0 +1,64 @@
+{"ts": "2026-09-28 23:36:51", "event": "proteomlar indirildi + sıralandı", "detail": "7 virüs RefSeq'ten indirildi, Getah CDS'e düzeltildi, boyuta göre sıralandı; onay bekleniyor", "phase": "download+sort", "pid": 1322}
+{"ts": "2026-09-28 23:42:30", "event": "proteom temizliği", "detail": "VEEV+reovirus tek referansa indirildi; VEEV E2 + reovirus sigma-1 antijenleri belirlendi", "phase": "prep", "pid": 1530}
+{"ts": "2026-09-29 00:24:33", "event": "orkestratör başladı", "detail": "sıra: getah, rvfv, veev, reovirus, jev, vaccinia, cowpox", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 00:24:33", "event": "virüs başladı", "detail": "getah (3 protein) gt=structural polyprotein (C-P62-6K-E1, E2 içerir)", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 00:54:33", "event": "heartbeat", "detail": "getah sürüyor", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 01:00:24", "event": "virüs bitti", "detail": "getah BİTTİ 2151s · gt structural polyprotein (C-P62-6K-E1, E2 içerir) rank #None/1 · aday 1", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 01:00:24", "event": "virüs başladı", "detail": "rvfv (4 protein) gt=glycoprotein (Gn/Gc)", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 01:24:33", "event": "heartbeat", "detail": "rvfv sürüyor", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 01:38:43", "event": "virüs bitti", "detail": "rvfv BİTTİ 2299s · gt glycoprotein (Gn/Gc) rank #None/3 · aday 3", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 01:38:43", "event": "virüs başladı", "detail": "veev (10 protein) gt=E2 envelope glycoprotein", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 01:54:33", "event": "heartbeat", "detail": "veev sürüyor", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 02:24:33", "event": "heartbeat", "detail": "veev sürüyor", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 02:32:44", "event": "virüs bitti", "detail": "veev BİTTİ 3241s · gt E2 envelope glycoprotein rank #2/9 · aday 9", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 02:32:44", "event": "virüs başladı", "detail": "reovirus (11 protein) gt=sigma-1", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 02:54:33", "event": "heartbeat", "detail": "reovirus sürüyor", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 03:24:33", "event": "heartbeat", "detail": "reovirus sürüyor", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 03:54:33", "event": "heartbeat", "detail": "reovirus sürüyor", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 04:15:27", "event": "virüs bitti", "detail": "reovirus BİTTİ 6162s · gt sigma-1 rank #9/11 · aday 11", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 04:15:27", "event": "virüs başladı", "detail": "jev (15 protein) gt=envelope protein E", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 04:24:33", "event": "heartbeat", "detail": "jev sürüyor", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 04:54:33", "event": "heartbeat", "detail": "jev sürüyor", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 04:54:55", "event": "virüs bitti", "detail": "jev BİTTİ 2368s · gt envelope protein E rank #None/8 · aday 8", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 04:54:55", "event": "virüs başladı", "detail": "vaccinia (223 protein) gt=L1R ortoloğu (IMV membrane protein)", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 05:24:33", "event": "heartbeat", "detail": "vaccinia sürüyor", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 05:54:33", "event": "heartbeat", "detail": "vaccinia sürüyor", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 06:24:33", "event": "heartbeat", "detail": "vaccinia sürüyor", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 06:54:33", "event": "heartbeat", "detail": "vaccinia sürüyor", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 07:24:33", "event": "heartbeat", "detail": "vaccinia sürüyor", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 07:54:33", "event": "heartbeat", "detail": "vaccinia sürüyor", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 08:24:33", "event": "heartbeat", "detail": "vaccinia sürüyor", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 08:54:33", "event": "heartbeat", "detail": "vaccinia sürüyor", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 09:24:33", "event": "heartbeat", "detail": "vaccinia sürüyor", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 09:54:33", "event": "heartbeat", "detail": "vaccinia sürüyor", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 10:24:33", "event": "heartbeat", "detail": "vaccinia sürüyor", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 10:41:09", "event": "virüs bitti", "detail": "vaccinia BİTTİ 20774s · gt L1R ortoloğu (IMV membrane protein) rank #10/182 · aday 182", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 10:41:09", "event": "virüs başladı", "detail": "cowpox (233 protein) gt=L1R ortoloğu (CPXV099 protein)", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 10:54:33", "event": "heartbeat", "detail": "cowpox sürüyor", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 11:24:33", "event": "heartbeat", "detail": "cowpox sürüyor", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 11:54:33", "event": "heartbeat", "detail": "cowpox sürüyor", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 12:24:33", "event": "heartbeat", "detail": "cowpox sürüyor", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 12:54:33", "event": "heartbeat", "detail": "cowpox sürüyor", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 13:24:33", "event": "heartbeat", "detail": "cowpox sürüyor", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 13:54:33", "event": "heartbeat", "detail": "cowpox sürüyor", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 14:24:33", "event": "heartbeat", "detail": "cowpox sürüyor", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 14:54:33", "event": "heartbeat", "detail": "cowpox sürüyor", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 15:24:33", "event": "heartbeat", "detail": "cowpox sürüyor", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 15:54:33", "event": "heartbeat", "detail": "cowpox sürüyor", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 16:24:33", "event": "heartbeat", "detail": "cowpox sürüyor", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 16:54:33", "event": "heartbeat", "detail": "cowpox sürüyor", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 17:03:13", "event": "virüs bitti", "detail": "cowpox BİTTİ 22924s · gt L1R ortoloğu (CPXV099 protein) rank #42/192 · aday 192", "phase": "run", "pid": 3184}
+{"ts": "2026-09-29 17:03:13", "event": "orkestratör bitti", "detail": "7/7 tamam · getah:#None/1(2151s) | rvfv:#None/3(2299s) | veev:#2/9(3241s) | reovirus:#9/11(6162s) | jev:#None/8(2368s) | vaccinia:#10/182(20774s) | cowpox:#42/192(22924s)", "phase": "done", "pid": 3184}
+{"ts": "2026-09-29 21:58:16", "event": "orkestratör başladı", "detail": "sıra: getah, rvfv, jev", "phase": "run", "pid": 15687}
+{"ts": "2026-09-29 21:58:16", "event": "virüs başladı", "detail": "getah (3 protein) gt=structural polyprotein (C-P62-6K-E1, E2 içerir)", "phase": "run", "pid": 15687}
+{"ts": "2026-09-29 22:28:16", "event": "heartbeat", "detail": "getah sürüyor", "phase": "run", "pid": 15687}
+{"ts": "2026-09-29 22:52:25", "event": "virüs bitti", "detail": "getah BİTTİ 3249s · gt structural polyprotein (C-P62-6K-E1, E2 içerir) rank #1/3 · aday 3", "phase": "run", "pid": 15687}
+{"ts": "2026-09-29 22:52:25", "event": "virüs başladı", "detail": "rvfv (4 protein) gt=glycoprotein (Gn/Gc)", "phase": "run", "pid": 15687}
+{"ts": "2026-09-29 22:58:16", "event": "heartbeat", "detail": "rvfv sürüyor", "phase": "run", "pid": 15687}
+{"ts": "2026-09-29 23:28:16", "event": "heartbeat", "detail": "rvfv sürüyor", "phase": "run", "pid": 15687}
+{"ts": "2026-09-29 23:52:32", "event": "virüs bitti", "detail": "rvfv BİTTİ 3607s · gt glycoprotein (Gn/Gc) rank #1/4 · aday 4", "phase": "run", "pid": 15687}
+{"ts": "2026-09-29 23:52:32", "event": "virüs başladı", "detail": "jev (15 protein) gt=envelope protein E", "phase": "run", "pid": 15687}
+{"ts": "2026-09-29 23:58:16", "event": "heartbeat", "detail": "jev sürüyor", "phase": "run", "pid": 15687}
+{"ts": "2026-09-30 00:28:16", "event": "heartbeat", "detail": "jev sürüyor", "phase": "run", "pid": 15687}
+{"ts": "2026-09-30 00:45:24", "event": "virüs bitti", "detail": "jev BİTTİ 3172s · gt envelope protein E rank #1/12 · aday 12", "phase": "run", "pid": 15687}
+{"ts": "2026-09-30 00:45:24", "event": "orkestratör bitti", "detail": "3/3 tamam · getah:#1/3(3249s) | rvfv:#1/4(3607s) | jev:#1/12(3172s)", "phase": "done", "pid": 15687}

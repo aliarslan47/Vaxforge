@@ -1,0 +1,376 @@
+{
+  "input": "rvfv_proteome.faa (4 protein)",
+  "taxon": "NCBITaxon:11588",
+  "hosts": [
+    "human",
+    "bovine",
+    "mouse",
+    "pig"
+  ],
+  "runtime_s": 3594.0,
+  "n_input": 4,
+  "n_funnel": 4,
+  "n_candidate_proteins": 4,
+  "ground_truth": {
+    "antigen": "glycoprotein (Gn/Gc)",
+    "accession": "YP_003848705.1",
+    "matched_id": "YP_003848705.1",
+    "produced_candidate": true,
+    "protein_rank": 1,
+    "best_candidacy": 0.8277
+  },
+  "g_rank_permutation": {
+    "test": "permutation_rank_test",
+    "statistic": 1.0,
+    "p_value": 0.25347465253474655,
+    "ci95": null,
+    "n": 1,
+    "detail": {
+      "statistic_type": "best_rank",
+      "N_total": 4,
+      "null_mean": 2.4858,
+      "positive_ranks": [
+        1.0
+      ]
+    },
+    "caveat": "küçük-n (n_pos=1, N=4) → test hesaplandı ama güç düşük; sonuç betimsel yorumlanmalı"
+  },
+  "multihost": {
+    "binder_counts_all_proteins": {
+      "human": 11,
+      "bovine": 11,
+      "mouse": 10,
+      "pig": 0
+    },
+    "binder_counts_G_only": {
+      "human": 2,
+      "bovine": 2,
+      "mouse": 1,
+      "pig": 0
+    },
+    "jaccard_overlap_all": {
+      "human~bovine": {
+        "test": "jaccard",
+        "statistic": 1.0,
+        "p_value": null,
+        "ci95": null,
+        "n": 11,
+        "detail": {
+          "intersection": 11,
+          "union": 11,
+          "only_a": 0,
+          "only_b": 0
+        },
+        "caveat": null
+      },
+      "human~mouse": {
+        "test": "jaccard",
+        "statistic": 0.9090909090909091,
+        "p_value": null,
+        "ci95": null,
+        "n": 11,
+        "detail": {
+          "intersection": 10,
+          "union": 11,
+          "only_a": 1,
+          "only_b": 0
+        },
+        "caveat": null
+      },
+      "human~pig": {
+        "test": "jaccard",
+        "statistic": 0.0,
+        "p_value": null,
+        "ci95": null,
+        "n": 11,
+        "detail": {
+          "intersection": 0,
+          "union": 11,
+          "only_a": 11,
+          "only_b": 0
+        },
+        "caveat": null
+      },
+      "bovine~mouse": {
+        "test": "jaccard",
+        "statistic": 0.9090909090909091,
+        "p_value": null,
+        "ci95": null,
+        "n": 11,
+        "detail": {
+          "intersection": 10,
+          "union": 11,
+          "only_a": 1,
+          "only_b": 0
+        },
+        "caveat": null
+      },
+      "bovine~pig": {
+        "test": "jaccard",
+        "statistic": 0.0,
+        "p_value": null,
+        "ci95": null,
+        "n": 11,
+        "detail": {
+          "intersection": 0,
+          "union": 11,
+          "only_a": 11,
+          "only_b": 0
+        },
+        "caveat": null
+      },
+      "mouse~pig": {
+        "test": "jaccard",
+        "statistic": 0.0,
+        "p_value": null,
+        "ci95": null,
+        "n": 10,
+        "detail": {
+          "intersection": 0,
+          "union": 10,
+          "only_a": 10,
+          "only_b": 0
+        },
+        "caveat": null
+      }
+    },
+    "jaccard_overlap_G": {
+      "human~bovine": {
+        "test": "jaccard",
+        "statistic": 1.0,
+        "p_value": null,
+        "ci95": null,
+        "n": 2,
+        "detail": {
+          "intersection": 2,
+          "union": 2,
+          "only_a": 0,
+          "only_b": 0
+        },
+        "caveat": null
+      },
+      "human~mouse": {
+        "test": "jaccard",
+        "statistic": 0.5,
+        "p_value": null,
+        "ci95": null,
+        "n": 2,
+        "detail": {
+          "intersection": 1,
+          "union": 2,
+          "only_a": 1,
+          "only_b": 0
+        },
+        "caveat": null
+      },
+      "human~pig": {
+        "test": "jaccard",
+        "statistic": 0.0,
+        "p_value": null,
+        "ci95": null,
+        "n": 2,
+        "detail": {
+          "intersection": 0,
+          "union": 2,
+          "only_a": 2,
+          "only_b": 0
+        },
+        "caveat": null
+      },
+      "bovine~mouse": {
+        "test": "jaccard",
+        "statistic": 0.5,
+        "p_value": null,
+        "ci95": null,
+        "n": 2,
+        "detail": {
+          "intersection": 1,
+          "union": 2,
+          "only_a": 1,
+          "only_b": 0
+        },
+        "caveat": null
+      },
+      "bovine~pig": {
+        "test": "jaccard",
+        "statistic": 0.0,
+        "p_value": null,
+        "ci95": null,
+        "n": 2,
+        "detail": {
+          "intersection": 0,
+          "union": 2,
+          "only_a": 2,
+          "only_b": 0
+        },
+        "caveat": null
+      },
+      "mouse~pig": {
+        "test": "jaccard",
+        "statistic": 0.0,
+        "p_value": null,
+        "ci95": null,
+        "n": 1,
+        "detail": {
+          "intersection": 0,
+          "union": 1,
+          "only_a": 1,
+          "only_b": 0
+        },
+        "caveat": null
+      }
+    }
+  },
+  "population_coverage": {
+    "method": "GERÇEK (IEDB Population Coverage, Bui 2006)",
+    "areas": [
+      "World",
+      "Europe",
+      "East Asia",
+      "South Asia",
+      "Southeast Asia",
+      "North Africa",
+      "West Africa",
+      "North America",
+      "South America",
+      "Oceania"
+    ],
+    "available": true,
+    "hosts": {
+      "human": {
+        "label": "İnsan (Homo sapiens)",
+        "mhc_i": {
+          "World": {
+            "coverage": 97.41,
+            "average_hit": 4.28,
+            "pc90": 1.53
+          },
+          "Europe": {
+            "coverage": 99.32,
+            "average_hit": 4.98,
+            "pc90": 2.15
+          },
+          "East Asia": {
+            "coverage": 97.62,
+            "average_hit": 4.96,
+            "pc90": 1.89
+          },
+          "South Asia": {
+            "coverage": 91.52,
+            "average_hit": 3.09,
+            "pc90": 1.07
+          },
+          "Southeast Asia": {
+            "coverage": 92.16,
+            "average_hit": 3.14,
+            "pc90": 1.09
+          },
+          "North Africa": {
+            "coverage": 92.45,
+            "average_hit": 4.09,
+            "pc90": 1.18
+          },
+          "West Africa": {
+            "coverage": 92.47,
+            "average_hit": 4.68,
+            "pc90": 1.27
+          },
+          "North America": {
+            "coverage": 97.82,
+            "average_hit": 4.77,
+            "pc90": 1.7
+          },
+          "South America": {
+            "coverage": 80.68,
+            "average_hit": 2.65,
+            "pc90": 0.52
+          },
+          "Oceania": {
+            "coverage": 93.18,
+            "average_hit": 3.63,
+            "pc90": 1.16
+          }
+        },
+        "mhc_ii": {
+          "World": {
+            "coverage": 74.88,
+            "average_hit": 2.51,
+            "pc90": 0.4
+          },
+          "Europe": {
+            "coverage": 78.3,
+            "average_hit": 2.68,
+            "pc90": 0.46
+          },
+          "East Asia": {
+            "coverage": 66.36,
+            "average_hit": 2.13,
+            "pc90": 0.3
+          },
+          "South Asia": {
+            "coverage": 69.9,
+            "average_hit": 2.31,
+            "pc90": 0.33
+          },
+          "Southeast Asia": {
+            "coverage": 50.47,
+            "average_hit": 1.53,
+            "pc90": 0.2
+          },
+          "North Africa": {
+            "coverage": 70.82,
+            "average_hit": 2.59,
+            "pc90": 0.34
+          },
+          "West Africa": {
+            "coverage": 56.23,
+            "average_hit": 2.02,
+            "pc90": 0.23
+          },
+          "North America": {
+            "coverage": 81.99,
+            "average_hit": 2.87,
+            "pc90": 0.56
+          },
+          "South America": {
+            "coverage": 55.08,
+            "average_hit": 2.0,
+            "pc90": 0.22
+          },
+          "Oceania": {
+            "coverage": 51.74,
+            "average_hit": 1.53,
+            "pc90": 0.21
+          }
+        }
+      },
+      "bovine": {
+        "label": "Sığır (Bos taurus, BoLA)",
+        "mhc_i": null,
+        "mhc_ii": null,
+        "note": "IEDB'de bu konak için HLA frekans verisi yok (popülasyon kapsamı yalnız insan HLA için hesaplanır)."
+      },
+      "mouse": {
+        "label": "Fare (Mus musculus, H-2)",
+        "mhc_i": null,
+        "mhc_ii": null,
+        "note": "IEDB'de bu konak için HLA frekans verisi yok (popülasyon kapsamı yalnız insan HLA için hesaplanır)."
+      },
+      "pig": {
+        "label": "Domuz (Sus scrofa, SLA)",
+        "mhc_i": null,
+        "mhc_ii": null,
+        "note": "IEDB'de bu konak için HLA frekans verisi yok (popülasyon kapsamı yalnız insan HLA için hesaplanır)."
+      }
+    }
+  },
+  "report_paths": {
+    "csv": "/home/msi-nb/vaxforge/benchmark/results/run_2026-09-29T22-52-26/candidates.csv",
+    "fasta": "/home/msi-nb/vaxforge/benchmark/results/run_2026-09-29T22-52-26/top_peptides.fasta",
+    "xlsx": "/home/msi-nb/vaxforge/benchmark/results/run_2026-09-29T22-52-26/candidates_full.xlsx",
+    "json": "/home/msi-nb/vaxforge/benchmark/results/run_2026-09-29T22-52-26/run.json",
+    "html": "/home/msi-nb/vaxforge/benchmark/results/run_2026-09-29T22-52-26/report.html",
+    "pdf": "/home/msi-nb/vaxforge/benchmark/results/run_2026-09-29T22-52-26/report.pdf"
+  },
+  "note": "Virüs kolu = çok-konak MHC yetenek gösterimi (recall değil). Tek antijen (G) → rank istatistiği betimsel. Host seçimi VaxForge'a özgü; NERVE (bacterial-only) ve Vaxign bu kolda oynayamaz."
+}

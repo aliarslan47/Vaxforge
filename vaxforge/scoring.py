@@ -21,6 +21,10 @@ def _components(p: Peptide) -> dict[str, float]:
         comp["antigenicity"] = float(parent_ag)
     if m.get("virulence") is not None:  # kaynak proteinin virülans kanıtı (VFDB skoru)
         comp["virulence"] = float(m["virulence"])
+    # Viral zarf/yüzey glikoproteini sinyali (yalnız virüs profilinde set edilir; SignalP+TM imzası).
+    # Bakteride hiç set edilmez → comp'ta yer almaz → bakteri skoru DEĞİŞMEZ.
+    if m.get("surface_glyco") is not None:
+        comp["surface_exposure"] = float(m["surface_glyco"])
     if p.kind == "MHC-I":
         comp["mhc_i_binding"] = float(m.get("mhc_score", 0))
         if m.get("immunogenicity_norm") is not None:

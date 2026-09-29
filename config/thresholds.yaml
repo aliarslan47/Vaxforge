@@ -226,6 +226,7 @@ candidacy_score:
     antigen_processing:  0.12   # proteozomal kesim + TAP (NetCTL-1.2, yalnız MHC-I)
     ifn_gamma:           0.12   # IFN-γ (Th1) indükleme (IFNepitope2, yalnız MHC-II/HTL)
     conservation:        0.10   # suşlar arası korunmuşluk (yalnız kullanıcı ek suş verirse)
+    surface_exposure:    0.12   # viral zarf/yüzey glikoproteini (SignalP+TM imzası; YALNIZ virüs profili)
   # Ağırlıklar peptit-başına MEVCUT bileşenler üzerinden yeniden normalize edilir
   # (scoring.py); bir bileşen yoksa (ör. suş verilmedi → konservasyon yok) skoru bozmaz.
   # KALDIRILDI: structural_quality (AlphaFold GPU'suz deferred) — GPU eklenince açılır.

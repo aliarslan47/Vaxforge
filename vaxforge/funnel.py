@@ -235,9 +235,19 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
             pr.trace.append({"step": "funnel:localization", "ok": True,
                              "reason": f"ATLANDI — lokalizasyon heuristiği yalnız bakteride geçerli ({profile})",
                              "warning": True})
-        # -- sert: TM sayısı
-        ok_tm = tm <= max_tm
-        pr.mark("funnel:transmembrane", ok_tm, f"{tm} TM ≤ {max_tm}" if ok_tm else f"{tm} TM > {max_tm}", tm=tm)
+        # -- TM sayısı: bakteri/parazit SERT (çok-TM = zor ifade); VİRÜS YUMUŞAK.
+        # Viral aşı hedefleri (rabies G, grip HA, RVFV Gn/Gc, SARS S) TM-çapalı zarf
+        # glikoproteinleridir → elemek yerine yüzey sinyali olarak kullan (lokalizasyon deseni).
+        if profile == "virus":
+            pr.trace.append({"step": "funnel:transmembrane", "ok": True,
+                             "reason": f"{tm} TM — virüste yumuşak (zarf glikoproteini elenmez)",
+                             "warning": tm > max_tm, "tm": tm})
+            # zarf/yüzey imzası: membrana gömülü (TM≥1) = zarf glikoproteini adayı.
+            # SignalP(+) ek güç ama TM-çapa tek başına viral zarf imzası için yeterli.
+            pr.annotations["surface_glyco"] = 1.0 if tm >= 1 else 0.0
+        else:
+            ok_tm = tm <= max_tm
+            pr.mark("funnel:transmembrane", ok_tm, f"{tm} TM ≤ {max_tm}" if ok_tm else f"{tm} TM > {max_tm}", tm=tm)
         # -- sert: self-homoloji (ZORUNLU otoimmünite güvenliği) — HOST-DRIVEN
         if hh_available:
             hd = hh_data.get(pr.id, {"max_pident": 0.0, "by_host": {}})
