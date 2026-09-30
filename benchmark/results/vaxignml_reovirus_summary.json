@@ -1,0 +1,12 @@
+{
+  "tool": "Vaxign-ML",
+  "pathogen": "reovirus",
+  "n_proteins": 11,
+  "gt_name": "sigma-1",
+  "gt_token": "YP_003199424",
+  "gt_rank": 1,
+  "gt_protegenicity": 97.587324,
+  "gt_prediction": 1.0,
+  "runtime_s": 23.2,
+  "note": "virus tipi; host seçimi YOK (VaxForge çok-konak avantajı burada oynamaz). protegenicity desc stable sıralama."
+}

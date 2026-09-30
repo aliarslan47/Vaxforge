@@ -1,0 +1,12 @@
+{
+  "tool": "Vaxign-ML",
+  "pathogen": "veev",
+  "n_proteins": 10,
+  "gt_name": "E2 envelope glycoprotein",
+  "gt_token": "NP_741966",
+  "gt_rank": 5,
+  "gt_protegenicity": 89.647101,
+  "gt_prediction": 1.0,
+  "runtime_s": 22.7,
+  "note": "virus tipi; host seçimi YOK (VaxForge çok-konak avantajı burada oynamaz). protegenicity desc stable sıralama."
+}

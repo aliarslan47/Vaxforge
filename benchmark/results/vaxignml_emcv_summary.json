@@ -1,0 +1,12 @@
+{
+  "tool": "Vaxign-ML",
+  "pathogen": "emcv",
+  "n_proteins": 11,
+  "gt_name": "capsid VP1 (1D)",
+  "gt_token": "_matp_4 ",
+  "gt_rank": 1,
+  "gt_protegenicity": 95.264674,
+  "gt_prediction": 1.0,
+  "runtime_s": 22.5,
+  "note": "virus tipi; host seçimi YOK (VaxForge çok-konak avantajı burada oynamaz). protegenicity desc stable sıralama."
+}

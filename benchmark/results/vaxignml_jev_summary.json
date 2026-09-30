@@ -1,0 +1,12 @@
+{
+  "tool": "Vaxign-ML",
+  "pathogen": "jev",
+  "n_proteins": 15,
+  "gt_name": "envelope protein E",
+  "gt_token": "NP_775666",
+  "gt_rank": 3,
+  "gt_protegenicity": 89.665106,
+  "gt_prediction": 1.0,
+  "runtime_s": 22.7,
+  "note": "virus tipi; host seçimi YOK (VaxForge çok-konak avantajı burada oynamaz). protegenicity desc stable sıralama."
+}

@@ -1,0 +1,9 @@
+{
+  "tool": "Vaxign-ML",
+  "pathogen": "getah",
+  "n_proteins": 3,
+  "gt_name": "structural polyprotein (E2)",
+  "gt_rank": 1,
+  "gt_protegenicity": 97.209219,
+  "note": "X-residü temizlenmiş girdi (Vaxign-ML KeyError-X); protegenicity desc stable"
+}

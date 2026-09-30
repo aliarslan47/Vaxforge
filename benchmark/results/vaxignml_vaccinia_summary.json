@@ -1,0 +1,12 @@
+{
+  "tool": "Vaxign-ML",
+  "pathogen": "vaccinia",
+  "n_proteins": 223,
+  "gt_name": "L1R",
+  "gt_token": "YP_232970",
+  "gt_rank": 3,
+  "gt_protegenicity": 96.218941,
+  "gt_prediction": 1.0,
+  "runtime_s": 32.3,
+  "note": "virus tipi; host seçimi YOK (VaxForge çok-konak avantajı burada oynamaz). protegenicity desc stable sıralama."
+}

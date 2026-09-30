@@ -1,0 +1,11 @@
+sample	prediction	protegenicity
+NP_740696.1 mRNA-capping enzyme nsP1	0.000000	89.647101
+NP_740697.1 protease nsP2	0.000000	89.647101
+NP_740698.1 non-structural protein nsp3	1.000000	89.647101
+NP_740699.1 RNA-directed RNA polymerase nsP4	0.000000	85.361901
+NP_740700.1 core protein	0.000000	89.647101
+NP_741965.1 E3 envelope protein	0.000000	84.569680
+NP_741966.1 E2 envelope glycoprotein	1.000000	89.647101
+NP_818994.1 6K membrane protein	0.000000	71.299964
+NP_741967.1 E1 envelope glycoprotein	1.000000	89.647101
+YP_006491236.1 transframe fusion protein	0.000000	73.388549

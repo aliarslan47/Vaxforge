@@ -1,0 +1,5 @@
+sample	prediction	protegenicity
+YP_003848706.1 non-structural protein	0.000000	47.821390
+YP_003848707.1 nucleocapsid	1.000000	89.647101
+YP_003848705.1 glycoprotein	1.000000	94.652503
+YP_003848704.1 polymerase	0.000000	89.647101

@@ -102,3 +102,23 @@
 {"ts": "2026-09-30 23:57:29", "event": "heartbeat", "detail": "cowpox sürüyor", "phase": "run", "pid": 27380}
 {"ts": "2026-10-01 00:04:15", "event": "virüs bitti", "detail": "cowpox BİTTİ 23534s · gt L1R ortoloğu (CPXV099 protein) rank #8/207 · aday 207", "phase": "run", "pid": 27380}
 {"ts": "2026-10-01 00:04:15", "event": "orkestratör bitti", "detail": "4/4 tamam · veev:#2/9(3232s) | reovirus:#9/11(6208s) | vaccinia:#5/193(21432s) | cowpox:#8/207(23534s)", "phase": "done", "pid": 27380}
+{"ts": "2026-10-01 00:18:31", "event": "vaxignml başladı", "detail": "9 virüs: vsv, emcv, getah, rvfv, veev, reovirus, jev, vaccinia, cowpox", "phase": "vaxignml", "pid": 11596}
+{"ts": "2026-10-01 00:18:31", "event": "vaxignml virüs", "detail": "vsv başladı", "phase": "vaxignml", "pid": 11596}
+{"ts": "2026-10-01 00:18:31", "event": "vaxignml bitti", "detail": "vsv: glycoprotein G rank #3/5 (0s)", "phase": "vaxignml", "pid": 11596}
+{"ts": "2026-10-01 00:18:31", "event": "vaxignml virüs", "detail": "emcv başladı", "phase": "vaxignml", "pid": 11596}
+{"ts": "2026-10-01 00:18:53", "event": "vaxignml bitti", "detail": "emcv: capsid VP1 (1D) rank #1/11 (23s)", "phase": "vaxignml", "pid": 11596}
+{"ts": "2026-10-01 00:18:53", "event": "vaxignml virüs", "detail": "getah başladı", "phase": "vaxignml", "pid": 11596}
+{"ts": "2026-10-01 00:19:16", "event": "vaxignml HATA", "detail": "getah: container/tsv yok", "phase": "vaxignml", "pid": 11596}
+{"ts": "2026-10-01 00:19:16", "event": "vaxignml virüs", "detail": "rvfv başladı", "phase": "vaxignml", "pid": 11596}
+{"ts": "2026-10-01 00:19:38", "event": "vaxignml bitti", "detail": "rvfv: glycoprotein (Gn/Gc) rank #1/4 (23s)", "phase": "vaxignml", "pid": 11596}
+{"ts": "2026-10-01 00:19:38", "event": "vaxignml virüs", "detail": "veev başladı", "phase": "vaxignml", "pid": 11596}
+{"ts": "2026-10-01 00:20:01", "event": "vaxignml bitti", "detail": "veev: E2 envelope glycoprotein rank #5/10 (23s)", "phase": "vaxignml", "pid": 11596}
+{"ts": "2026-10-01 00:20:01", "event": "vaxignml virüs", "detail": "reovirus başladı", "phase": "vaxignml", "pid": 11596}
+{"ts": "2026-10-01 00:20:24", "event": "vaxignml bitti", "detail": "reovirus: sigma-1 rank #1/11 (23s)", "phase": "vaxignml", "pid": 11596}
+{"ts": "2026-10-01 00:20:24", "event": "vaxignml virüs", "detail": "jev başladı", "phase": "vaxignml", "pid": 11596}
+{"ts": "2026-10-01 00:20:47", "event": "vaxignml bitti", "detail": "jev: envelope protein E rank #3/15 (23s)", "phase": "vaxignml", "pid": 11596}
+{"ts": "2026-10-01 00:20:47", "event": "vaxignml virüs", "detail": "vaccinia başladı", "phase": "vaxignml", "pid": 11596}
+{"ts": "2026-10-01 00:21:19", "event": "vaxignml bitti", "detail": "vaccinia: L1R rank #3/223 (32s)", "phase": "vaxignml", "pid": 11596}
+{"ts": "2026-10-01 00:21:19", "event": "vaxignml virüs", "detail": "cowpox başladı", "phase": "vaxignml", "pid": 11596}
+{"ts": "2026-10-01 00:21:53", "event": "vaxignml bitti", "detail": "cowpox: L1R ortholog (CPXV099) rank #3/233 (34s)", "phase": "vaxignml", "pid": 11596}
+{"ts": "2026-10-01 00:21:53", "event": "vaxignml TAMAM", "detail": "8/9 · vsv:#3/5 | emcv:#1/11 | rvfv:#1/4 | veev:#5/10 | reovirus:#1/11 | jev:#3/15 | vaccinia:#3/223 | cowpox:#3/233", "phase": "done", "pid": 11596}

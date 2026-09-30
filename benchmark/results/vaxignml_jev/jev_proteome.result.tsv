@@ -1,0 +1,16 @@
+sample	prediction	protegenicity
+NP_775663.1 anchored core protein anchC	0.000000	73.946705
+NP_775662.1 core protein C	0.000000	42.689953
+NP_775664.1 membrane glycoprotein precursor prM	0.000000	78.808066
+YP_009333132.1 protein pr	0.000000	51.170328
+NP_775665.1 membrane glycoprotein M	0.000000	58.822470
+NP_775666.1 envelope protein E	1.000000	89.665106
+NP_775667.1 non-structural protein NS1	0.000000	89.647101
+NP_775668.1 non-structural protein NS2a	0.000000	89.647101
+NP_775669.1 non-structural protein NS2b	0.000000	89.647101
+NP_775670.1 non-structural protein NS3	1.000000	93.248109
+NP_775671.1 non-structural protein NS4a	0.000000	35.830032
+NP_775672.1 2K protein	0.000000	89.268995
+NP_775673.1 non-structural protein NS4b	1.000000	89.647101
+NP_775674.1 RNA-dependent RNA polymerase NS5	1.000000	93.014044
+YP_006355436.1 NS1'	0.000000	89.647101

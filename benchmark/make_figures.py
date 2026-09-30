@@ -173,10 +173,94 @@ def fig5_jaccard(rab):
     fig.tight_layout(); fig.savefig(FIG / "fig5_multihost_jaccard.png", dpi=150); plt.close(fig)
 
 
+# 10-virüs kolu: (slug, gösterim adı, ground-truth etiketi)
+VIRUSES = [
+    ("rabies", "Rabies", "G"), ("vsv", "VSV", "G"), ("emcv", "EMCV", "VP1"),
+    ("getah", "Getah", "E2"), ("rvfv", "RVFV", "Gn/Gc"), ("veev", "VEEV", "E2"),
+    ("reovirus", "Reovirus", "σ1"), ("jev", "JEV", "E"),
+    ("vaccinia", "Vaccinia", "L1R"), ("cowpox", "Cowpox", "L1R"),
+]
+
+
+def _vaxignml_rank(slug):
+    f = BENCH / "results" / f"vaxignml_{slug}_summary.json"
+    if not f.exists():
+        return None, None
+    d = json.load(open(f))
+    return d.get("gt_rank") or d.get("G_rank"), d.get("n_proteins")
+
+
+def _load_viruses():
+    out = []
+    for slug, name, gt in VIRUSES:
+        f = next((BENCH / "results" / slug).glob("*summary*.json"))
+        d = json.load(open(f))
+        g = d["ground_truth"]
+        jg = d.get("multihost", {}).get("jaccard_overlap_G", {})
+        js = [v.get("statistic") for v in jg.values() if v.get("statistic") is not None]
+        vg_rank, vg_n = _vaxignml_rank(slug)
+        out.append({"slug": slug, "name": name, "gt": gt,
+                    "rank": g["protein_rank"], "n": d["n_candidate_proteins"],
+                    "vg_rank": vg_rank, "vg_n": vg_n,
+                    "jacc_min": min(js) if js else None, "jacc_max": max(js) if js else None,
+                    "jacc_mean": (sum(js) / len(js)) if js else None})
+    return out
+
+
+def fig6_virus_rank(vs):
+    """10 virüs × ground-truth (koruyucu/patentli) antijenin aday-listesindeki YÜZDELİK rank'ı,
+    VaxForge vs Vaxign-ML head-to-head (gruplu yatay bar). Yüzdelik=rank/n (düşük=iyi); #rank/n etiketli.
+    NERVE virüste koşamaz (bacterial-only) → gösterilmez."""
+    rows = [v for v in vs if v["rank"]]
+    rows.sort(key=lambda v: v["rank"] / v["n"])
+    labels = [f"{v['name']} ({v['gt']})" for v in rows]
+    y = np.arange(len(rows)); h = 0.38
+    vf_pct = [100.0 * v["rank"] / v["n"] for v in rows]
+    vg_pct = [100.0 * v["vg_rank"] / v["vg_n"] if v["vg_rank"] and v["vg_n"] else None for v in rows]
+    fig, ax = plt.subplots(figsize=(7.6, 5.2))
+    ax.barh(y - h/2, vf_pct, height=h, color="#1f77b4", label="VaxForge")
+    ax.barh([y[i] + h/2 for i in range(len(rows)) if vg_pct[i] is not None],
+            [p for p in vg_pct if p is not None], height=h, color="#2ca02c", label="Vaxign-ML")
+    for i, v in enumerate(rows):
+        ax.text(vf_pct[i] + 1.2, y[i] - h/2, f"#{v['rank']}/{v['n']}", va="center", fontsize=7.5, color="#1f77b4")
+        if vg_pct[i] is not None:
+            ax.text(vg_pct[i] + 1.2, y[i] + h/2, f"#{v['vg_rank']}/{v['vg_n']}", va="center", fontsize=7.5, color="#2ca02c")
+    ax.set_yticks(y); ax.set_yticklabels(labels)
+    ax.invert_yaxis()
+    ax.set_xlim(0, max(vf_pct + [p for p in vg_pct if p is not None]) + 14)
+    ax.axvline(25, ls=":", color="gray", lw=1)
+    ax.set_xlabel("Ground-truth antigen rank as percentile of candidates (lower is better)")
+    ax.set_ylabel("Virus (protective/patented antigen)")
+    ax.legend(loc="lower right", fontsize=8.5)
+    ax.grid(axis="x", alpha=0.3)
+    fig.tight_layout(); fig.savefig(FIG / "fig6_virus_antigen_rank.png", dpi=150); plt.close(fig)
+
+
+def fig7_virus_multihost(vs):
+    """Virüs başına ground-truth-epitop host-çifti Jaccard aralığı (min–max, nokta=ortalama).
+    Jaccard<1 → host seçimi epitop repertuarını değiştiriyor (VaxForge'a özgü yetenek)."""
+    rows = [v for v in vs if v["jacc_mean"] is not None]
+    rows.sort(key=lambda v: v["jacc_mean"])
+    y = range(len(rows))
+    fig, ax = plt.subplots(figsize=(7.0, 4.4))
+    for i, v in enumerate(rows):
+        ax.plot([v["jacc_min"], v["jacc_max"]], [i, i], color="#4c72b0", lw=2.5, zorder=2)
+        ax.scatter([v["jacc_mean"]], [i], color="#c44e52", s=55, zorder=3)
+    ax.set_yticks(list(y)); ax.set_yticklabels([v["name"] for v in rows])
+    ax.set_xlim(0, 1.05)
+    ax.axvline(1.0, ls=":", color="gray", lw=1)
+    ax.set_xlabel("Host-pair Jaccard of ground-truth epitopes (min–max range, dot = mean; 1 = identical)")
+    ax.set_ylabel("Virus")
+    ax.grid(axis="x", alpha=0.3)
+    fig.tight_layout(); fig.savefig(FIG / "fig7_virus_multihost.png", dpi=150); plt.close(fig)
+
+
 def main():
     h204, full, rab = _load()
     fig1_recovery(h204); fig2_recall(h204); fig3_fold_recall(h204, full)
     fig4_bacteria_panel(); fig5_jaccard(rab)
+    vs = _load_viruses()
+    fig6_virus_rank(vs); fig7_virus_multihost(vs)
     # eski (yeniden numaralanmış) dosyaları temizle
     for old in ["fig4_multihost_jaccard.png", "fig5_bacteria_panel.png"]:
         p = FIG / old

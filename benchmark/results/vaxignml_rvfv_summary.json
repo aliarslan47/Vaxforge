@@ -1,0 +1,12 @@
+{
+  "tool": "Vaxign-ML",
+  "pathogen": "rvfv",
+  "n_proteins": 4,
+  "gt_name": "glycoprotein (Gn/Gc)",
+  "gt_token": "YP_003848705",
+  "gt_rank": 1,
+  "gt_protegenicity": 94.652503,
+  "gt_prediction": 1.0,
+  "runtime_s": 22.7,
+  "note": "virus tipi; host seçimi YOK (VaxForge çok-konak avantajı burada oynamaz). protegenicity desc stable sıralama."
+}

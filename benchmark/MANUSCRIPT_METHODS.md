@@ -107,6 +107,21 @@ also ranks lowest in the independent comparator (Vaxign-ML), not a residual arte
 document a scale-safe pipeline and are reported to preclude the misleading conclusion that the
 initial low recall reflected the method rather than an engineering-scale defect.
 
+**(iii) Transmembrane filter on the viral profile.** When the viral arm was expanded to ten viruses,
+the ground-truth antigen was initially discarded for several of them (for example the Rift Valley
+fever Gn/Gc glycoprotein, which has four predicted transmembrane helices). The antigen funnel applied
+the bacterial transmembrane-count filter, which excludes multi-pass membrane proteins because they are
+hard to express, to all profiles. For bacteria this is appropriate, but viral vaccine targets are
+precisely the membrane-anchored envelope glycoproteins (rabies G, influenza haemagglutinin, RVFV
+Gn/Gc), so the filter removed the very proteins of interest. We made the transmembrane step soft for
+the viral profile only (proteins are retained and flagged, not eliminated) and added a surface-exposure
+signal, so that a membrane-embedded protein is treated as an envelope-glycoprotein candidate and
+credited in the candidacy score rather than discarded; no new external tool was introduced, the signal
+reuses the existing DeepTMHMM and SignalP outputs. The change is gated on the viral profile and leaves
+the bacterial results unchanged, which unit tests confirm. After the fix the previously discarded
+antigens were recovered at rank 1 (Getah, RVFV, JEV), and the two orthopoxvirus L1R antigens improved
+(vaccinia to 5/193, cowpox to 8/207).
+
 ---
 
 ## References (Methods; DOI-verified 2026-09-20 — see `PROTECTIVE_ANTIGENS.md` for the antigen set)

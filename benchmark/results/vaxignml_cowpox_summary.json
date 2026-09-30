@@ -1,0 +1,12 @@
+{
+  "tool": "Vaxign-ML",
+  "pathogen": "cowpox",
+  "n_proteins": 233,
+  "gt_name": "L1R ortholog (CPXV099)",
+  "gt_token": "NP_619885",
+  "gt_rank": 3,
+  "gt_protegenicity": 91.069499,
+  "gt_prediction": 1.0,
+  "runtime_s": 33.9,
+  "note": "virus tipi; host seçimi YOK (VaxForge çok-konak avantajı burada oynamaz). protegenicity desc stable sıralama."
+}
