@@ -7,39 +7,39 @@
     "mouse",
     "pig"
   ],
-  "runtime_s": 20764.0,
+  "runtime_s": 21421.6,
   "n_input": 223,
-  "n_funnel": 194,
-  "n_candidate_proteins": 182,
+  "n_funnel": 205,
+  "n_candidate_proteins": 193,
   "ground_truth": {
     "antigen": "L1R ortoloğu (IMV membrane protein)",
     "accession": "YP_232970.1",
     "matched_id": "YP_232970.1",
     "produced_candidate": true,
-    "protein_rank": 10,
-    "best_candidacy": 0.7381
+    "protein_rank": 5,
+    "best_candidacy": 0.7667
   },
   "g_rank_permutation": {
     "test": "permutation_rank_test",
-    "statistic": 10.0,
-    "p_value": 0.05269473052694731,
+    "statistic": 5.0,
+    "p_value": 0.024897510248975102,
     "ci95": null,
     "n": 1,
     "detail": {
       "statistic_type": "best_rank",
-      "N_total": 182,
-      "null_mean": 90.8404,
+      "N_total": 193,
+      "null_mean": 96.2991,
       "positive_ranks": [
-        10.0
+        5.0
       ]
     },
-    "caveat": "küçük-n (n_pos=1, N=182) → test hesaplandı ama güç düşük; sonuç betimsel yorumlanmalı"
+    "caveat": "küçük-n (n_pos=1, N=193) → test hesaplandı ama güç düşük; sonuç betimsel yorumlanmalı"
   },
   "multihost": {
     "binder_counts_all_proteins": {
-      "human": 977,
-      "bovine": 902,
-      "mouse": 757,
+      "human": 1042,
+      "bovine": 966,
+      "mouse": 812,
       "pig": 0
     },
     "binder_counts_G_only": {
@@ -51,29 +51,29 @@
     "jaccard_overlap_all": {
       "human~bovine": {
         "test": "jaccard",
-        "statistic": 0.8941532258064516,
+        "statistic": 0.8961284230406044,
         "p_value": null,
         "ci95": null,
-        "n": 992,
+        "n": 1059,
         "detail": {
-          "intersection": 887,
-          "union": 992,
-          "only_a": 90,
-          "only_b": 15
+          "intersection": 949,
+          "union": 1059,
+          "only_a": 93,
+          "only_b": 17
         },
         "caveat": null
       },
       "human~mouse": {
         "test": "jaccard",
-        "statistic": 0.7357357357357357,
+        "statistic": 0.7375820056232427,
         "p_value": null,
         "ci95": null,
-        "n": 999,
+        "n": 1067,
         "detail": {
-          "intersection": 735,
-          "union": 999,
-          "only_a": 242,
-          "only_b": 22
+          "intersection": 787,
+          "union": 1067,
+          "only_a": 255,
+          "only_b": 25
         },
         "caveat": null
       },
@@ -82,26 +82,26 @@
         "statistic": 0.0,
         "p_value": null,
         "ci95": null,
-        "n": 977,
+        "n": 1042,
         "detail": {
           "intersection": 0,
-          "union": 977,
-          "only_a": 977,
+          "union": 1042,
+          "only_a": 1042,
           "only_b": 0
         },
         "caveat": null
       },
       "bovine~mouse": {
         "test": "jaccard",
-        "statistic": 0.7156153050672182,
+        "statistic": 0.7162162162162162,
         "p_value": null,
         "ci95": null,
-        "n": 967,
+        "n": 1036,
         "detail": {
-          "intersection": 692,
-          "union": 967,
-          "only_a": 210,
-          "only_b": 65
+          "intersection": 742,
+          "union": 1036,
+          "only_a": 224,
+          "only_b": 70
         },
         "caveat": null
       },
@@ -110,11 +110,11 @@
         "statistic": 0.0,
         "p_value": null,
         "ci95": null,
-        "n": 902,
+        "n": 966,
         "detail": {
           "intersection": 0,
-          "union": 902,
-          "only_a": 902,
+          "union": 966,
+          "only_a": 966,
           "only_b": 0
         },
         "caveat": null
@@ -124,11 +124,11 @@
         "statistic": 0.0,
         "p_value": null,
         "ci95": null,
-        "n": 757,
+        "n": 812,
         "detail": {
           "intersection": 0,
-          "union": 757,
-          "only_a": 757,
+          "union": 812,
+          "only_a": 812,
           "only_b": 0
         },
         "caveat": null
@@ -242,105 +242,105 @@
         "mhc_i": {
           "World": {
             "coverage": 98.55,
-            "average_hit": 227.5,
-            "pc90": 94.91
+            "average_hit": 241.19,
+            "pc90": 98.46
           },
           "Europe": {
             "coverage": 99.68,
-            "average_hit": 258.95,
-            "pc90": 135.87
+            "average_hit": 274.11,
+            "pc90": 142.91
           },
           "East Asia": {
             "coverage": 98.18,
-            "average_hit": 236.66,
-            "pc90": 110.63
+            "average_hit": 251.31,
+            "pc90": 115.52
           },
           "South Asia": {
             "coverage": 94.73,
-            "average_hit": 196.83,
-            "pc90": 81.7
+            "average_hit": 208.26,
+            "pc90": 85.37
           },
           "Southeast Asia": {
             "coverage": 94.56,
-            "average_hit": 180.43,
-            "pc90": 61.21
+            "average_hit": 192.36,
+            "pc90": 64.31
           },
           "North Africa": {
             "coverage": 96.03,
-            "average_hit": 214.01,
-            "pc90": 64.65
+            "average_hit": 227.68,
+            "pc90": 69.06
           },
           "West Africa": {
             "coverage": 95.49,
-            "average_hit": 234.67,
-            "pc90": 80.68
+            "average_hit": 250.02,
+            "pc90": 83.73
           },
           "North America": {
             "coverage": 99.06,
-            "average_hit": 245.19,
-            "pc90": 109.97
+            "average_hit": 260.29,
+            "pc90": 114.83
           },
           "South America": {
             "coverage": 88.3,
-            "average_hit": 145.09,
-            "pc90": 34.18
+            "average_hit": 153.88,
+            "pc90": 36.74
           },
           "Oceania": {
             "coverage": 94.71,
-            "average_hit": 179.12,
-            "pc90": 81.73
+            "average_hit": 191.23,
+            "pc90": 85.53
           }
         },
         "mhc_ii": {
           "World": {
             "coverage": 81.81,
-            "average_hit": 277.02,
-            "pc90": 100.04
+            "average_hit": 297.97,
+            "pc90": 107.74
           },
           "Europe": {
             "coverage": 85.83,
-            "average_hit": 294.58,
-            "pc90": 128.4
+            "average_hit": 316.89,
+            "pc90": 138.28
           },
           "East Asia": {
             "coverage": 81.82,
-            "average_hit": 288.78,
-            "pc90": 100.13
+            "average_hit": 309.99,
+            "pc90": 107.84
           },
           "South Asia": {
             "coverage": 75.38,
-            "average_hit": 239.43,
-            "pc90": 73.93
+            "average_hit": 258.12,
+            "pc90": 79.62
           },
           "Southeast Asia": {
             "coverage": 56.98,
-            "average_hit": 166.65,
-            "pc90": 42.31
+            "average_hit": 179.57,
+            "pc90": 45.56
           },
           "North Africa": {
             "coverage": 75.06,
-            "average_hit": 246.72,
-            "pc90": 72.99
+            "average_hit": 265.82,
+            "pc90": 78.6
           },
           "West Africa": {
             "coverage": 65.23,
-            "average_hit": 215.03,
-            "pc90": 52.35
+            "average_hit": 231.14,
+            "pc90": 56.38
           },
           "North America": {
             "coverage": 87.89,
-            "average_hit": 312.1,
-            "pc90": 150.28
+            "average_hit": 335.67,
+            "pc90": 161.84
           },
           "South America": {
             "coverage": 58.59,
-            "average_hit": 183.16,
-            "pc90": 43.95
+            "average_hit": 196.41,
+            "pc90": 47.34
           },
           "Oceania": {
             "coverage": 59.87,
-            "average_hit": 180.98,
-            "pc90": 45.36
+            "average_hit": 194.58,
+            "pc90": 48.84
           }
         }
       },
@@ -365,12 +365,12 @@
     }
   },
   "report_paths": {
-    "csv": "/home/msi-nb/vaxforge/benchmark/results/run_2026-09-29T04-54-56/candidates.csv",
-    "fasta": "/home/msi-nb/vaxforge/benchmark/results/run_2026-09-29T04-54-56/top_peptides.fasta",
-    "xlsx": "/home/msi-nb/vaxforge/benchmark/results/run_2026-09-29T04-54-56/candidates_full.xlsx",
-    "json": "/home/msi-nb/vaxforge/benchmark/results/run_2026-09-29T04-54-56/run.json",
-    "html": "/home/msi-nb/vaxforge/benchmark/results/run_2026-09-29T04-54-56/report.html",
-    "pdf": "/home/msi-nb/vaxforge/benchmark/results/run_2026-09-29T04-54-56/report.pdf"
+    "csv": "/home/msi-nb/vaxforge/benchmark/results/run_2026-09-30T11-34-50/candidates.csv",
+    "fasta": "/home/msi-nb/vaxforge/benchmark/results/run_2026-09-30T11-34-50/top_peptides.fasta",
+    "xlsx": "/home/msi-nb/vaxforge/benchmark/results/run_2026-09-30T11-34-50/candidates_full.xlsx",
+    "json": "/home/msi-nb/vaxforge/benchmark/results/run_2026-09-30T11-34-50/run.json",
+    "html": "/home/msi-nb/vaxforge/benchmark/results/run_2026-09-30T11-34-50/report.html",
+    "pdf": "/home/msi-nb/vaxforge/benchmark/results/run_2026-09-30T11-34-50/report.pdf"
   },
   "note": "Virüs kolu = çok-konak MHC yetenek gösterimi (recall değil). Tek antijen (G) → rank istatistiği betimsel. Host seçimi VaxForge'a özgü; NERVE (bacterial-only) ve Vaxign bu kolda oynayamaz."
 }

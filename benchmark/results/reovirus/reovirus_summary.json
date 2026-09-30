@@ -7,7 +7,7 @@
     "mouse",
     "pig"
   ],
-  "runtime_s": 6153.1,
+  "runtime_s": 6198.7,
   "n_input": 11,
   "n_funnel": 11,
   "n_candidate_proteins": 11,
@@ -17,7 +17,7 @@
     "matched_id": "YP_003199424.1",
     "produced_candidate": true,
     "protein_rank": 9,
-    "best_candidacy": 0.6586
+    "best_candidacy": 0.5867
   },
   "g_rank_permutation": {
     "test": "permutation_rank_test",
@@ -365,12 +365,12 @@
     }
   },
   "report_paths": {
-    "csv": "/home/msi-nb/vaxforge/benchmark/results/run_2026-09-29T02-32-45/candidates.csv",
-    "fasta": "/home/msi-nb/vaxforge/benchmark/results/run_2026-09-29T02-32-45/top_peptides.fasta",
-    "xlsx": "/home/msi-nb/vaxforge/benchmark/results/run_2026-09-29T02-32-45/candidates_full.xlsx",
-    "json": "/home/msi-nb/vaxforge/benchmark/results/run_2026-09-29T02-32-45/run.json",
-    "html": "/home/msi-nb/vaxforge/benchmark/results/run_2026-09-29T02-32-45/report.html",
-    "pdf": "/home/msi-nb/vaxforge/benchmark/results/run_2026-09-29T02-32-45/report.pdf"
+    "csv": "/home/msi-nb/vaxforge/benchmark/results/run_2026-09-30T09-51-22/candidates.csv",
+    "fasta": "/home/msi-nb/vaxforge/benchmark/results/run_2026-09-30T09-51-22/top_peptides.fasta",
+    "xlsx": "/home/msi-nb/vaxforge/benchmark/results/run_2026-09-30T09-51-22/candidates_full.xlsx",
+    "json": "/home/msi-nb/vaxforge/benchmark/results/run_2026-09-30T09-51-22/run.json",
+    "html": "/home/msi-nb/vaxforge/benchmark/results/run_2026-09-30T09-51-22/report.html",
+    "pdf": "/home/msi-nb/vaxforge/benchmark/results/run_2026-09-30T09-51-22/report.pdf"
   },
   "note": "Virüs kolu = çok-konak MHC yetenek gösterimi (recall değil). Tek antijen (G) → rank istatistiği betimsel. Host seçimi VaxForge'a özgü; NERVE (bacterial-only) ve Vaxign bu kolda oynayamaz."
 }

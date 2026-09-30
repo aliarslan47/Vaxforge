@@ -62,3 +62,43 @@
 {"ts": "2026-09-30 00:28:16", "event": "heartbeat", "detail": "jev sürüyor", "phase": "run", "pid": 15687}
 {"ts": "2026-09-30 00:45:24", "event": "virüs bitti", "detail": "jev BİTTİ 3172s · gt envelope protein E rank #1/12 · aday 12", "phase": "run", "pid": 15687}
 {"ts": "2026-09-30 00:45:24", "event": "orkestratör bitti", "detail": "3/3 tamam · getah:#1/3(3249s) | rvfv:#1/4(3607s) | jev:#1/12(3172s)", "phase": "done", "pid": 15687}
+{"ts": "2026-09-30 08:57:28", "event": "orkestratör başladı", "detail": "sıra: veev, reovirus, vaccinia, cowpox", "phase": "run", "pid": 27380}
+{"ts": "2026-09-30 08:57:28", "event": "virüs başladı", "detail": "veev (10 protein) gt=E2 envelope glycoprotein", "phase": "run", "pid": 27380}
+{"ts": "2026-09-30 09:27:28", "event": "heartbeat", "detail": "veev sürüyor", "phase": "run", "pid": 27380}
+{"ts": "2026-09-30 09:51:21", "event": "virüs bitti", "detail": "veev BİTTİ 3232s · gt E2 envelope glycoprotein rank #2/9 · aday 9", "phase": "run", "pid": 27380}
+{"ts": "2026-09-30 09:51:21", "event": "virüs başladı", "detail": "reovirus (11 protein) gt=sigma-1", "phase": "run", "pid": 27380}
+{"ts": "2026-09-30 09:57:28", "event": "heartbeat", "detail": "reovirus sürüyor", "phase": "run", "pid": 27380}
+{"ts": "2026-09-30 10:27:29", "event": "heartbeat", "detail": "reovirus sürüyor", "phase": "run", "pid": 27380}
+{"ts": "2026-09-30 10:57:29", "event": "heartbeat", "detail": "reovirus sürüyor", "phase": "run", "pid": 27380}
+{"ts": "2026-09-30 11:27:29", "event": "heartbeat", "detail": "reovirus sürüyor", "phase": "run", "pid": 27380}
+{"ts": "2026-09-30 11:34:49", "event": "virüs bitti", "detail": "reovirus BİTTİ 6208s · gt sigma-1 rank #9/11 · aday 11", "phase": "run", "pid": 27380}
+{"ts": "2026-09-30 11:34:49", "event": "virüs başladı", "detail": "vaccinia (223 protein) gt=L1R ortoloğu (IMV membrane protein)", "phase": "run", "pid": 27380}
+{"ts": "2026-09-30 11:57:29", "event": "heartbeat", "detail": "vaccinia sürüyor", "phase": "run", "pid": 27380}
+{"ts": "2026-09-30 12:27:29", "event": "heartbeat", "detail": "vaccinia sürüyor", "phase": "run", "pid": 27380}
+{"ts": "2026-09-30 12:57:29", "event": "heartbeat", "detail": "vaccinia sürüyor", "phase": "run", "pid": 27380}
+{"ts": "2026-09-30 13:27:29", "event": "heartbeat", "detail": "vaccinia sürüyor", "phase": "run", "pid": 27380}
+{"ts": "2026-09-30 13:57:29", "event": "heartbeat", "detail": "vaccinia sürüyor", "phase": "run", "pid": 27380}
+{"ts": "2026-09-30 14:27:29", "event": "heartbeat", "detail": "vaccinia sürüyor", "phase": "run", "pid": 27380}
+{"ts": "2026-09-30 14:57:29", "event": "heartbeat", "detail": "vaccinia sürüyor", "phase": "run", "pid": 27380}
+{"ts": "2026-09-30 15:27:29", "event": "heartbeat", "detail": "vaccinia sürüyor", "phase": "run", "pid": 27380}
+{"ts": "2026-09-30 15:57:29", "event": "heartbeat", "detail": "vaccinia sürüyor", "phase": "run", "pid": 27380}
+{"ts": "2026-09-30 16:27:29", "event": "heartbeat", "detail": "vaccinia sürüyor", "phase": "run", "pid": 27380}
+{"ts": "2026-09-30 16:57:29", "event": "heartbeat", "detail": "vaccinia sürüyor", "phase": "run", "pid": 27380}
+{"ts": "2026-09-30 17:27:29", "event": "heartbeat", "detail": "vaccinia sürüyor", "phase": "run", "pid": 27380}
+{"ts": "2026-09-30 17:32:01", "event": "virüs bitti", "detail": "vaccinia BİTTİ 21432s · gt L1R ortoloğu (IMV membrane protein) rank #5/193 · aday 193", "phase": "run", "pid": 27380}
+{"ts": "2026-09-30 17:32:01", "event": "virüs başladı", "detail": "cowpox (233 protein) gt=L1R ortoloğu (CPXV099 protein)", "phase": "run", "pid": 27380}
+{"ts": "2026-09-30 17:57:29", "event": "heartbeat", "detail": "cowpox sürüyor", "phase": "run", "pid": 27380}
+{"ts": "2026-09-30 18:27:29", "event": "heartbeat", "detail": "cowpox sürüyor", "phase": "run", "pid": 27380}
+{"ts": "2026-09-30 18:57:29", "event": "heartbeat", "detail": "cowpox sürüyor", "phase": "run", "pid": 27380}
+{"ts": "2026-09-30 19:27:29", "event": "heartbeat", "detail": "cowpox sürüyor", "phase": "run", "pid": 27380}
+{"ts": "2026-09-30 19:57:29", "event": "heartbeat", "detail": "cowpox sürüyor", "phase": "run", "pid": 27380}
+{"ts": "2026-09-30 20:27:29", "event": "heartbeat", "detail": "cowpox sürüyor", "phase": "run", "pid": 27380}
+{"ts": "2026-09-30 20:57:29", "event": "heartbeat", "detail": "cowpox sürüyor", "phase": "run", "pid": 27380}
+{"ts": "2026-09-30 21:27:29", "event": "heartbeat", "detail": "cowpox sürüyor", "phase": "run", "pid": 27380}
+{"ts": "2026-09-30 21:57:29", "event": "heartbeat", "detail": "cowpox sürüyor", "phase": "run", "pid": 27380}
+{"ts": "2026-09-30 22:27:29", "event": "heartbeat", "detail": "cowpox sürüyor", "phase": "run", "pid": 27380}
+{"ts": "2026-09-30 22:57:29", "event": "heartbeat", "detail": "cowpox sürüyor", "phase": "run", "pid": 27380}
+{"ts": "2026-09-30 23:27:29", "event": "heartbeat", "detail": "cowpox sürüyor", "phase": "run", "pid": 27380}
+{"ts": "2026-09-30 23:57:29", "event": "heartbeat", "detail": "cowpox sürüyor", "phase": "run", "pid": 27380}
+{"ts": "2026-10-01 00:04:15", "event": "virüs bitti", "detail": "cowpox BİTTİ 23534s · gt L1R ortoloğu (CPXV099 protein) rank #8/207 · aday 207", "phase": "run", "pid": 27380}
+{"ts": "2026-10-01 00:04:15", "event": "orkestratör bitti", "detail": "4/4 tamam · veev:#2/9(3232s) | reovirus:#9/11(6208s) | vaccinia:#5/193(21432s) | cowpox:#8/207(23534s)", "phase": "done", "pid": 27380}
