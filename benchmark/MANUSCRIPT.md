@@ -137,6 +137,59 @@ The two species where VaxForge fell behind, *Coxiella burnetii* (2 of 4) and *St
 
 **Figure 4.** The recall pattern across ten bacteria at full proteome scale, ordered by genome size. Recall over the known protective antigens for each tool, shown as a fraction with the recovered-of-total count above each bar because the antigen count differs between species; the meningococcal exemplar is included alongside the nine generalisation species and an asterisk marks the six zoonotic bacteria added in this work. VaxForge matches Vaxign-ML on species whose protective antigens are secreted or surface-exposed and falls behind only on *C. burnetii* and *S. suis*, whose missed antigens are cytoplasmic moonlighting proteins that the localisation filter removes by design; NERVE 2.0 recovers none of the antigens for four species.
 
+**Table S1.** The ground-truth protective antigens, by species, with accession, licensure status and the verified evidence for protective or candidate status (full evidence and DOIs in `PROTECTIVE_ANTIGENS.md`). Status: *licensed* = component of an approved human vaccine; *vet-licensed strain* = genus has approved live/whole-cell veterinary vaccines while the subunit here is a candidate; *clinical/preclinical candidate* = experimental protective or immunodominant antigen.
+
+| Species | Antigen (gene) | Accession | Status | Key evidence (DOI) |
+|---|---|---|---|---|
+| *N. meningitidis* B | fHbp | Q9JXV4 | Licensed, 4CMenB (Bexsero) | Giuliani 2006, 10.1073/pnas.0603940103 |
+| | NadA | Q9JXK7 | Licensed, 4CMenB | Giuliani 2006, 10.1073/pnas.0603940103 |
+| | NHBA | Q7DD37 | Licensed, 4CMenB | Giuliani 2006, 10.1073/pnas.0603940103 |
+| | PorA | P0DH58 | Licensed, 4CMenB (OMV) | Pizza 2000, 10.1126/science.287.5459.1816 |
+| *S. aureus* | IsdB | Q2FZF0 | Clinical candidate (V710) | Kuklin 2006, 10.1128/iai.74.4.2215-2223.2006 |
+| | IsdA | Q2FZE9 | Preclinical candidate | Kim 2010, 10.1016/j.vaccine.2010.02.097 |
+| | ClfA | Q2G015 | Preclinical candidate | Josefsson 2001, 10.1086/324430 |
+| | Hla (α-hemolysin) | Q2G1X0 | Preclinical candidate | Adhikari 2012, 10.1371/journal.pone.0038567 |
+| | SpA | P02976 | Preclinical candidate | Kim 2010, 10.1084/jem.20092514 |
+| *L. monocytogenes* | LLO | P13128 | Preclinical candidate | Phelps 2020, 10.1016/j.vaccine.2020.06.049 |
+| | p60 (Iap) | P21171 | Preclinical (CD8 protection) | Harty 1995, 10.4049/jimmunol.154.9.4642 |
+| | InlA | P0DJM0 | Virulence factor / candidate | Gaillard 1991, 10.1016/0092-8674(91)90009-n |
+| | InlB | P0DQD2 | Virulence factor / candidate | Dramsi 1995, 10.1111/j.1365-2958.1995.tb02297.x |
+| | ActA | P33379 | Passive-protection candidate | Asano 2016, 10.1038/srep39628 |
+| *S.* Typhimurium | OmpD | P37592 | Preclinical candidate | Gil-Cruz 2009, 10.1073/pnas.0812431106 |
+| | OmpC | P0A263 | Preclinical candidate | Secundino 2006, 10.1111/j.1365-2567.2005.02263.x |
+| | OmpA | P02936 | Preclinical candidate | Domínguez-Medina 2020, 10.1038/s41467-020-14655-9 |
+| | FliC | P06179 | Preclinical candidate | Bumann 2014, 10.3389/fimmu.2014.00381 |
+| | SseB | Q7BVH7 | Preclinical candidate | Lee 2017, 10.4049/jimmunol.1601357 |
+| *C. burnetii* | Com1 | H7C7D7 | Preclinical (adoptive transfer) | Wang 2011, 10.1186/1471-2172-12-52 |
+| | Mip | P51752 | Immunodominant candidate | Wang 2011, 10.1186/1471-2172-12-52 |
+| | OmpH | Q83DT1 | Immunodominant candidate | Wang 2011, 10.1186/1471-2172-12-52 |
+| | GroEL | P19421 | Immunodominant (weak) | Wang 2011, 10.1186/1471-2172-12-52 |
+| *S. suis* | Suilysin (SLY) | A0A0H3MU02 | Preclinical candidate | Du 2013, 10.1016/j.vaccine.2013.07.004 |
+| | Enolase | A0A0H3N5B2 | Preclinical (full protection) | Feng 2009, 10.1086/644602 |
+| | 6PGD | A0A0H3N193 | Preclinical candidate | Zhang 2023, 10.3390/vetsci10060383 |
+| | GAPDH | A0A0H3MSV3 | Moonlighting candidate | Feng 2009, 10.1086/644602 |
+| | DnaJ | A0A0H3MXM0 | Candidate | Zhang 2023, 10.3390/vetsci10060383 |
+| *B. suis* | Omp25 | Q45689 | Vet-licensed strain / candidate | Cloeckaert 2002, 10.1016/s0378-1135(02)00211-0 |
+| | Omp31 | P0A3U5 | Preclinical (protective) | Cloeckaert 2002, 10.1016/s0378-1135(02)00211-0 |
+| | BP26 | P0A3U9 | Immunodominant / diagnostic | Kim 2013, 10.1016/j.jmb.2013.01.015 |
+| | SodC | P66827 | Preclinical (protective) | Oñate 2003, 10.1128/IAI.71.9.4857-4861.2003 |
+| | L7/L12 | P0A469 | Preclinical (protective) | Luo 2006, 10.1128/IAI.74.5.2734-2741.2006 |
+| *M. bovis* | ESAT-6 | P0A565 | Clinical candidate (BCG-related) | Brandt 2000, 10.1128/IAI.68.2.791-795.2000 |
+| | Ag85B | P0C2T2 | Clinical candidate (H1/H56) | Davila 2010, 10.1155/2010/208371 |
+| | CFP-10 | P0A567 | Candidate / diagnostic | Davila 2010, 10.1155/2010/208371 |
+| | MPB64 | P0A5Q5 | Immunodominant / diagnostic | Brandt 2000, 10.1128/IAI.68.2.791-795.2000 |
+| | HspX | P0A5B8 | Immunodominant candidate | Davila 2010, 10.1155/2010/208371 |
+| *L. interrogans* | LigA | Q8EYU4 | Vet-licensed strain / candidate | Faisal 2007, 10.1016/j.vaccine.2007.10.029 |
+| | LigB | Q8EZS3 | Preclinical candidate | Faisal 2007, 10.1016/j.vaccine.2007.10.029 |
+| | LipL32 | O34094 | Preclinical (protective) | Feng 2009, 10.1590/s0100-879x2009005000013 |
+| | LipL41 | Q8F8E1 | Preclinical (protective) | Feng 2009, 10.1590/s0100-879x2009005000013 |
+| | OmpL1 | G1UB30 | Preclinical (protective) | Feng 2009, 10.1590/s0100-879x2009005000013 |
+| *B. anthracis* | PA (pagA) | P13423 | Licensed (BioThrax/AVA, AVP) | Rhie 2005, 10.1016/j.femsim.2005.05.009 |
+| | LF (lef) | P15917 | Preclinical (protective) | Baillie 2010, 10.1016/j.vaccine.2010.07.075 |
+| | EF (cya) | P40136 | Toxin component / candidate | Baillie 2010, 10.1016/j.vaccine.2010.07.075 |
+| | CapB (γ-PGA) | P19580 | Preclinical (protective adjunct) | Schneerson 2003, 10.1073/pnas.1633512100 |
+| | EA1 (S-layer) | P94217 | Immunodominant candidate | — |
+
 **Host selection changes the predicted epitope repertoire, a dimension the comparators cannot address.** VaxForge draws binding predictions from curated allele panels for four hosts, human, mouse, bovine and pig (Table 4), taken from IMGT/HLA for human and IPD-MHC for the others. For human, mouse and bovine, both class I and class II run on real NetMHCpan and NetMHCIIpan models, including the BoLA-DRB3 class II panel for cattle; pig class I is real while its class II rests on a single validated allele. The panels are representative subsets rather than the complete databases, and invalid allele names are dropped at runtime, so the reported epitopes are conservative.
 
 **Table 4.** Host allele panels used for epitope prediction (representative subsets; full panels in `config/hosts.yaml`).

@@ -137,3 +137,86 @@ koruması (ör. ActA) ve bazıları invazyon-virülans faktörü + aday-antijen 
 > İlişkili kayıtlar: `SELECTION_RATIONALE.md`, `BENCHMARK_SUMMARY.md`, `PATHOGEN_ACCESSIONS.md`.
 > Çekirdek ilke: her şey literatüre atıflı, uydurma yok ([[vaxforge-literature-rule]]).
 </content>
+
+---
+
+# YENİ 6 ZOONOTİK BAKTERİ (2026-10-02; DOI'ler PubMed'den doğrulandı)
+
+**Kaynak:** PubMed (atıflar aşağıda DOI ile). Kanıt gücü antijen-başına açık (koruma-challenge /
+aday-antijen / immunodominant). Aksesyonlar `PATHOGEN_ACCESSIONS.md`.
+
+## 6. *Coxiella burnetii* (RSA 493)
+| Antijen | Rol / kanıt | Atıf (DOI-doğrulanmış) |
+|---|---|---|
+| **Com1** (H7C7D7) | Koruyucu antijen; Com1-yüklü DH adoptif transferi naif farede koruma (Th1/Tc1) | Wang 2011 — **10.1186/1471-2172-12-52** |
+| **Mip** (P51752) | Peptidil-prolil izomeraz; immunodominant/aday antijen (Q-ateşi subünit aday paneli) | Wang 2011 — **10.1186/1471-2172-12-52** (bağlam) |
+| **OmpH** (Q83DT1) | Dış membran; immunodominant/aday antijen | Wang 2011 — **10.1186/1471-2172-12-52** (bağlam) |
+| **GroEL/HtpB** (P19421) | Hsp60; immunodominant ama Wang 2011'de tek-başına koruma göstermedi → zayıf/aday | Wang 2011 — **10.1186/1471-2172-12-52** |
+> Dürüstlük: yalnız **Com1** doğrudan koruyucu (adoptif transfer); Mip/OmpH immunodominant aday; GroEL aynı çalışmada koruma veremedi. Q-VAX (tam-hücre) Avustralya'da ruhsatlı; bu proteinler subünit aday.
+
+## 7. *Streptococcus suis* serotip 2 (BM407)
+| Antijen | Rol / kanıt | Atıf (DOI-doğrulanmış) |
+|---|---|---|
+| **Suilysin (SLY)** (A0A0H3MU02) | Non-hemolitik rSLY(P353L) aday aşı; anti-SLY pasif immünizasyon fareyi ölümden korur | Du 2013 — **10.1016/j.vaccine.2013.07.004** |
+| **Enolaz** (A0A0H3N5B2) | Yüzeyde sunulan **koruyucu antijen**; farede tam koruma (moonlighting) | Feng 2009 — **10.1086/644602** |
+| **6-fosfoglukonat DH (6PGD)** (A0A0H3N193) | Çok-epitoplu aday aşının (MVHP6) üç immunojen bileşeninden biri | Zhang 2023 — **10.3390/vetsci10060383** |
+| **GAPDH** (A0A0H3MSV3) | Yüzey moonlighting adezin; immunojenik/aday antijen | Feng 2009 — **10.1086/644602** (moonlighting bağlam) |
+| **DnaJ** (A0A0H3MXM0) | Şaperon; immunojenik/aday antijen | Zhang 2023 — **10.3390/vetsci10060383** (bağlam) |
+> SLY/enolaz doğrudan koruyucu; 6PGD/GAPDH/DnaJ aday/moonlighting. Bunlar makalede VaxForge'un lokalizasyon süzgeciyle kaçırdığı sitoplazmik-moonlighting antijenler.
+
+## 8. *Brucella suis* (1330)
+| Antijen | Rol / kanıt | Atıf (DOI-doğrulanmış) |
+|---|---|---|
+| **Omp25** (Q45689) | Grup-3 OMP; Omp25-mutantları atenüe + Rev.1'e benzer/üstün koruma → aşı adayı | Cloeckaert 2002 — **10.1016/s0378-1135(02)00211-0** |
+| **Omp31** (P0A3U5) | Grup-3 OMP; *B. ovis* fare modelinde **koruyucu antijen** (immunodominant) | Cloeckaert 2002 — **10.1016/s0378-1135(02)00211-0** |
+| **BP26/Omp28** (P0A3U9) | İmmunodominant; tanı markörü + brusellozda aşılama için kullanılır | Kim 2013 — **10.1016/j.jmb.2013.01.015** |
+| **SodC (Cu-Zn SOD)** (P66827) | DNA aşısı BALB/c'de **koruyucu** (RB51 düzeyinde), Th1 | Oñate 2003 — **10.1128/IAI.71.9.4857-4861.2003** |
+| **L7/L12 (RplL)** (P0A469) | Ribozomal; divalan L7/L12 DNA aşısı virülan 544 challenge'a karşı **koruyucu** | Luo 2006 — **10.1128/IAI.74.5.2734-2741.2006** |
+> RB51/S19/Rev.1 ruhsatlı **veteriner** canlı-atenüe aşılar (tam-hücre); bu subünitler koruyucu-aday.
+
+## 9. *Mycobacterium bovis* (AF2122/97)
+| Antijen | Rol / kanıt | Atıf (DOI-doğrulanmış) |
+|---|---|---|
+| **ESAT-6 (EsxA)** (P0A565) | Subünit aşı (MPL+DDA) **BCG düzeyinde koruyucu** T-hücre yanıtı | Brandt 2000 — **10.1128/IAI.68.2.791-795.2000** |
+| **Ag85B (FbpB)** (P0C2T2) | Ag85B-ESAT-6 füzyon subünit aşısı hayvan modelinde **koruyucu** | Davila 2010 — **10.1155/2010/208371** |
+| **CFP-10 (EsxB)** (P0A567) | ESAT-6 ile RD1 ikilisi; koruyucu/immunodominant aday (Ag85B-ESAT6 füzyon bağlamı) | Davila 2010 — **10.1155/2010/208371** |
+| **MPB64** (P0A5Q5) | *M. bovis* salgı; immunodominant/tanısal + aday antijen | Brandt 2000 — **10.1128/IAI.68.2.791-795.2000** (bağlam) |
+| **HspX/Acr** (P0A5B8) | Latensi α-kristalin; immunodominant/aday antijen | Davila 2010 — **10.1155/2010/208371** (bağlam) |
+> BCG (canlı *M. bovis*) ruhsatlı TB aşısı; ESAT-6/Ag85B bunlar klinik subünit adayları (H1/H56).
+
+## 10. *Leptospira interrogans* serovar Lai (56601)
+| Antijen | Rol / kanıt | Atıf (DOI-doğrulanmış) |
+|---|---|---|
+| **LigA** (Q8EYU4) | LigA DNA aşısı hamster'da virülan challenge'a karşı **anlamlı koruma** | Faisal 2007 — **10.1016/j.vaccine.2007.10.029** |
+| **LigB** (Q8EZS3) | Lig ailesi (Ig-benzeri tekrar); koruyucu-aday (LigA ile aynı aile) | Faisal 2007 — **10.1016/j.vaccine.2007.10.029** (aile bağlamı) |
+| **LipL32** (O34094) | Rekombinant LipL32-41-OmpL1 **koruyucu antijen** DNA/protein aşısı | Feng 2009 — **10.1590/s0100-879x2009005000013** |
+| **LipL41** (Q8F8E1) | Çok-bileşenli LipL32-41-OmpL1 aşısında anti-LipL41 koruyucu yanıt | Feng 2009 — **10.1590/s0100-879x2009005000013** |
+| **OmpL1** (G1UB30) | Çok-bileşenli LipL32-41-OmpL1 aşısında anti-OmpL1 koruyucu yanıt | Feng 2009 — **10.1590/s0100-879x2009005000013** |
+> Leptospiroz'da tam-hücre bakterin veteriner aşılar ruhsatlı; bu subünitler koruyucu-aday.
+
+## 11. *Bacillus anthracis* (Ames Ancestor)
+| Antijen | Rol / kanıt | Atıf (DOI-doğrulanmış) |
+|---|---|---|
+| **PA (pagA)** (P13423) | **RUHSATLI** ABD (AVA/BioThrax) + UK (AVP) insan antraks aşılarının ana koruyucu bileşeni | Rhie 2005 — **10.1016/j.femsim.2005.05.009**; Baillie 2010 — **10.1016/j.vaccine.2010.07.075** |
+| **LF (lef)** (P15917) | LF/LF-D1 tam **koruma** sağlar (B.anthracis spor challenge); AVP koruyuculuğuna katkı | Baillie 2010 — **10.1016/j.vaccine.2010.07.075** |
+| **EF (cya)** (P40136) | Ödem toksini bileşeni; toksin-nötralizasyon hedefi/aday (PA+LF ile tripartit) | Baillie 2010 — **10.1016/j.vaccine.2010.07.075** (bağlam) |
+| **CapB / γ-PGA kapsül** (P19580) | γ-DPGA-protein konjugatı koruyucu IgG + opsonofagositoz; antraks aşısına ek | Schneerson 2003 — **10.1073/pnas.1633512100** |
+| **S-tabaka EA1 (eag)** (P94217) | Yüzey S-tabaka; immunodominant/aday antijen | — (immunodominant; koruma verisi sınırlı) |
+> **PA ruhsatlı insan aşısı bileşeni** (BioThrax/AVA, AVP). LF/kapsül koruyucu-ek; EF/EA1 aday.
+
+## Atıf listesi — yeni 6 bakteri (Methods-hazır, DOI-doğrulanmış 2026-10-02, PubMed)
+14. Wang Y, et al. Efficient activation of T cells by HMDCs pulsed with *Coxiella burnetii* Com1. *BMC Immunol*. 2011;12:52. **doi:10.1186/1471-2172-12-52**
+15. Du H, et al. The genetically modified suilysin rSLY(P353L) provides a candidate vaccine ... *Streptococcus suis*. *Vaccine*. 2013;31(38):4209-15. **doi:10.1016/j.vaccine.2013.07.004**
+16. Feng Y, et al. *Streptococcus suis* enolase functions as a protective antigen displayed on the bacterial cell surface. *J Infect Dis*. 2009;200(10):1583-92. **doi:10.1086/644602**
+17. Zhang Y, et al. Development of a universal multi-epitope vaccine candidate against *S. suis* (HP0197/PepO/6PGD). *Vet Sci*. 2023;10(6):383. **doi:10.3390/vetsci10060383**
+18. Cloeckaert A, et al. Major outer membrane proteins of *Brucella* spp.: past, present and future. *Vet Microbiol*. 2002;90(1-4):229-47. **doi:10.1016/s0378-1135(02)00211-0**
+19. Oñate AA, et al. A DNA vaccine encoding Cu,Zn SOD of *Brucella abortus* induces protective immunity. *Infect Immun*. 2003;71(9):4857-61. **doi:10.1128/IAI.71.9.4857-4861.2003**
+20. Luo D, et al. Protective immunity by a divalent DNA vaccine encoding L7/L12 and Omp16 of *Brucella abortus*. *Infect Immun*. 2006;74(5):2734-41. **doi:10.1128/IAI.74.5.2734-2741.2006**
+21. Kim D, et al. *Brucella* immunogenic BP26 forms a channel-like structure. *J Mol Biol*. 2013;425(7):1119-26. **doi:10.1016/j.jmb.2013.01.015**
+22. Brandt L, et al. ESAT-6 subunit vaccination against *Mycobacterium tuberculosis*. *Infect Immun*. 2000;68(2):791-5. **doi:10.1128/IAI.68.2.791-795.2000**
+23. Davila J, et al. Genetic diversity of esxA/esxH/fbpB and implications for Ag85B-ESAT-6 / Ag85B-TB10.4 subunit vaccines. *J Biomed Biotechnol*. 2010;2010:208371. **doi:10.1155/2010/208371**
+24. Faisal SM, et al. Evaluation of protective immunity of *Leptospira* LigA DNA vaccine in hamsters. *Vaccine*. 2007;26(2):277-87. **doi:10.1016/j.vaccine.2007.10.029**
+25. Feng CY, et al. Immune strategies using LipL32 and recombinant LipL32-41-OmpL1 vaccines against *Leptospira*. *Braz J Med Biol Res*. 2009;42(9):796-803. **doi:10.1590/s0100-879x2009005000013**
+26. Baillie LW, et al. An anthrax subunit vaccine candidate based on protective regions of PA and LF. *Vaccine*. 2010;28(41):6740-8. **doi:10.1016/j.vaccine.2010.07.075**
+27. Rhie GE, et al. Efficacy of non-toxic deletion mutants of protective antigen from *Bacillus anthracis*. *FEMS Immunol Med Microbiol*. 2005;45(2):341-7. **doi:10.1016/j.femsim.2005.05.009**
+28. Schneerson R, et al. Poly(γ-D-glutamic acid)-protein conjugates induce IgG to the capsule of *Bacillus anthracis*. *PNAS*. 2003;100(15):8945-50. **doi:10.1073/pnas.1633512100**
