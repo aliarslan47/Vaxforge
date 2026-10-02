@@ -141,56 +141,56 @@ VaxForge'un geride kaldığı iki tür, *Coxiella burnetii* (2/4) ve *Streptococ
 
 **Tablo S1.** Ground-truth koruyucu antijenler, türe göre; aksesyon, ruhsat durumu ve koruyucu/aday statüsünün doğrulanmış kanıtı (tam kanıt ve DOI'ler `PROTECTIVE_ANTIGENS.md`'de). Durum: *Ruhsatlı* = onaylı insan aşısı bileşeni; *Vet-ruhsatlı suş* = cinsin onaylı canlı/tam-hücre veteriner aşısı var ama buradaki subünit adaydır; *Klinik/Preklinik aday* = deneysel koruyucu ya da immunodominant antijen.
 
-| Tür | Antijen (gen) | Aksesyon | Durum | Anahtar kanıt (DOI) |
-|---|---|---|---|---|
-| *N. meningitidis* B | fHbp | Q9JXV4 | Ruhsatlı, 4CMenB (Bexsero) | Giuliani 2006, 10.1073/pnas.0603940103 |
-| | NadA | Q9JXK7 | Ruhsatlı, 4CMenB | Giuliani 2006, 10.1073/pnas.0603940103 |
-| | NHBA | Q7DD37 | Ruhsatlı, 4CMenB | Giuliani 2006, 10.1073/pnas.0603940103 |
-| | PorA | P0DH58 | Ruhsatlı, 4CMenB (OMV) | Pizza 2000, 10.1126/science.287.5459.1816 |
-| *S. aureus* | IsdB | Q2FZF0 | Klinik aday (V710) | Kuklin 2006, 10.1128/iai.74.4.2215-2223.2006 |
-| | IsdA | Q2FZE9 | Preklinik aday | Kim 2010, 10.1016/j.vaccine.2010.02.097 |
-| | ClfA | Q2G015 | Preklinik aday | Josefsson 2001, 10.1086/324430 |
-| | Hla (α-hemolizin) | Q2G1X0 | Preklinik aday | Adhikari 2012, 10.1371/journal.pone.0038567 |
-| | SpA | P02976 | Preklinik aday | Kim 2010, 10.1084/jem.20092514 |
-| *L. monocytogenes* | LLO | P13128 | Preklinik aday | Phelps 2020, 10.1016/j.vaccine.2020.06.049 |
-| | p60 (Iap) | P21171 | Preklinik (CD8 koruma) | Harty 1995, 10.4049/jimmunol.154.9.4642 |
-| | InlA | P0DJM0 | Virülans faktörü / aday | Gaillard 1991, 10.1016/0092-8674(91)90009-n |
-| | InlB | P0DQD2 | Virülans faktörü / aday | Dramsi 1995, 10.1111/j.1365-2958.1995.tb02297.x |
-| | ActA | P33379 | Pasif-koruma adayı | Asano 2016, 10.1038/srep39628 |
-| *S.* Typhimurium | OmpD | P37592 | Preklinik aday | Gil-Cruz 2009, 10.1073/pnas.0812431106 |
-| | OmpC | P0A263 | Preklinik aday | Secundino 2006, 10.1111/j.1365-2567.2005.02263.x |
-| | OmpA | P02936 | Preklinik aday | Domínguez-Medina 2020, 10.1038/s41467-020-14655-9 |
-| | FliC | P06179 | Preklinik aday | Bumann 2014, 10.3389/fimmu.2014.00381 |
-| | SseB | Q7BVH7 | Preklinik aday | Lee 2017, 10.4049/jimmunol.1601357 |
-| *C. burnetii* | Com1 | H7C7D7 | Preklinik (adoptif transfer) | Wang 2011, 10.1186/1471-2172-12-52 |
-| | Mip | P51752 | İmmunodominant aday | Wang 2011, 10.1186/1471-2172-12-52 |
-| | OmpH | Q83DT1 | İmmunodominant aday | Wang 2011, 10.1186/1471-2172-12-52 |
-| | GroEL | P19421 | İmmunodominant (zayıf) | Wang 2011, 10.1186/1471-2172-12-52 |
-| *S. suis* | Suilysin (SLY) | A0A0H3MU02 | Preklinik aday | Du 2013, 10.1016/j.vaccine.2013.07.004 |
-| | Enolaz | A0A0H3N5B2 | Preklinik (tam koruma) | Feng 2009, 10.1086/644602 |
-| | 6PGD | A0A0H3N193 | Preklinik aday | Zhang 2023, 10.3390/vetsci10060383 |
-| | GAPDH | A0A0H3MSV3 | Moonlighting aday | Feng 2009, 10.1086/644602 |
-| | DnaJ | A0A0H3MXM0 | Aday | Zhang 2023, 10.3390/vetsci10060383 |
-| *B. suis* | Omp25 | Q45689 | Vet-ruhsatlı suş / aday | Cloeckaert 2002, 10.1016/s0378-1135(02)00211-0 |
-| | Omp31 | P0A3U5 | Preklinik (koruyucu) | Cloeckaert 2002, 10.1016/s0378-1135(02)00211-0 |
-| | BP26 | P0A3U9 | İmmunodominant / tanısal | Kim 2013, 10.1016/j.jmb.2013.01.015 |
-| | SodC | P66827 | Preklinik (koruyucu) | Oñate 2003, 10.1128/IAI.71.9.4857-4861.2003 |
-| | L7/L12 | P0A469 | Preklinik (koruyucu) | Luo 2006, 10.1128/IAI.74.5.2734-2741.2006 |
-| *M. bovis* | ESAT-6 | P0A565 | Klinik aday (BCG-ilişkili) | Brandt 2000, 10.1128/IAI.68.2.791-795.2000 |
-| | Ag85B | P0C2T2 | Klinik aday (H1/H56) | Davila 2010, 10.1155/2010/208371 |
-| | CFP-10 | P0A567 | Aday / tanısal | Davila 2010, 10.1155/2010/208371 |
-| | MPB64 | P0A5Q5 | İmmunodominant / tanısal | Brandt 2000, 10.1128/IAI.68.2.791-795.2000 |
-| | HspX | P0A5B8 | İmmunodominant aday | Davila 2010, 10.1155/2010/208371 |
-| *L. interrogans* | LigA | Q8EYU4 | Vet-ruhsatlı suş / aday | Faisal 2007, 10.1016/j.vaccine.2007.10.029 |
-| | LigB | Q8EZS3 | Preklinik aday | Faisal 2007, 10.1016/j.vaccine.2007.10.029 |
-| | LipL32 | O34094 | Preklinik (koruyucu) | Feng 2009, 10.1590/s0100-879x2009005000013 |
-| | LipL41 | Q8F8E1 | Preklinik (koruyucu) | Feng 2009, 10.1590/s0100-879x2009005000013 |
-| | OmpL1 | G1UB30 | Preklinik (koruyucu) | Feng 2009, 10.1590/s0100-879x2009005000013 |
-| *B. anthracis* | PA (pagA) | P13423 | Ruhsatlı (BioThrax/AVA, AVP) | Rhie 2005, 10.1016/j.femsim.2005.05.009 |
-| | LF (lef) | P15917 | Preklinik (koruyucu) | Baillie 2010, 10.1016/j.vaccine.2010.07.075 |
-| | EF (cya) | P40136 | Toksin bileşeni / aday | Baillie 2010, 10.1016/j.vaccine.2010.07.075 |
-| | CapB (γ-PGA) | P19580 | Preklinik (koruyucu ek) | Schneerson 2003, 10.1073/pnas.1633512100 |
-| | EA1 (S-tabaka) | P94217 | İmmunodominant aday | — |
+| Tür | Antijen (gen) | Aksesyon | Durum | VaxForge | Vaxign-ML | NERVE 2.0 | Kanıt (DOI) |
+|---|---|---|---|---|---|---|---|
+| *N. meningitidis* B | fHbp | Q9JXV4 | Ruhsatlı, 4CMenB (Bexsero) | #2 | #7 | elendi | Giuliani 2006, 10.1073/pnas.0603940103 |
+|  | NadA | Q9JXK7 | Ruhsatlı, 4CMenB | #4 | #1 | elendi | Giuliani 2006, 10.1073/pnas.0603940103 |
+|  | NHBA | Q7DD37 | Ruhsatlı, 4CMenB | #3 | #2 | elendi | Giuliani 2006, 10.1073/pnas.0603940103 |
+|  | PorA | P0DH58 | Ruhsatlı, 4CMenB (OMV) | #1 | #4 | #2 | Pizza 2000, 10.1126/science.287.5459.1816 |
+| *S. aureus* | IsdB | Q2FZF0 | Klinik aday (V710) | #4 | #46 | elendi | Kuklin 2006, 10.1128/iai.74.4.2215-2223.2006 |
+|  | IsdA | Q2FZE9 | Preklinik aday | #10 | #387 | elendi | Kim 2010, 10.1016/j.vaccine.2010.02.097 |
+|  | ClfA | Q2G015 | Preklinik aday | #23 | #248 | #3 | Josefsson 2001, 10.1086/324430 |
+|  | Hla | Q2G1X0 | Preklinik aday | #9 | #29 | #24 | Adhikari 2012, 10.1371/journal.pone.0038567 |
+|  | SpA | P02976 | Preklinik aday | #8 | #178 | #28 | Kim 2010, 10.1084/jem.20092514 |
+| *L. monocytogenes* | LLO | P13128 | Preklinik aday | #7 | #19 | elendi | Phelps 2020, 10.1016/j.vaccine.2020.06.049 |
+|  | p60 | P21171 | Preklinik (CD8 koruma) | #1 | #70 | #30 | Harty 1995, 10.4049/jimmunol.154.9.4642 |
+|  | InlA | P0DJM0 | Virülans faktörü / aday | #2 | #214 | elendi | Gaillard 1991, 10.1016/0092-8674(91)90009-n |
+|  | InlB | P0DQD2 | Virülans faktörü / aday | #15 | #143 | #72 | Dramsi 1995, 10.1111/j.1365-2958.1995.tb02297.x |
+|  | ActA | P33379 | Pasif-koruma adayı | ✗ | #210 | #38 | Asano 2016, 10.1038/srep39628 |
+| *S.* Typhimurium | OmpD | P37592 | Preklinik aday | #63 | #28 | elendi | Gil-Cruz 2009, 10.1073/pnas.0812431106 |
+|  | OmpC | P0A263 | Preklinik aday | #51 | #30 | #70 | Secundino 2006, 10.1111/j.1365-2567.2005.02263.x |
+|  | OmpA | P02936 | Preklinik aday | #20 | #185 | #51 | Domínguez-Medina 2020, 10.1038/s41467-020-14655-9 |
+|  | FliC | P06179 | Preklinik aday | #8 | #127 | #6 | Bumann 2014, 10.3389/fimmu.2014.00381 |
+|  | SseB | Q7BVH7 | Preklinik aday | #12 | #897 | elendi | Lee 2017, 10.4049/jimmunol.1601357 |
+| *C. burnetii* | Com1 | H7C7D7 | Preklinik (adoptif transfer) | #42 | #64 | elendi | Wang 2011, 10.1186/1471-2172-12-52 |
+|  | Mip | P51752 | İmmunodominant aday | ✗ | #28 | elendi | Wang 2011, 10.1186/1471-2172-12-52 |
+|  | OmpH | Q83DT1 | İmmunodominant aday | #177 | #713 | elendi | Wang 2011, 10.1186/1471-2172-12-52 |
+|  | GroEL | P19421 | İmmunodominant (zayıf) | ✗ | #8 | elendi | Wang 2011, 10.1186/1471-2172-12-52 |
+| *S. suis* | Suilysin | A0A0H3MU02 | Preklinik aday | #6 | #52 | elendi | Du 2013, 10.1016/j.vaccine.2013.07.004 |
+|  | Enolase | A0A0H3N5B2 | Preklinik (tam koruma) | ✗ | #150 | elendi | Feng 2009, 10.1086/644602 |
+|  | 6PGD | A0A0H3N193 | Preklinik aday | ✗ | #68 | elendi | Zhang 2023, 10.3390/vetsci10060383 |
+|  | GAPDH | A0A0H3MSV3 | Moonlighting aday | ✗ | #220 | elendi | Feng 2009, 10.1086/644602 |
+|  | DnaJ | A0A0H3MXM0 | Aday | ✗ | #482 | elendi | Zhang 2023, 10.3390/vetsci10060383 |
+| *B. suis* | Omp25 | Q45689 | Vet-ruhsatlı suş / aday | #102 | #101 | #3 | Cloeckaert 2002, 10.1016/s0378-1135(02)00211-0 |
+|  | Omp31 | P0A3U5 | Preklinik (koruyucu) | #36 | #218 | #4 | Cloeckaert 2002, 10.1016/s0378-1135(02)00211-0 |
+|  | BP26 | P0A3U9 | İmmunodominant / tanısal | #181 | #255 | elendi | Kim 2013, 10.1016/j.jmb.2013.01.015 |
+|  | SodC | P66827 | Preklinik (koruyucu) | #26 | #589 | elendi | Oñate 2003, 10.1128/IAI.71.9.4857-4861.2003 |
+|  | L7/L12 | P0A469 | Preklinik (koruyucu) | ✗ | #430 | elendi | Luo 2006, 10.1128/IAI.74.5.2734-2741.2006 |
+| *M. bovis* | ESAT-6 | P0A565 | Klinik aday (BCG-ilişkili) | ✗ | #53 | elendi | Brandt 2000, 10.1128/IAI.68.2.791-795.2000 |
+|  | Ag85B | P0C2T2 | Klinik aday (H1/H56) | #1 | #38 | elendi | Davila 2010, 10.1155/2010/208371 |
+|  | CFP-10 | P0A567 | Aday / tanısal | #27 | #70 | elendi | Davila 2010, 10.1155/2010/208371 |
+|  | MPB64 | P0A5Q5 | İmmunodominant / tanısal | #202 | #13 | elendi | Brandt 2000, 10.1128/IAI.68.2.791-795.2000 |
+|  | HspX | P0A5B8 | İmmunodominant aday | #114 | #342 | elendi | Davila 2010, 10.1155/2010/208371 |
+| *L. interrogans* | LigA | Q8EYU4 | Vet-ruhsatlı suş / aday | ✗ | #227 | elendi | Faisal 2007, 10.1016/j.vaccine.2007.10.029 |
+|  | LigB | Q8EZS3 | Preklinik aday | #171 | #18 | elendi | Faisal 2007, 10.1016/j.vaccine.2007.10.029 |
+|  | LipL32 | O34094 | Preklinik (koruyucu) | #145 | #788 | elendi | Feng 2009, 10.1590/s0100-879x2009005000013 |
+|  | LipL41 | Q8F8E1 | Preklinik (koruyucu) | #107 | #83 | elendi | Feng 2009, 10.1590/s0100-879x2009005000013 |
+|  | OmpL1 | G1UB30 | Preklinik (koruyucu) | #150 | #588 | elendi | Feng 2009, 10.1590/s0100-879x2009005000013 |
+| *B. anthracis* | PA (pagA) | P13423 | Ruhsatlı (BioThrax/AVA, AVP) | #2 | #13 | #3 | Rhie 2005, 10.1016/j.femsim.2005.05.009 |
+|  | LF (lef) | P15917 | Preklinik (koruyucu) | #9 | #108 | elendi | Baillie 2010, 10.1016/j.vaccine.2010.07.075 |
+|  | EF (cya) | P40136 | Toksin bileşeni / aday | #6 | #119 | elendi | Baillie 2010, 10.1016/j.vaccine.2010.07.075 |
+|  | CapB (γ-PGA) | P19580 | Preklinik (koruyucu ek) | ✗ | #1196 | elendi | Schneerson 2003, 10.1073/pnas.1633512100 |
+|  | EA1 (S-layer) | P94217 | İmmunodominant aday | #65 | #2 | #2 | — |
 
 **Konak seçimi öngörülen epitop repertuarını değiştirir; karşılaştırılan araçların ulaşamadığı boyut.** VaxForge bağlanma tahminlerini dört konak için küratörlü allel panellerinden alır: insan, fare, sığır ve domuz (Tablo 4). İnsan panelleri IMGT/HLA'dan, diğerleri IPD-MHC'den derlenmiştir. İnsan, fare ve sığırda hem sınıf I hem sınıf II gerçek NetMHCpan ve NetMHCIIpan modelleriyle koşar; sığırın sınıf II BoLA-DRB3 paneli de gerçektir. Domuzda sınıf I gerçek, sınıf II ise tek doğrulanmış allele dayanır. Paneller tam veritabanları değil temsili alt kümelerdir ve geçersiz allel adları çalışma-zamanında elenir; dolayısıyla bildirilen epitoplar temkinlidir.
 
