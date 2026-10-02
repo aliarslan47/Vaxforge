@@ -7,7 +7,7 @@ Figürler → benchmark/figures/ (numara = makalede ilk-anılma sırası):
   fig1_antigen_recovery.png : antijen × araç RANK nokta-grafiği (✗ = geri getirilmedi)
   fig2_recall_bar.png       : recall@antijen + AUC (204-set)
   fig3_fold_vs_recall.png   : araç başına fold-enrichment (bar) + üstünde recall etiketi
-  fig4_bacteria_panel.png   : 3 bakteri × 3 araç recall@antijen + AUC
+  fig4_bacteria_panel.png   : 10 bakteri (4 orijinal+6 yeni) × 3 araç recall@antijen (genom sırası)
   fig5_multihost_jaccard.png: rabies G-epitop host-ÇİFTİ Jaccard örtüşmesi (yatay bar)
 """
 from __future__ import annotations
@@ -119,28 +119,41 @@ def fig3_fold_recall(h204, full):
 
 
 def fig4_bacteria_panel():
-    bugs = [("saureus", "S. aureus"), ("listeria", "L. monocytogenes"),
-            ("salmonella", "S. Typhimurium")]
+    """10-bakteri (4 orijinal + 6 yeni zoonotik) × 3 araç recall@antijen head-to-head, genom
+    küçükten büyüğe sıralı. Antijen sayısı bakteriden bakteriye değiştiği için (4 veya 5) recall
+    KESİR (geri getirilen/toplam) olarak çizilir; her barın üstünde x/n yazılı. 🆕 = bu çalışmada eklenen."""
+    # (slug, gösterim adı, genom_mb) — genom_mb json'da yoksa buradaki fallback kullanılır
+    MB = {"menb": 2.27, "coxiella": 2.03, "ssuis": 2.17, "saureus": 2.82, "listeria": 2.94,
+          "brucella": 3.32, "mbovis": 4.35, "leptospira": 4.7, "salmonella": 4.86, "banthracis": 5.5}
+    NAME = {"menb": "N. meningitidis B", "coxiella": "C. burnetii", "ssuis": "S. suis",
+            "saureus": "S. aureus", "listeria": "L. monocytogenes", "brucella": "B. suis",
+            "mbovis": "M. bovis", "leptospira": "L. interrogans", "salmonella": "S. Typhimurium",
+            "banthracis": "B. anthracis"}
+    NEW = {"coxiella", "ssuis", "brucella", "mbovis", "leptospira", "banthracis"}
     data = {}
-    for key, _ in bugs:
+    for key in MB:
         h = json.load(open(BENCH / "results" / f"{key}_headtohead.json"))
         data[key] = {t["tool"]: t for t in h["tools"]}
-    fig, ax = plt.subplots(figsize=(8.2, 4.6))
+    bugs = sorted(MB, key=lambda k: MB[k])            # genom küçükten büyüğe
     x = np.arange(len(bugs)); w = 0.26
+    fig, ax = plt.subplots(figsize=(12.5, 5.0))
     for k, t in enumerate(TOOLS):
-        vals = [int(data[key][t]["recall"].split("/")[0]) for key, _ in bugs]
-        bars = ax.bar(x + (k - 1) * w, vals, width=w, color=COL[t], label=t)
-        for b, (key, _) in zip(bars, bugs):
-            tool = data[key][t]
-            rec = tool["recall"]; auc = tool.get("auc")
-            lbl = rec + (f"\nAUC {auc:.2f}" if isinstance(auc, (int, float)) else "")
-            ax.text(b.get_x() + b.get_width() / 2, b.get_height() + 0.06, lbl,
-                    ha="center", va="bottom", fontsize=7.5)
-    ax.set_xticks(x); ax.set_xticklabels([n for _, n in bugs], fontsize=10, style="italic")
-    ax.set_ylim(0, 6)
-    ax.set_ylabel("Recall over known antigens (of 5)")
-    ax.set_xlabel("Bacterial species (full proteome)")
-    ax.legend(loc="upper right", fontsize=8, ncol=3)
+        fracs, labels = [], []
+        for key in bugs:
+            num, den = (int(v) for v in data[key][t]["recall"].split("/"))
+            fracs.append(num / den); labels.append(f"{num}/{den}")
+        bars = ax.bar(x + (k - 1) * w, fracs, width=w, color=COL[t], label=t)
+        for b, lab in zip(bars, labels):
+            ax.text(b.get_x() + b.get_width() / 2, b.get_height() + 0.015, lab,
+                    ha="center", va="bottom", fontsize=7)
+    xticklabels = [NAME[k] + ("*" if k in NEW else "") for k in bugs]
+    ax.set_xticks(x); ax.set_xticklabels(xticklabels, fontsize=8.5, style="italic", rotation=30, ha="right")
+    ax.set_ylim(0, 1.18)
+    ax.text(0.01, 0.97, "* zoonotic species added in this study", transform=ax.transAxes,
+            fontsize=7.5, va="top", color="#444")
+    ax.set_ylabel("Recall over known protective antigens (fraction; label = recovered/total)")
+    ax.set_xlabel("Bacterial species, full proteome (ordered by genome size, small → large)")
+    ax.legend(loc="upper right", fontsize=9, ncol=3)
     ax.grid(axis="y", alpha=0.3)
     fig.tight_layout(); fig.savefig(FIG / "fig4_bacteria_panel.png", dpi=150); plt.close(fig)
 

@@ -76,12 +76,13 @@ artefact.
 
 ## B. Pipeline scale-safety validation
 
-During whole-proteome runs of the extended bacterial arm we identified, isolated and corrected two
+During whole-proteome runs of the extended bacterial arm we identified, isolated and corrected three
 scale-dependent defects that had artefactually depressed VaxForge recall; we report them explicitly
-as part of pipeline validation. Both were "single oversized batch" failures that manifested only at
-full-proteome scale (initial runs: *S. aureus* 3/5, *L. monocytogenes* 3/5, *S.* Typhimurium 0/5),
-while a small smoke-test subset returned 5/5 for all three species — an inconsistency that triggered
-a systematic root-cause search.
+as part of pipeline validation. The first two were "single oversized batch" failures that manifested
+only at full-proteome scale (initial runs: *S. aureus* 3/5, *L. monocytogenes* 3/5, *S.* Typhimurium
+0/5), while a small smoke-test subset returned 5/5 for all three species, an inconsistency that
+triggered a systematic root-cause search; the third surfaced later, only on the largest proteomes of
+the six-species extension, as an intermittent deadlock rather than a silent recall loss.
 
 **(i) Subcellular localization (PSORTb).** The localization step originally submitted every protein
 to a single container call under a fixed 1800 s subprocess timeout. For the largest proteome
@@ -98,16 +99,28 @@ for the seemingly arbitrary "losses" across species. The fix chunks peptides int
 and runs the chunks in parallel across available cores (ThreadPoolExecutor); validation on a
 50,528-peptide set recovered 100% coverage (e.g. OmpA 342/342 9-mers).
 
+**(iii) netMHCpan concurrency deadlock (shared scratch).** On the largest proteomes of the six-species
+extension (for example *Brucella suis*, 3,249 proteins) a run could stall indefinitely rather than
+lose recall silently: the parallel MHC-I workers each invoked netMHCpan, which writes to a scratch
+directory, and concurrent instances sharing one scratch area could block one another on pipe reads
+while the controlling process waited on them, so the run neither progressed nor timed out within any
+useful bound (the original per-chunk timeout was 7,200 s). The fix gives each chunk an isolated
+temporary directory (`TMPDIR`), redirects standard input from the null device, and lowers the
+per-chunk timeout to 1,200 s so a stalled chunk is abandoned quickly and the remaining chunks still
+contribute. After the fix the previously deadlocked species completed normally (*B. suis* 4/5).
+
 Control experiments established that the toxicity and allergenicity filters were **not** responsible:
 their per-peptide behaviour is deterministic and identical between single-peptide and full-batch
-evaluation. After both fixes, all three species were re-run under default parameters, giving the
-final valid results (*S. aureus* 5/5, AUC 1.00; *L. monocytogenes* 4/5; *S.* Typhimurium 5/5,
-AUC 0.99; total VaxForge 14/15). The single remaining miss, ActA, is a legitimate hard antigen that
-also ranks lowest in the independent comparator (Vaxign-ML), not a residual artefact. These findings
-document a scale-safe pipeline and are reported to preclude the misleading conclusion that the
-initial low recall reflected the method rather than an engineering-scale defect.
+evaluation. After the fixes, the affected species were re-run under default parameters, giving the
+final valid results. Across the nine full-proteome species VaxForge recovered 33 of 44 protective
+antigens (for example *S. aureus* 5/5, AUC 1.00; *S.* Typhimurium 5/5, AUC 0.99; *B. anthracis* 4/5),
+with the two shortfalls (*C. burnetii* 2/4, *S. suis* 1/5) attributable to cytoplasmic moonlighting
+antigens removed by the localisation filter rather than to any residual artefact; the *L. monocytogenes*
+miss, ActA, also ranks lowest in the independent comparator (Vaxign-ML). These findings document a
+scale-safe pipeline and are reported to preclude the misleading conclusion that the initial low recall
+reflected the method rather than an engineering-scale defect.
 
-**(iii) Transmembrane filter on the viral profile.** When the viral arm was expanded to ten viruses,
+**(iv) Transmembrane filter on the viral profile.** When the viral arm was expanded to ten viruses,
 the ground-truth antigen was initially discarded for several of them (for example the Rift Valley
 fever Gn/Gc glycoprotein, which has four predicted transmembrane helices). The antigen funnel applied
 the bacterial transmembrane-count filter, which excludes multi-pass membrane proteins because they are

@@ -42,46 +42,67 @@ Aynı zeminde (her araç kendi sürekli skoru, n_pos=4): VaxForge 1.00[1.0,1.0],
 NERVE-skor 0.88[0.63,1.0]. "VaxForge en iyi AUC/ayrım" İDDİA EDİLMEZ. Savunulabilir iddia = **recall
 (4/4 vs 1/4) + rank**. Hesap: `stats.py` roc_auc_ci + delong_auc_compare.
 
-## 1b. BAKTERİ KOLU — 3 bakteri × TAM PROTEOM (2026-08-27, çok-antijen recall, 3'lü head-to-head)
+## 1b. BAKTERİ KOLU — 9 bakteri × TAM PROTEOM (2026-10-02, çok-antijen recall, 3'lü head-to-head)
 
-MenB'yi genişletmek için 4 memeli konağı (insan/sığır/fare/domuz) enfekte eden, genom-boyu artan 3
-zoonotik bakteri **TAM PROTEOM** koşuldu (downsample YOK). Her araç DEFAULT + özdeş girdi. 5'er koruyucu/
-aday antijen (bkz. `PATHOGEN_ACCESSIONS.md`; hepsi UniProt GN= ile doğrulandı).
+MenB'yi genişletmek için 4 memeli konağı (insan/sığır/fare/domuz) enfekte eden, genom-boyu artan **9
+zoonotik bakteri** (eski 3 + 2026-10 eklenen 6) **TAM PROTEOM** koşuldu (downsample YOK). Her araç DEFAULT
++ özdeş girdi. 4-5 koruyucu/aday antijen (bkz. `PATHOGEN_ACCESSIONS.md`; UniProt/RefSeq doğrulandı). Genom
+küçükten büyüğe sıra; yeni-6 🆕.
 
-| Bakteri (genom) | Araç | recall | aday | fold | Fisher p | AUC |
+| Bakteri (genom, protein) | Araç | recall | aday | fold | Fisher p | AUC |
 |---|---|---|---|---|---|---|
+| 🆕 **C. burnetii** (2.0 Mb, 1812) | **VaxForge** | **2/4** | 524 | 1.7 | 0.33 | — |
+|  | Vaxign-ML | 4/4 | 477 | 3.8 | 0.0048 | 0.91 |
+|  | NERVE 2.0 | **0/4** | 9 | — | 1 | — |
+| 🆕 **S. suis** (2.2 Mb, 1922) | **VaxForge** | **1/5** | 288 | 1.3 | 0.56 | — |
+|  | Vaxign-ML | 5/5 | 628 | 3.1 | 0.0037 | 0.88 |
+|  | NERVE 2.0 | **0/5** | 0 | — | 1 | — |
 | **S. aureus** (2.8 Mb, 2889) | **VaxForge** | **5/5** | 729 | 3.98 | 0.001 | **1.00** |
 |  | Vaxign-ML | 5/5 | 838 | 3.46 | 0.002 | 0.94 |
 |  | NERVE 2.0 | **3/5** | 34 | 55.8 | 1.5e-5 | — |
 | **L. monocytogenes** (2.9 Mb, 2844) | **VaxForge** | **4/5** | 478 | 4.79 | 0.003 | — |
 |  | Vaxign-ML | 5/5 | 917 | 3.11 | 0.003 | 0.95 |
 |  | NERVE 2.0 | **3/5** | 73 | 24.3 | 1.6e-4 | — |
+| 🆕 **B. suis** (3.3 Mb, 3249) | **VaxForge** | **4/5** | 929 | 2.8 | 0.026 | — |
+|  | Vaxign-ML | 5/5 | 839 | 3.9 | 0.0011 | 0.88 |
+|  | NERVE 2.0 | **2/5** | 9 | 185.4 | 6.8e-5 | — |
+| 🆕 **M. bovis** (4.4 Mb, 4088) | **VaxForge** | **4/5** | 535 | 6.2 | 0.0013 | — |
+|  | Vaxign-ML | 4/5 | 695 | 4.7 | 0.0036 | 0.95 |
+|  | NERVE 2.0 | **0/5** | 12 | — | 1 | — |
+| 🆕 **L. interrogans** (4.7 Mb, 3676) | **VaxForge** | **4/5** | 1105 | 2.7 | 0.031 | — |
+|  | Vaxign-ML | 5/5 | 1211 | 3.0 | 0.0039 | 0.88 |
+|  | NERVE 2.0 | **0/5** | 116 | — | 1 | — |
 | **S. Typhimurium** (4.9 Mb, 4533) | **VaxForge** | **5/5** | 1368 | 3.32 | 0.002 | **0.99** |
 |  | Vaxign-ML | 5/5 | 1276 | 3.56 | 0.002 | 0.92 |
 |  | NERVE 2.0 | **3/5** | 118 | 23.6 | 1.7e-4 | — |
+| 🆕 **B. anthracis** (5.5 Mb, 5493) | **VaxForge** | **4/5** | 1163 | 3.8 | 0.0083 | — |
+|  | Vaxign-ML | 5/5 | 1297 | 4.2 | 7.3e-4 | 0.94 |
+|  | NERVE 2.0 | **2/5** | 10 | 274.4 | 3.0e-5 | — |
 
-**TOPLAM: VaxForge 14/15 · Vaxign-ML 15/15 · NERVE 9/15.**
+**TOPLAM (9 bakteri): VaxForge 33/44 (%75) · Vaxign-ML 43/44 (%98) · NERVE 13/44 (%30).**
+(MenB exemplar dahil 10-bakteri geneli: VaxForge 37/48 · Vaxign-ML 47/48 · NERVE 14/48.)
 
 **ANA BULGULAR:**
-1. **VaxForge recall'da Vaxign-ML'e fiilen berabere (14/15 vs 15/15) ve AUC/rank'ta önde** — saureus 1.00 vs 0.94,
-   salmonella 0.99 vs 0.92; koruyucu antijenler daha üst sıralarda (ör. IsdB #4 vs #46).
-2. **NERVE 2.0 her bakteride 3/5** — sert `select` filtresi gerçek yüzey antijenlerini eler (IsdB/IsdA loc=Cellwall+
-   düşük adhesin; OmpD/SseB); MenB'deki aynı aşırı-seçicilik kalıbı, yüksek fold ama düşük recall.
-3. **Tek VaxForge kaybı: ActA (listeria).** Meşru "zor antijen" — Vaxign-ML'de de en dip (#210/917), bir bug değil.
-4. Kalıp MenB + 3 bakteride tutarlı: soft-filter (VaxForge) + bağımsız ML (Vaxign-ML) yüksek recall; NERVE hard-filter kaçırır.
+1. **VaxForge 9 türün 7'sinde 4/5-5/5** (saureus/salmonella 5/5, listeria/brucella/mbovis/leptospira/banthracis 4/5);
+   tam-recall türlerde AUC/rank'ta önde (ör. IsdB #4; mbovis'te Vaxign'den yüksek fold 6.2).
+2. **VaxForge iki türde geride: C. burnetii 2/4, S. suis 1/5.** Kaçırılanlar sitoplazmik **moonlighting** antijenleri
+   (GAPDH, enolaz, 6PGD, GroEL, DnaJ) → lokalizasyon SERT filtresi tasarım gereği eler; Vaxign-ML (yalnız-sekans,
+   lokalizasyon kapısı yok) tutar. **Kusur değil, bilinçli ödünleşme** (sitoplazmik yanlış-pozitifi bastırır).
+3. **NERVE 2.0 dört türde 0/5-0/4** (coxiella/ssuis/mbovis/leptospira) — sert `select` yüzey antijenlerini eler;
+   brucella/banthracis'te en yüksek fold (185-274) ama düşük recall → fold tek başına yanıltıcı (kalıp MenB'den beri tutarlı).
+4. **Tek "klasik" VaxForge kaybı: ActA (listeria)** — Vaxign'de de en dip, meşru zor antijen.
 
-**⚠️ METODOLOJİK ŞEFFAFLIK — iki ölçek-bug'ı bulundu+düzeltildi+doğrulandı (pipeline validasyonu):**
-Tam-proteom ölçeğinde iki "tek dev batch patlıyor" hatası VaxForge recall'ını yapay düşürüyordu (ilk koşu
-saureus 3/5, listeria 3/5, salmonella **0/5**). Metodolojik hata avıyla izole edildi:
-- **(A) PSORTb** (`psortb.py`): tüm proteinler tek konteynerde, subprocess `timeout=1800s`. 4528 protein timeout'u
-  aşınca boş dönüyor → funnel heuristik lokalizasyona düşüyor → yüzey antijenleri "cytoplasm" sanılıp eleniyor.
-  **Fix:** ≤800 protein alt-batch'ler.
-- **(B) netMHCpan** (`netmhc_local.py`): tüm proteinlerin peptitleri (tam proteom → **1.37M** benzersiz 9-mer) tek
-  netMHCpan çağrısında → araç çöküyor, ~%0 kapsama → çoğu protein MHC-epitopsuz. **Fix:** 20k-peptit chunk'lar,
-  16 çekirdekte **paralel** (`ThreadPoolExecutor`). Doğrulama: 50528 peptit %100 kapsama, OmpA 342/342.
-- Toksisite/alerjen filtreleri **suçsuzdu** (peptit-düzeyi deterministik olduğu bağımsız test ile kanıtlandı).
-  İki-fix sonrası üç bakteri yeniden koşuldu → yukarıdaki nihai (geçerli) sonuçlar. Bu, yayında Methods/validation
-  bölümüne dürüstçe girer (ölçek-güvenli pipeline).
+**⚠️ METODOLOJİK ŞEFFAFLIK — ÜÇ ölçek-bug'ı bulundu+düzeltildi+doğrulandı (pipeline validasyonu):**
+Tam-proteom ölçeğinde üç hata VaxForge recall'ını yapay düşürüyor/koşuyu donduruyordu. Metodolojik hata avıyla izole edildi:
+- **(A) PSORTb** (`psortb.py`): tüm proteinler tek konteynerde, `timeout=1800s`. Büyük proteom timeout'u aşınca boş
+  dönüyor → funnel heuristik lokalizasyona düşüyor → yüzey antijenleri "cytoplasm" sanılıp eleniyor. **Fix:** ≤800 protein alt-batch.
+- **(B) netMHCpan** (`netmhc_local.py`): tüm peptitler (tam proteom → **1.37M** 9-mer) tek çağrıda → ~%0 kapsama.
+  **Fix:** 20k-peptit chunk, çekirdeklerde **paralel**. Doğrulama: 50528 peptit %100, OmpA 342/342.
+- **(C) netMHCpan eşzamanlılık DEADLOCK'u** (`netmhc_local.py`, 2026-10-01): paralel 12 worker ORTAK scratch/TMPDIR'de
+  çakışıp `pipe_read`'de kilitleniyor, `timeout=7200s` yüzünden koşu süresiz donuyordu (brucella ~5h asılı kaldı).
+  **Fix:** her chunk'a izole `TMPDIR` + `stdin=DEVNULL` + timeout 7200→1200s. Sonra brucella 4/5 ile sorunsuz koştu.
+- Toksisite/alerjen filtreleri **suçsuzdu** (bağımsız test). Fix'ler sonrası etkilenen türler yeniden koşuldu → nihai sonuçlar.
+  Yayında Methods/validation'a girer (`MANUSCRIPT_METHODS.md` §B, üç kusur).
 
 ## 2. VİRÜS KOLU — Rabies × 4 konak (yalnız VaxForge; NERVE bacterial-only, Vaxign-ML host'suz)
 
@@ -98,12 +119,14 @@ Ground-truth = glikoprotein **G (NP_056796)**. VaxForge G'yi **rank #2/5** buldu
 Fisher exact (enrichment), permütasyon rank testi (dağılımsız), ROC-AUC + bootstrap CI,
 DeLong (AUC karşılaştırma), Jaccard (çok-konak). Küçük-n dürüstlüğü her testte işaretli.
 
-## 4. FİGÜRLER (figures/)
-- `fig1_antigen_recovery.png` — araç×antijen kurtarma matrisi (NERVE 3 kırmızı "elendi") ★ ana figür
-- `fig2_recall_bar.png` — recall@antijen + AUC
-- `fig3_fold_vs_recall.png` — fold-vs-recall ödünleşimi (NERVE yüksek-fold/düşük-recall); etiket örtüşmesi giderildi (leader-line ofsetleri, commit 1330972; görsel doğrulandı)
-- `fig4_multihost_jaccard.png` — rabies G host×host Jaccard (çok-konak) ★
-- `fig5_bacteria_panel.png` — 3 bakteri × 3 araç recall@antijen + AUC (bakteriyel kol) ★ ana figür
+## 4. FİGÜRLER (figures/) — `make_figures.py` ile üretilir
+- `fig1_antigen_recovery.png` — MenB araç×antijen rank matrisi (NERVE 3 kırmızı "elendi") ★ ana figür
+- `fig2_recall_bar.png` — MenB recall@antijen + AUC (204-set)
+- `fig3_fold_vs_recall.png` — fold-vs-recall ödünleşimi (NERVE yüksek-fold/düşük-recall)
+- `fig4_bacteria_panel.png` — **10 bakteri × 3 araç** recall@antijen (genom sırası, kesir+x/n; yeni-6 yıldızlı) ★ ana figür
+- `fig5_multihost_jaccard.png` — rabies G host×host Jaccard (çok-konak) ★
+- `fig6_virus_antigen_rank.png` — 10 virüs ground-truth antijen rank, VaxForge vs Vaxign-ML
+- `fig7_virus_multihost.png` — virüs başına host-çifti epitop Jaccard aralığı (çok-konak)
 
 ## 5. SEÇİM GEREKÇELERİ & YAZIM AŞAMASI (TAMAMLANDI 2026-09-20)
 Patojen (MenB, rabies, 3 bakteri) + konak (insan/sığır/fare/domuz) **biyolojik kullanım + seçilim
