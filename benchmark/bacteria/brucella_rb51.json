@@ -1,0 +1,22 @@
+{
+  "bug": "brucella_rb51",
+  "organism": "Brucella abortus (aşı suşu RB51)",
+  "strain": "RB51 (canlı-atenüe, rough)",
+  "proteome": "data/validation/brucella_rb51_proteome.faa",
+  "uniprot_proteome": "",
+  "n_proteins": 2972,
+  "gram": "negative",
+  "gram_flag": "n",
+  "taxon_strain": 1198700,
+  "taxon_species": 235,
+  "iedb_taxon": "NCBITaxon:235",
+  "genome_mb": 3.29,
+  "assembly": "GCF_000366025.1",
+  "protective": {
+    "WP_002963844.1": "Omp25 (25 kDa dış membran immunojenik)",
+    "WP_002969580.1": "BP26/Omp28 (periplazmik immunojenik)",
+    "WP_002965937.1": "SodC (Cu-Zn süperoksit dismutaz)",
+    "WP_002964371.1": "L7/L12 ribozomal protein"
+  },
+  "note": "B.abortus canlı-atenüe AŞI suşu RB51 (rough, O-antijen yok). RefSeq proteom (UniProt boş). Omp31 YOK: B.abortus omp31 ~10kb delesyon (Vizcaíno 2004) → 4 antijen. Virülan 1330 ile aşı-vs-virülan kıyas."
+}

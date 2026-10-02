@@ -1,0 +1,23 @@
+{
+  "bug": "brucella_s2",
+  "organism": "Brucella suis (aşı suşu S2)",
+  "strain": "S2 / Strain 2 (canlı-atenüe, Çin)",
+  "proteome": "data/validation/brucella_s2_proteome.faa",
+  "uniprot_proteome": "",
+  "n_proteins": 2980,
+  "gram": "negative",
+  "gram_flag": "n",
+  "taxon_strain": 1004954,
+  "taxon_species": 29461,
+  "iedb_taxon": "NCBITaxon:29461",
+  "genome_mb": 3.28,
+  "assembly": "GCF_000209635.2",
+  "protective": {
+    "WP_002963844.1": "Omp25 (25 kDa dış membran immunojenik)",
+    "WP_004681766.1": "Omp31 (31 kDa dış membran)",
+    "WP_002964581.1": "BP26/Omp28 (periplazmik immunojenik)",
+    "WP_002971189.1": "SodC (Cu-Zn süperoksit dismutaz)",
+    "WP_002964371.1": "L7/L12 ribozomal protein"
+  },
+  "note": "B.suis canlı-atenüe AŞI suşu S2 (oral, Çin). RefSeq proteom. Omp31 VAR (B.suis) → 5 antijen. Virülan B.suis 1330 ile birebir kıyas."
+}
