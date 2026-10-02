@@ -6,6 +6,7 @@ paragrafta bold + bir punto büyük (gövde 12pt, etiket 13pt, başlık 14pt). M
 gerçek docx tablosuna, ![](figures/..) resimleri gömülü görsele çevrilir. Em-dash zaten yok.
 """
 import re
+import os
 import sys
 from docx import Document
 from docx.shared import Pt, Inches
@@ -77,7 +78,7 @@ while i < n:
             for j in range(ncol):
                 txt = clean(row[j]) if j < len(row) else ""
                 cells[j].paragraphs[0].text = ""
-                bold = txt.startswith("Total") or txt.startswith("Toplam") or txt.startswith("VaxForge 14")
+                bold = txt.startswith("Total") or txt.startswith("Toplam") or txt.startswith("VaxForge ")
                 add_runs(cells[j].paragraphs[0], txt, base_bold=bold, base_size=11)
                 _cellfmt(cells[j].paragraphs[0])
         doc.add_paragraph()
@@ -87,6 +88,9 @@ while i < n:
     m = _img.match(line)
     if m:
         path = m.group(1)
+        # göreli yolu SRC dosyasının dizinine göre çöz (CWD'den bağımsız)
+        if not os.path.isabs(path):
+            path = os.path.join(os.path.dirname(os.path.abspath(SRC)), path)
         try:
             doc.add_picture(path, width=Inches(6.2))
             doc.paragraphs[-1].alignment = WD_ALIGN_PARAGRAPH.CENTER

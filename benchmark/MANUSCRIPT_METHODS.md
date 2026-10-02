@@ -22,12 +22,16 @@ experimentally validated, multi-antigen ground truth — recombinant fHbp, NadA 
 with a PorA-containing outer-membrane vesicle (Giuliani et al., 2006) — that is ideal for a
 **recall@antigen** metric (how many known protective antigens a tool recovers).
 
-To move beyond a single exemplar, the bacterial arm was extended to three additional zoonotic
-species chosen along three orthogonal axes: increasing genome size (*Staphylococcus aureus*
-NCTC 8325, 2.8 Mb → *Listeria monocytogenes* EGD-e, 2.9 Mb → *Salmonella enterica* serovar
-Typhimurium LT2, 4.9 Mb), Gram balance (two Gram-positive, one Gram-negative, exercising the
-Gram-specific localization path of PSORTb), and the availability of literature-established
-protective/candidate antigens for a measurable recall metric.
+To move beyond a single exemplar, the bacterial arm was extended to nine additional zoonotic
+species chosen along three orthogonal axes: increasing genome size (from *Coxiella burnetii*
+RSA 493, 2.0 Mb, to *Bacillus anthracis* Ames, 5.5 Mb), Gram and cell-biology balance (Gram-positive
+and Gram-negative, with obligate intracellular, spirochaete and plasmid-bearing members that
+exercise the Gram-specific localization path of PSORTb), and the availability of literature-established
+protective/candidate antigens for a measurable recall metric. The first three species, run earlier,
+were *Staphylococcus aureus* NCTC 8325 (2.8 Mb), *Listeria monocytogenes* EGD-e (2.9 Mb) and
+*Salmonella enterica* serovar Typhimurium LT2 (4.9 Mb); the six added here were *C. burnetii*
+RSA 493, *Streptococcus suis* serotype 2 BM407, *Brucella suis* 1330, *Mycobacterium bovis*
+AF2122/97, *Leptospira interrogans* serovar Lai 56601 and *B. anthracis* Ames Ancestor.
 
 The viral arm is built on rabies virus (RABV), whose single surface glycoprotein G is the only
 structural protein that induces virus-neutralizing antibodies and confers protection (Cox et al.,
