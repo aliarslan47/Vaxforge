@@ -176,6 +176,7 @@ def predict(peptides: list[str], alleles: list[str], mhc_class: str,
     def _run_chunk(task):
         L, sub = task
         fpath = None
+        scratch = None
         try:
             with tempfile.NamedTemporaryFile("w", suffix=".fsa", delete=False) as fh:
                 fh.write(_fasta(sub))
@@ -183,16 +184,27 @@ def predict(peptides: list[str], alleles: list[str], mhc_class: str,
             cmd = [w, "-f", fpath, "-a", ",".join(alleles_n)]
             if mhc_class == "mhc_i":
                 cmd += ["-l", str(L)]
-            r = subprocess.run(cmd, capture_output=True, timeout=7200, text=True)
+            # EŞZAMANLILIK KİLİDİ FIX'i (2026-10-01, brucella deadlock):
+            # 12 paralel netMHCpan örneği ORTAK scratch/tmp'de çakışıp birbirini
+            # pipe_read'de kilitliyordu → her takılan chunk timeout'a kadar bir
+            # worker'ı bloke ediyordu. Çözüm: her chunk'a İZOLE TMPDIR + makul
+            # timeout (takılan chunk hızlı bırakılır; kod kısmi sonucu tolere eder).
+            scratch = tempfile.mkdtemp(prefix="netmhc_")
+            env = dict(os.environ, TMPDIR=scratch, TMP=scratch, TEMP=scratch)
+            r = subprocess.run(cmd, capture_output=True, timeout=1200, text=True,
+                               env=env, stdin=subprocess.DEVNULL)
             return r.stdout
         except Exception:
-            return ""      # bu chunk atlandı; diğerleri devam
+            return ""      # bu chunk atlandı (timeout/çökme); diğerleri devam
         finally:
             if fpath:
                 try:
                     os.unlink(fpath)
                 except OSError:
                     pass
+            if scratch:
+                import shutil as _sh
+                _sh.rmtree(scratch, ignore_errors=True)
 
     agg: dict[str, dict] = {}
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as ex:

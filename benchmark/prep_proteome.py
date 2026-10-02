@@ -26,13 +26,20 @@ def prepare(bug: str) -> Path:
     cfg = json.loads((ROOT / "benchmark" / "bacteria" / f"{bug}.json").read_text())
     src = ROOT / cfg["proteome"]
     out = ROOT / "data" / "validation" / f"{bug}_prepared.faa"
+    # Vaxign-ML için AYRICA çıplak-aksesyon (açıklama kuyruğu YOK) dosyası yaz:
+    # açıklamada / veya () gibi özel karakterler Vaxign-ML'in ilk-kayıt ayrıştırmasını
+    # bozup KeyError/blastall-length-0 ile tüm koşuyu düşürüyordu (2026-10-01 brucella/mbovis).
+    # VaxForge/NERVE prepared.faa'yı (ilk token=aksesyon) kullanmaya devam eder.
+    out_vaxign = ROOT / "data" / "validation" / f"{bug}_vaxign.faa"
     n = 0
-    with out.open("w") as fh:
+    with out.open("w") as fh, out_vaxign.open("w") as fv:
         for rec in SeqIO.parse(str(src), "fasta"):
             acc = _acc(rec.id)
             desc = rec.description.split(None, 1)
             tail = desc[1][:70] if len(desc) > 1 else ""
-            fh.write(f">{acc} {tail}\n{str(rec.seq)}\n")
+            seq = str(rec.seq)
+            fh.write(f">{acc} {tail}\n{seq}\n")
+            fv.write(f">{acc}\n{seq}\n")
             n += 1
     # koruyucu antijenlerin hazırlanan dosyada bulunduğunu doğrula
     accs = {r.id for r in SeqIO.parse(str(out), "fasta")}

@@ -17,21 +17,27 @@ GRAM_FLAG=$(python3 -c "import json;print(json.load(open('$CFG'))['gram_flag'])"
 if [ "$GRAM_FLAG" = "p" ]; then VXG_TYPE="gram+"; else VXG_TYPE="gram-"; fi
 echo "=== [$BUG] rakipler başladı $(date) · gram=$GRAM_FLAG · vaxign-t=$VXG_TYPE ===" | tee "$LOG"
 
-# 0) çıplak-aksesyon başlıklı tam proteom hazırla (üç araç da aynı dosyayı kullanır)
+# 0) tam proteom hazırla. prepared.faa (ilk token=aksesyon+açıklama) → VaxForge/NERVE;
+#    vaxign.faa (ÇIPLAK aksesyon, açıklama YOK) → Vaxign-ML (özel karakter KeyError fix'i).
 PREP="$ROOT/data/validation/${BUG}_prepared.faa"
-if [ -n "${SKIP_PREP:-}" ] && [ -f "$PREP" ]; then
-  echo "hazırlanmış proteom kullanılıyor (SKIP_PREP): $PREP" | tee -a "$LOG"
+VAXIGN_PREP="$ROOT/data/validation/${BUG}_vaxign.faa"
+if [ -n "${SKIP_PREP:-}" ] && [ -f "$PREP" ] && [ -f "$VAXIGN_PREP" ]; then
+  echo "hazırlanmış proteom kullanılıyor (SKIP_PREP): $PREP + $VAXIGN_PREP" | tee -a "$LOG"
 else
   python3 "$BENCH/prep_proteome.py" "$BUG" 2>&1 | tee -a "$LOG"
 fi
 
 # 1) Vaxign-ML (XGBoost, hızlı). Rootless podman doğrudan (VaxignML.sh sudo istiyordu → bypass).
+# Girdi = ÇIPLAK-aksesyon vaxign.faa (açıklamadaki / () vb. Vaxign-ML'i çökertiyordu).
 echo "--- Vaxign-ML $(date) ---" | tee -a "$LOG"
 mkdir -p "$RES/vaxignml/_FEATURE/PSORTB"
-podman run --rm -v "$PREP:$PREP" -v "$RES/vaxignml:$RES/vaxignml" \
+podman run --rm -v "$VAXIGN_PREP:$VAXIGN_PREP" -v "$RES/vaxignml:$RES/vaxignml" \
   -v "$RES/vaxignml/_FEATURE/PSORTB:/tmp/results" \
   docker.io/e4ong1031/vaxign-ml:latest \
-  python3.6 VaxignML.py -i "$PREP" -o "$RES/vaxignml" -t "$VXG_TYPE" 2>&1 | tee -a "$LOG"
+  python3.6 VaxignML.py -i "$VAXIGN_PREP" -o "$RES/vaxignml" -t "$VXG_TYPE" 2>&1 | tee -a "$LOG"
+# downstream (compare_bacterium.py + status) ${BUG}_prepared.result.tsv bekler → kopyala
+[ -f "$RES/vaxignml/${BUG}_vaxign.result.tsv" ] && \
+  cp "$RES/vaxignml/${BUG}_vaxign.result.tsv" "$RES/vaxignml/${BUG}_prepared.result.tsv"
 ls -la "$RES/vaxignml"/*.result.tsv 2>&1 | tee -a "$LOG"
 
 # 2) NERVE 2.0 (docker→podman, psortb servisi). Proteom NERVE dizinine kopyalanır (/workdir mount).
