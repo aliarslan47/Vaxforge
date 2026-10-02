@@ -1,0 +1,22 @@
+{
+  "bug": "coxiella",
+  "organism": "Coxiella burnetii",
+  "strain": "RSA 493 / Nine Mile phase I",
+  "proteome": "data/validation/coxiella_proteome.faa",
+  "uniprot_proteome": "UP000002671",
+  "n_proteins": 1812,
+  "gram": "negative",
+  "gram_flag": "n",
+  "taxon_strain": 227377,
+  "taxon_species": 777,
+  "iedb_taxon": "NCBITaxon:777",
+  "genome_mb": 2.03,
+  "assembly": "GCF_000007765.2",
+  "protective": {
+    "H7C7D7": "Com1 (27 kDa outer membrane protein)",
+    "P51752": "Mip (peptidyl-prolyl cis-trans isomerase)",
+    "Q83DT1": "OmpH (outer membrane protein H)",
+    "P19421": "GroEL (60 kDa chaperonin, HtpB)"
+  },
+  "note": "Q ateşi; zorunlu hücre-içi Gram-. Com1/Mip/OmpH/GroEL literatürde yerleşik koruyucu/immunojenik antijenler; DOI yazımda."
+}

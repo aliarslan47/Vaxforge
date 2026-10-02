@@ -1,0 +1,23 @@
+{
+  "bug": "brucella",
+  "organism": "Brucella suis biovar 1",
+  "strain": "1330",
+  "proteome": "data/validation/brucella_proteome.faa",
+  "uniprot_proteome": "UP000007104",
+  "n_proteins": 3249,
+  "gram": "negative",
+  "gram_flag": "n",
+  "taxon_strain": 204722,
+  "taxon_species": 29461,
+  "iedb_taxon": "NCBITaxon:29461",
+  "genome_mb": 3.32,
+  "assembly": "GCF_000223195.1",
+  "protective": {
+    "Q45689": "Omp25 (25 kDa dış membran immunojenik protein)",
+    "P0A3U5": "Omp31 (31 kDa dış membran)",
+    "P0A3U9": "BP26/Omp28 (26 kDa periplazmik immunojenik)",
+    "P66827": "SodC (Cu-Zn süperoksit dismutaz)",
+    "P0A469": "L7/L12 ribozomal protein (RplL)"
+  },
+  "note": "Bruselloz; zoonotik, iki kromozomlu. Aşı suşları (S19/RB51/Rev.1/S2) ayrı giriş olarak eklenebilir. Omp25/31/BP26/SodC/L7-L12 yerleşik koruyucu antijenler."
+}

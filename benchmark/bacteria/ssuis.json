@@ -1,0 +1,23 @@
+{
+  "bug": "ssuis",
+  "organism": "Streptococcus suis (serotype 2)",
+  "strain": "BM407",
+  "proteome": "data/validation/ssuis_proteome.faa",
+  "uniprot_proteome": "UP000009077",
+  "n_proteins": 1922,
+  "gram": "positive",
+  "gram_flag": "p",
+  "taxon_strain": 568814,
+  "taxon_species": 1307,
+  "iedb_taxon": "NCBITaxon:1307",
+  "genome_mb": 2.17,
+  "assembly": "GCF_000026745.1",
+  "protective": {
+    "A0A0H3MU02": "Suilysin SLY (thiol-activated sitolizin)",
+    "A0A0H3N5B2": "Enolaz (yüzey adezini/plazminojen bağlayan)",
+    "A0A0H3MSV3": "GAPDH (plr/gapA, yüzey)",
+    "A0A0H3N193": "6-fosfoglukonat dehidrogenaz (gnd)",
+    "A0A0H3MXM0": "DnaJ (şaperon, immunojenik)"
+  },
+  "note": "Zoonotik domuz+insan; referans P1/7 UniProt proteomu boşaltıldığı için aynı serotip-2 klinik izolat BM407 (UP000009077) kullanıldı. MRP/EF UniProt'ta anote değil → yerlerine literatür-destekli SLY/enolaz/GAPDH/6PGD/DnaJ."
+}

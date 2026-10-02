@@ -1,0 +1,23 @@
+{
+  "bug": "leptospira",
+  "organism": "Leptospira interrogans serovar Icterohaemorrhagiae serovar Lai",
+  "strain": "56601",
+  "proteome": "data/validation/leptospira_proteome.faa",
+  "uniprot_proteome": "UP000001408",
+  "n_proteins": 3676,
+  "gram": "negative",
+  "gram_flag": "n",
+  "taxon_strain": 189518,
+  "taxon_species": 173,
+  "iedb_taxon": "NCBITaxon:173",
+  "genome_mb": 4.7,
+  "assembly": "GCF_000092565.1",
+  "protective": {
+    "Q8EYU4": "LigA (Ig benzeri tekrar A)",
+    "Q8EZS3": "LigB (Ig benzeri tekrar B)",
+    "O34094": "LipL32 (majör dış membran lipoprotein)",
+    "Q8F8E1": "LipL41 (dış membran lipoprotein)",
+    "G1UB30": "OmpL1 (dış membran porin)"
+  },
+  "note": "Leptospiroz; spiroket, iki kromozomlu, çok geniş konak. Lig/LipL32/LipL41/OmpL1 yerleşik koruyucu antijenler."
+}

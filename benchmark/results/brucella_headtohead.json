@@ -1,0 +1,92 @@
+{
+  "pathogen": "Brucella suis biovar 1 1330",
+  "input": "brucella_prepared.faa (TAM PROTEOM, 3249 protein)",
+  "gram": "negative",
+  "genome_mb": 3.32,
+  "fairness": "her araç DEFAULT parametre; eşik tuning yok; özdeş tam-proteom girdi",
+  "ground_truth": {
+    "Q45689": "Omp25 (25 kDa dış membran immunojenik protein)",
+    "P0A3U5": "Omp31 (31 kDa dış membran)",
+    "P0A3U9": "BP26/Omp28 (26 kDa periplazmik immunojenik)",
+    "P66827": "SodC (Cu-Zn süperoksit dismutaz)",
+    "P0A469": "L7/L12 ribozomal protein (RplL)"
+  },
+  "n_protective": 5,
+  "n_background": 3244,
+  "tools": [
+    {
+      "tool": "VaxForge",
+      "n_candidates": 929,
+      "recall": "4/5",
+      "ranks": {
+        "SodC": 26,
+        "Omp25": 102,
+        "L7/L12": null,
+        "BP26/Omp28": 181,
+        "Omp31": 36
+      },
+      "recovered": [
+        "BP26/Omp28",
+        "Omp25",
+        "Omp31",
+        "SodC"
+      ],
+      "fold_enrichment": 2.81,
+      "fisher_p": 0.025681530873038642,
+      "auc": null,
+      "note": "candidacy skoru; funnel soft-VFDB"
+    },
+    {
+      "tool": "Vaxign-ML",
+      "n_candidates": 839,
+      "recall": "5/5",
+      "ranks": {
+        "SodC": 589,
+        "Omp25": 101,
+        "L7/L12": 430,
+        "BP26/Omp28": 255,
+        "Omp31": 218
+      },
+      "recovered": [
+        "BP26/Omp28",
+        "L7/L12",
+        "Omp25",
+        "Omp31",
+        "SodC"
+      ],
+      "fold_enrichment": 3.8896882494004794,
+      "fisher_p": 0.0011381852500517442,
+      "auc": 0.8837546239210851,
+      "auc_ci": [
+        0.7876082241035733,
+        0.9529327237231665
+      ],
+      "note": "protegenicity (XGBoost); pred>=0.5 protective"
+    },
+    {
+      "tool": "NERVE 2.0",
+      "n_candidates": 9,
+      "recall": "2/5",
+      "ranks": {
+        "SodC": "DISCARDED",
+        "Omp25": 3,
+        "L7/L12": "DISCARDED",
+        "BP26/Omp28": "DISCARDED",
+        "Omp31": 4
+      },
+      "recovered": [
+        "Omp25",
+        "Omp31"
+      ],
+      "fold_enrichment": 185.3714285714286,
+      "fisher_p": 6.793487593272924e-05,
+      "auc": null,
+      "discarded_reasons": {
+        "BP26/Omp28": "loc=Periplasmic adhesin_p=0.0329",
+        "SodC": "loc=Periplasmic adhesin_p=0.0126",
+        "L7/L12": "loc=Periplasmic adhesin_p=0.0153"
+      },
+      "note": "select modülü sert filtreler (localization + adhesin pad>=0.5)"
+    }
+  ]
+}

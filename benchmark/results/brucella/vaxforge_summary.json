@@ -1,0 +1,113 @@
+{
+  "bug": "brucella",
+  "organism": "Brucella suis biovar 1",
+  "strain": "1330",
+  "input": "brucella_prepared.faa (Brucella suis biovar 1 1330, 3249 protein TAM PROTEOM)",
+  "taxon": "NCBITaxon:29461",
+  "gram": "negative",
+  "full_proteome": true,
+  "runtime_s": 12935.0,
+  "n_testset": 3249,
+  "n_protective": 5,
+  "n_background": 3244,
+  "n_input_proteins": 3249,
+  "n_discovery": 3249,
+  "n_funnel": 1113,
+  "n_candidate_proteins": 929,
+  "recall_at_antigen": "4/5",
+  "protective_producing_candidates": [
+    "P0A3U5",
+    "P0A3U9",
+    "P66827",
+    "Q45689"
+  ],
+  "background_producing_candidates": 925,
+  "fold_enrichment": 2.81,
+  "fisher_p": 0.025681530873038642,
+  "permutation_rank": {
+    "test": "permutation_rank_test",
+    "statistic": 26.0,
+    "p_value": 0.10828917108289171,
+    "ci95": null,
+    "n": 4,
+    "detail": {
+      "statistic_type": "best_rank",
+      "N_total": 929,
+      "null_mean": 183.6777,
+      "positive_ranks": [
+        26.0,
+        36.0,
+        102.0,
+        181.0
+      ]
+    },
+    "caveat": null
+  },
+  "protective_detail": [
+    {
+      "accession": "Q45689",
+      "antigen": "Omp25 (25 kDa dış membran immunojenik protein)",
+      "in_testset": true,
+      "vfdb_hit": false,
+      "produced_candidate": true,
+      "best_candidacy": 0.705,
+      "protein_rank": 102,
+      "n_candidate_proteins": 929,
+      "interpretation": "VFDB-negatif ama aday üretti → soft-filter"
+    },
+    {
+      "accession": "P0A3U5",
+      "antigen": "Omp31 (31 kDa dış membran)",
+      "in_testset": true,
+      "vfdb_hit": false,
+      "produced_candidate": true,
+      "best_candidacy": 0.7465,
+      "protein_rank": 36,
+      "n_candidate_proteins": 929,
+      "interpretation": "VFDB-negatif ama aday üretti → soft-filter"
+    },
+    {
+      "accession": "P0A3U9",
+      "antigen": "BP26/Omp28 (26 kDa periplazmik immunojenik)",
+      "in_testset": true,
+      "vfdb_hit": false,
+      "produced_candidate": true,
+      "best_candidacy": 0.676,
+      "protein_rank": 181,
+      "n_candidate_proteins": 929,
+      "interpretation": "VFDB-negatif ama aday üretti → soft-filter"
+    },
+    {
+      "accession": "P66827",
+      "antigen": "SodC (Cu-Zn süperoksit dismutaz)",
+      "in_testset": true,
+      "vfdb_hit": true,
+      "produced_candidate": true,
+      "best_candidacy": 0.7664,
+      "protein_rank": 26,
+      "n_candidate_proteins": 929,
+      "interpretation": "VFDB-pozitif, aday üretti"
+    },
+    {
+      "accession": "P0A469",
+      "antigen": "L7/L12 ribozomal protein (RplL)",
+      "in_testset": true,
+      "vfdb_hit": false,
+      "produced_candidate": false,
+      "best_candidacy": null,
+      "protein_rank": null,
+      "n_candidate_proteins": 929,
+      "interpretation": "aday peptit üretmedi (funnel ya da funnel-sonrası epitop/alerjen/toksisite elemesi)"
+    }
+  ],
+  "iedb_source": "IEDB kaynak-organizma seti (NCBITaxon:29461)",
+  "iedb_matched_candidates": 10,
+  "report_paths": {
+    "csv": "/home/msi-nb/vaxforge/outputs/run_2026-10-02T10-47-03/candidates.csv",
+    "fasta": "/home/msi-nb/vaxforge/outputs/run_2026-10-02T10-47-03/top_peptides.fasta",
+    "xlsx": "/home/msi-nb/vaxforge/outputs/run_2026-10-02T10-47-03/candidates_full.xlsx",
+    "json": "/home/msi-nb/vaxforge/outputs/run_2026-10-02T10-47-03/run.json",
+    "html": "/home/msi-nb/vaxforge/outputs/run_2026-10-02T10-47-03/report.html",
+    "pdf": "/home/msi-nb/vaxforge/outputs/run_2026-10-02T10-47-03/report.pdf"
+  }
+}

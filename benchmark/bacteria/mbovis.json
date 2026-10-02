@@ -1,0 +1,23 @@
+{
+  "bug": "mbovis",
+  "organism": "Mycobacterium bovis",
+  "strain": "AF2122/97 (ATCC BAA-935)",
+  "proteome": "data/validation/mbovis_proteome.faa",
+  "uniprot_proteome": "UP000001419",
+  "n_proteins": 4088,
+  "gram": "positive",
+  "gram_flag": "p",
+  "taxon_strain": 233413,
+  "taxon_species": 1765,
+  "iedb_taxon": "NCBITaxon:1765",
+  "genome_mb": 4.35,
+  "assembly": "GCF_000195835.3",
+  "protective": {
+    "P0A565": "ESAT-6 (EsxA, 6 kDa erken salgı antijeni)",
+    "P0A567": "CFP-10 (EsxB)",
+    "P0C2T2": "Ag85B (FbpB, mikolil transferaz)",
+    "P0A5Q5": "MPB64 (immunojenik protein, M.bovis MPT64 homoloğu)",
+    "P0A5B8": "HspX/Acr (alfa-kristalin, 16 kDa)"
+  },
+  "note": "Sığır tüberkülozu; asit-dirençli Gram+. BCG ile paylaşılan/farklı antijenler. ESAT-6/CFP-10/Ag85B/MPB64/HspX yerleşik koruyucu antijenler."
+}

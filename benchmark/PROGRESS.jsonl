@@ -122,3 +122,5 @@
 {"ts": "2026-10-01 00:21:19", "event": "vaxignml virüs", "detail": "cowpox başladı", "phase": "vaxignml", "pid": 11596}
 {"ts": "2026-10-01 00:21:53", "event": "vaxignml bitti", "detail": "cowpox: L1R ortholog (CPXV099) rank #3/233 (34s)", "phase": "vaxignml", "pid": 11596}
 {"ts": "2026-10-01 00:21:53", "event": "vaxignml TAMAM", "detail": "8/9 · vsv:#3/5 | emcv:#1/11 | rvfv:#1/4 | veev:#5/10 | reovirus:#1/11 | jev:#3/15 | vaccinia:#3/223 | cowpox:#3/233", "phase": "done", "pid": 11596}
+{"ts": "2026-10-02 19:32:08", "event": "new6 benchmark TAMAM", "detail": "10-bakteri head-to-head (genom sırası) — VaxForge 37/48(77%) · Vaxign-ML 47/48(98%) · NERVE2 14/48(29%). Yeni-6 recall: coxiella 2/4, ssuis 1/5, brucella 4/5, mbovis 4/5, leptospira 4/5, banthracis 4/5. Vaxign+NERVE 6/6 lokal podman.", "phase": "done", "pid": 8352}
+{"ts": "2026-10-02 19:32:08", "event": "netMHCpan deadlock fix", "detail": "netmhc_local.py: izole TMPDIR+stdin=DEVNULL+timeout 7200->1200; brucella kilidini cozdu, 4/5 ile yeniden kostu", "phase": "fix", "pid": 8353}

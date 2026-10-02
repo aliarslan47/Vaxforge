@@ -1,0 +1,91 @@
+{
+  "pathogen": "Leptospira interrogans serovar Icterohaemorrhagiae serovar Lai 56601",
+  "input": "leptospira_prepared.faa (TAM PROTEOM, 3676 protein)",
+  "gram": "negative",
+  "genome_mb": 4.7,
+  "fairness": "her araç DEFAULT parametre; eşik tuning yok; özdeş tam-proteom girdi",
+  "ground_truth": {
+    "Q8EYU4": "LigA (Ig benzeri tekrar A)",
+    "Q8EZS3": "LigB (Ig benzeri tekrar B)",
+    "O34094": "LipL32 (majör dış membran lipoprotein)",
+    "Q8F8E1": "LipL41 (dış membran lipoprotein)",
+    "G1UB30": "OmpL1 (dış membran porin)"
+  },
+  "n_protective": 5,
+  "n_background": 3671,
+  "tools": [
+    {
+      "tool": "VaxForge",
+      "n_candidates": 1105,
+      "recall": "4/5",
+      "ranks": {
+        "LipL41": 107,
+        "OmpL1": 150,
+        "LipL32": 145,
+        "LigB": 171,
+        "LigA": null
+      },
+      "recovered": [
+        "LigB",
+        "LipL32",
+        "LipL41",
+        "OmpL1"
+      ],
+      "fold_enrichment": 2.67,
+      "fisher_p": 0.030913901596452187,
+      "auc": null,
+      "note": "candidacy skoru; funnel soft-VFDB"
+    },
+    {
+      "tool": "Vaxign-ML",
+      "n_candidates": 1211,
+      "recall": "5/5",
+      "ranks": {
+        "LipL41": 83,
+        "OmpL1": 588,
+        "LipL32": 788,
+        "LigB": 18,
+        "LigA": 227
+      },
+      "recovered": [
+        "LigA",
+        "LigB",
+        "LipL32",
+        "LipL41",
+        "OmpL1"
+      ],
+      "fold_enrichment": 3.0439469320066332,
+      "fisher_p": 0.0038586414010273232,
+      "auc": 0.8802233723780987,
+      "auc_ci": [
+        0.7426209193330355,
+        0.9867855198693521
+      ],
+      "note": "protegenicity (XGBoost); pred>=0.5 protective"
+    },
+    {
+      "tool": "NERVE 2.0",
+      "n_candidates": 116,
+      "recall": "0/5",
+      "ranks": {
+        "LipL41": "DISCARDED",
+        "OmpL1": "DISCARDED",
+        "LipL32": "DISCARDED",
+        "LigB": "DISCARDED",
+        "LigA": "DISCARDED"
+      },
+      "recovered": [],
+      "fold_enrichment": 0.0,
+      "fisher_p": 1.0,
+      "auc": null,
+      "discarded_reasons": {
+        "LigA": "loc=Cytoplasmic adhesin_p=0.752",
+        "LigB": "loc=Extracellular adhesin_p=0.9849",
+        "LipL32": "loc=Unknown adhesin_p=0.6889",
+        "OmpL1": "loc=Unknown adhesin_p=0.1476",
+        "LipL41": "loc=Unknown adhesin_p=0.0922"
+      },
+      "note": "select modülü sert filtreler (localization + adhesin pad>=0.5)"
+    }
+  ]
+}

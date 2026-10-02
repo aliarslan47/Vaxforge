@@ -54,3 +54,28 @@ Her araç DEFAULT + özdeş çıplak-aksesyon TAM PROTEOM girdi. Config: `benchm
 NOT: Patojen + konak **seçilim/biyolojik-kullanım gerekçeleri** DOI-doğrulanmış makalelerle
 desteklenecek (kullanıcı kuralı 2026-08-19; yazım aşamasında). Bkz [[vaxforge-competitor-benchmark]],
 [[vaxforge-literature-rule]], [[convir-citation-policy]].
+
+## Genişletilmiş bakteri paneli — +6 zoonotik bakteri (2026-10-01, 10'a tamamlama)
+Mevcut 4'e (MenB, S.aureus, Listeria, Salmonella) ek olarak 4 memeli konağı (insan/sığır/fare/domuz)
+enfekte eden 6 zoonotik bakteri. Tümü UniProt referans proteomu + NCBI assembly ile **doğrulandı**
+(2026-10-01). Koruyucu antijen aksesyonlarının hepsi ilgili proteomda bulunuyor (prep_proteome 100%).
+Config: `benchmark/bacteria/<bug>.json`. **Genom küçükten büyüğe koşu sırası.**
+
+1. **Coxiella burnetii** RSA 493/Nine Mile · UP000002671 (1812) · taxid 227377/777 · GCF_000007765.2 · 2.03 Mb · Gram−
+   - H7C7D7 Com1 · P51752 Mip · Q83DT1 OmpH · P19421 GroEL
+2. **Streptococcus suis** ser.2 BM407 · UP000009077 (1922) · taxid 568814/1307 · GCF_000026745.1 · 2.17 Mb · Gram+
+   - A0A0H3MU02 Suilysin(SLY) · A0A0H3N5B2 Enolaz · A0A0H3MSV3 GAPDH(plr) · A0A0H3N193 6PGD(gnd) · A0A0H3MXM0 DnaJ
+   - NOT: referans P1/7 (UP000002055) UniProtKB'de boşaltılmış → aynı serotip-2 klinik izolat BM407.
+3. **Brucella suis** biovar 1 · 1330 · UP000007104 (3249) · taxid 204722/29461 · GCF_000223195.1 · 3.32 Mb · Gram−
+   - Q45689 Omp25 · P0A3U5 Omp31 · P0A3U9 BP26 · P66827 SodC · P0A469 L7/L12(RplL)
+   - Aşı suşları (eklenebilir): B.abortus S19/RB51, B.melitensis Rev.1, B.suis S2 — virülan-vs-aşı antijen recall için.
+4. **Mycobacterium bovis** AF2122/97 · UP000001419 (4088) · taxid 233413/1765 · GCF_000195835.3 · 4.35 Mb · Gram+(asit-dirençli)
+   - P0A565 ESAT-6(EsxA) · P0A567 CFP-10(EsxB) · P0C2T2 Ag85B(FbpB) · P0A5Q5 MPB64 · P0A5B8 HspX(Acr)
+5. **Leptospira interrogans** serovar Lai 56601 · UP000001408 (3676) · taxid 189518/173 · GCF_000092565.1 · 4.7 Mb · Gram−(spiroket)
+   - Q8EYU4 LigA · Q8EZS3 LigB · O34094 LipL32 · Q8F8E1 LipL41 · G1UB30 OmpL1
+6. **Bacillus anthracis** Ames Ancestor · UP000000594 (5493, kromozom+pXO1+pXO2) · taxid 261594/1392 · GCF_000008445.1 · 5.5 Mb · Gram+
+   - P13423 PA(pagA,pXO1) · P15917 LF(lef,pXO1) · P40136 EF(cya,pXO1) · P19580 CapB(pXO2) · P94217 EA1 S-tabaka
+   - NOT: PA/LF/EF yalnız pXO1'de → plazmit-içeren proteom (UP000000594) seçildi; UP000000427'de toksin yok.
+
+Koşu planı: her bakteri için ÖNCE rakipler (Vaxign-ML + NERVE2, `run_competitors.sh`), SONRA VaxForge
+(`run_bacterium.py`). Genom sırası: coxiella → ssuis → brucella → mbovis → leptospira → banthracis.

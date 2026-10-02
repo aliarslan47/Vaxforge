@@ -1,0 +1,23 @@
+{
+  "bug": "banthracis",
+  "organism": "Bacillus anthracis",
+  "strain": "Ames Ancestor",
+  "proteome": "data/validation/banthracis_proteome.faa",
+  "uniprot_proteome": "UP000000594",
+  "n_proteins": 5493,
+  "gram": "positive",
+  "gram_flag": "p",
+  "taxon_strain": 261594,
+  "taxon_species": 1392,
+  "iedb_taxon": "NCBITaxon:1392",
+  "genome_mb": 5.5,
+  "assembly": "GCF_000008445.1",
+  "protective": {
+    "P13423": "Protective Antigen PA (pagA, pXO1) — antraks aşısı ana antijeni",
+    "P15917": "Lethal Factor LF (lef, pXO1)",
+    "P40136": "Edema Factor EF (cya, pXO1, adenilat siklaz)",
+    "P19580": "CapB (pXO2, poli-γ-D-glutamat kapsül)",
+    "P94217": "S-tabaka proteini EA1 (eag)"
+  },
+  "note": "Şarbon; kromozom + pXO1(toksin) + pXO2(kapsül) plazmitleri içeren proteom (UP000000594). PA/LF/EF yalnız pXO1'de → plazmitli proteom şart. PA aşının ana antijeni."
+}

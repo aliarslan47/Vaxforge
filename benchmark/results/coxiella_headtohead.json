@@ -1,0 +1,83 @@
+{
+  "pathogen": "Coxiella burnetii RSA 493 / Nine Mile phase I",
+  "input": "coxiella_prepared.faa (TAM PROTEOM, 1812 protein)",
+  "gram": "negative",
+  "genome_mb": 2.03,
+  "fairness": "her araç DEFAULT parametre; eşik tuning yok; özdeş tam-proteom girdi",
+  "ground_truth": {
+    "H7C7D7": "Com1 (27 kDa outer membrane protein)",
+    "P51752": "Mip (peptidyl-prolyl cis-trans isomerase)",
+    "Q83DT1": "OmpH (outer membrane protein H)",
+    "P19421": "GroEL (60 kDa chaperonin, HtpB)"
+  },
+  "n_protective": 4,
+  "n_background": 1808,
+  "tools": [
+    {
+      "tool": "VaxForge",
+      "n_candidates": 524,
+      "recall": "2/4",
+      "ranks": {
+        "Mip": null,
+        "Com1": 42,
+        "GroEL": null,
+        "OmpH": 177
+      },
+      "recovered": [
+        "Com1",
+        "OmpH"
+      ],
+      "fold_enrichment": 1.73,
+      "fisher_p": 0.32920971535582366,
+      "auc": null,
+      "note": "candidacy skoru; funnel soft-VFDB"
+    },
+    {
+      "tool": "Vaxign-ML",
+      "n_candidates": 477,
+      "recall": "4/4",
+      "ranks": {
+        "Mip": 28,
+        "Com1": 64,
+        "GroEL": 8,
+        "OmpH": 713
+      },
+      "recovered": [
+        "Com1",
+        "GroEL",
+        "Mip",
+        "OmpH"
+      ],
+      "fold_enrichment": 3.8224101479915435,
+      "fisher_p": 0.004757770592895478,
+      "auc": 0.9148230088495576,
+      "auc_ci": [
+        0.7229716496182019,
+        0.995303867403315
+      ],
+      "note": "protegenicity (XGBoost); pred>=0.5 protective"
+    },
+    {
+      "tool": "NERVE 2.0",
+      "n_candidates": 9,
+      "recall": "0/4",
+      "ranks": {
+        "Mip": "DISCARDED",
+        "Com1": "DISCARDED",
+        "GroEL": "DISCARDED",
+        "OmpH": "DISCARDED"
+      },
+      "recovered": [],
+      "fold_enrichment": 0.0,
+      "fisher_p": 1.0,
+      "auc": null,
+      "discarded_reasons": {
+        "OmpH": "loc=Periplasmic adhesin_p=0.0193",
+        "Com1": "loc=Unknown adhesin_p=0.0132",
+        "Mip": "loc=OuterMembrane adhesin_p=0.0297",
+        "GroEL": "loc=Cytoplasmic adhesin_p=0.0117"
+      },
+      "note": "select modülü sert filtreler (localization + adhesin pad>=0.5)"
+    }
+  ]
+}

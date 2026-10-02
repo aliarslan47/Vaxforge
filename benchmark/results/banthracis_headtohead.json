@@ -1,0 +1,92 @@
+{
+  "pathogen": "Bacillus anthracis Ames Ancestor",
+  "input": "banthracis_prepared.faa (TAM PROTEOM, 5493 protein)",
+  "gram": "positive",
+  "genome_mb": 5.5,
+  "fairness": "her araç DEFAULT parametre; eşik tuning yok; özdeş tam-proteom girdi",
+  "ground_truth": {
+    "P13423": "Protective Antigen PA (pagA, pXO1) — antraks aşısı ana antijeni",
+    "P15917": "Lethal Factor LF (lef, pXO1)",
+    "P40136": "Edema Factor EF (cya, pXO1, adenilat siklaz)",
+    "P19580": "CapB (pXO2, poli-γ-D-glutamat kapsül)",
+    "P94217": "S-tabaka proteini EA1 (eag)"
+  },
+  "n_protective": 5,
+  "n_background": 5488,
+  "tools": [
+    {
+      "tool": "VaxForge",
+      "n_candidates": 1163,
+      "recall": "4/5",
+      "ranks": {
+        "CapB": null,
+        "S-tabaka": 65,
+        "Protective": 2,
+        "Edema": 6,
+        "Lethal": 9
+      },
+      "recovered": [
+        "Edema",
+        "Lethal",
+        "Protective",
+        "S-tabaka"
+      ],
+      "fold_enrichment": 3.79,
+      "fisher_p": 0.008316204310404559,
+      "auc": null,
+      "note": "candidacy skoru; funnel soft-VFDB"
+    },
+    {
+      "tool": "Vaxign-ML",
+      "n_candidates": 1297,
+      "recall": "5/5",
+      "ranks": {
+        "CapB": 1196,
+        "S-tabaka": 2,
+        "Protective": 13,
+        "Edema": 119,
+        "Lethal": 108
+      },
+      "recovered": [
+        "CapB",
+        "Edema",
+        "Lethal",
+        "Protective",
+        "S-tabaka"
+      ],
+      "fold_enrichment": 4.247678018575852,
+      "fisher_p": 0.0007296093665455146,
+      "auc": 0.9381741982507289,
+      "auc_ci": [
+        0.8168508451670664,
+        0.9989184881602914
+      ],
+      "note": "protegenicity (XGBoost); pred>=0.5 protective"
+    },
+    {
+      "tool": "NERVE 2.0",
+      "n_candidates": 10,
+      "recall": "2/5",
+      "ranks": {
+        "CapB": "DISCARDED",
+        "S-tabaka": 2,
+        "Protective": 3,
+        "Edema": "DISCARDED",
+        "Lethal": "DISCARDED"
+      },
+      "recovered": [
+        "Protective",
+        "S-tabaka"
+      ],
+      "fold_enrichment": 274.40000000000003,
+      "fisher_p": 2.9746527493331878e-05,
+      "auc": null,
+      "discarded_reasons": {
+        "Edema": "loc=Extracellular adhesin_p=0.4428",
+        "Lethal": "loc=Extracellular adhesin_p=0.235",
+        "CapB": "loc=CytoplasmicMembrane adhesin_p=0.0088"
+      },
+      "note": "select modülü sert filtreler (localization + adhesin pad>=0.5)"
+    }
+  ]
+}

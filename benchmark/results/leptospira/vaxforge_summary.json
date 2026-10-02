@@ -1,0 +1,113 @@
+{
+  "bug": "leptospira",
+  "organism": "Leptospira interrogans serovar Icterohaemorrhagiae serovar Lai",
+  "strain": "56601",
+  "input": "leptospira_prepared.faa (Leptospira interrogans serovar Icterohaemorrhagiae serovar Lai 56601, 3676 protein TAM PROTEOM)",
+  "taxon": "NCBITaxon:173",
+  "gram": "negative",
+  "full_proteome": true,
+  "runtime_s": 18926.9,
+  "n_testset": 3676,
+  "n_protective": 5,
+  "n_background": 3671,
+  "n_input_proteins": 3676,
+  "n_discovery": 3676,
+  "n_funnel": 1242,
+  "n_candidate_proteins": 1105,
+  "recall_at_antigen": "4/5",
+  "protective_producing_candidates": [
+    "G1UB30",
+    "O34094",
+    "Q8EZS3",
+    "Q8F8E1"
+  ],
+  "background_producing_candidates": 1101,
+  "fold_enrichment": 2.67,
+  "fisher_p": 0.030913901596452187,
+  "permutation_rank": {
+    "test": "permutation_rank_test",
+    "statistic": 107.0,
+    "p_value": 0.3311668833116688,
+    "ci95": null,
+    "n": 4,
+    "detail": {
+      "statistic_type": "best_rank",
+      "N_total": 1105,
+      "null_mean": 218.4386,
+      "positive_ranks": [
+        107.0,
+        145.0,
+        150.0,
+        171.0
+      ]
+    },
+    "caveat": null
+  },
+  "protective_detail": [
+    {
+      "accession": "Q8EYU4",
+      "antigen": "LigA (Ig benzeri tekrar A)",
+      "in_testset": true,
+      "vfdb_hit": false,
+      "produced_candidate": false,
+      "best_candidacy": null,
+      "protein_rank": null,
+      "n_candidate_proteins": 1105,
+      "interpretation": "aday peptit üretmedi (funnel ya da funnel-sonrası epitop/alerjen/toksisite elemesi)"
+    },
+    {
+      "accession": "Q8EZS3",
+      "antigen": "LigB (Ig benzeri tekrar B)",
+      "in_testset": true,
+      "vfdb_hit": false,
+      "produced_candidate": true,
+      "best_candidacy": 0.698,
+      "protein_rank": 171,
+      "n_candidate_proteins": 1105,
+      "interpretation": "VFDB-negatif ama aday üretti → soft-filter"
+    },
+    {
+      "accession": "O34094",
+      "antigen": "LipL32 (majör dış membran lipoprotein)",
+      "in_testset": true,
+      "vfdb_hit": false,
+      "produced_candidate": true,
+      "best_candidacy": 0.7062,
+      "protein_rank": 145,
+      "n_candidate_proteins": 1105,
+      "interpretation": "VFDB-negatif ama aday üretti → soft-filter"
+    },
+    {
+      "accession": "Q8F8E1",
+      "antigen": "LipL41 (dış membran lipoprotein)",
+      "in_testset": true,
+      "vfdb_hit": false,
+      "produced_candidate": true,
+      "best_candidacy": 0.7171,
+      "protein_rank": 107,
+      "n_candidate_proteins": 1105,
+      "interpretation": "VFDB-negatif ama aday üretti → soft-filter"
+    },
+    {
+      "accession": "G1UB30",
+      "antigen": "OmpL1 (dış membran porin)",
+      "in_testset": true,
+      "vfdb_hit": false,
+      "produced_candidate": true,
+      "best_candidacy": 0.705,
+      "protein_rank": 150,
+      "n_candidate_proteins": 1105,
+      "interpretation": "VFDB-negatif ama aday üretti → soft-filter"
+    }
+  ],
+  "iedb_source": "IEDB kaynak-organizma seti (NCBITaxon:173)",
+  "iedb_matched_candidates": 1,
+  "report_paths": {
+    "csv": "/home/msi-nb/vaxforge/outputs/run_2026-10-02T01-30-13/candidates.csv",
+    "fasta": "/home/msi-nb/vaxforge/outputs/run_2026-10-02T01-30-13/top_peptides.fasta",
+    "xlsx": "/home/msi-nb/vaxforge/outputs/run_2026-10-02T01-30-13/candidates_full.xlsx",
+    "json": "/home/msi-nb/vaxforge/outputs/run_2026-10-02T01-30-13/run.json",
+    "html": "/home/msi-nb/vaxforge/outputs/run_2026-10-02T01-30-13/report.html",
+    "pdf": "/home/msi-nb/vaxforge/outputs/run_2026-10-02T01-30-13/report.pdf"
+  }
+}
