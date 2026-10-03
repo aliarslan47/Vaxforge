@@ -190,7 +190,7 @@ VaxForge'un geride kaldığı iki tür, *Coxiella burnetii* (2/4) ve *Streptococ
 |  | LF (lef) | P15917 | Preklinik (koruyucu) | #9 | #108 | elendi | Baillie 2010, 10.1016/j.vaccine.2010.07.075 |
 |  | EF (cya) | P40136 | Toksin bileşeni / aday | #6 | #119 | elendi | Baillie 2010, 10.1016/j.vaccine.2010.07.075 |
 |  | CapB (γ-PGA) | P19580 | Preklinik (koruyucu ek) | ✗ | #1196 | elendi | Schneerson 2003, 10.1073/pnas.1633512100 |
-|  | EA1 (S-layer) | P94217 | İmmunodominant aday | #65 | #2 | #2 | — |
+|  | EA1 (S-layer) | P94217 | İmmunodominant aday | #65 | #2 | #2 | Zhang 2007, 10.1016/j.vaccine.2007.11.072 |
 
 **Konak seçimi öngörülen epitop repertuarını değiştirir; karşılaştırılan araçların ulaşamadığı boyut.** VaxForge bağlanma tahminlerini dört konak için küratörlü allel panellerinden alır: insan, fare, sığır ve domuz (Tablo 4). İnsan panelleri IMGT/HLA'dan, diğerleri IPD-MHC'den derlenmiştir. İnsan, fare ve sığırda hem sınıf I hem sınıf II gerçek NetMHCpan ve NetMHCIIpan modelleriyle koşar; sığırın sınıf II BoLA-DRB3 paneli de gerçektir. Domuzda sınıf I gerçek, sınıf II ise tek doğrulanmış allele dayanır. Paneller tam veritabanları değil temsili alt kümelerdir ve geçersiz allel adları çalışma-zamanında elenir; dolayısıyla bildirilen epitoplar temkinlidir.
 

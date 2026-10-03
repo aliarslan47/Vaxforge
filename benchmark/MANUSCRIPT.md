@@ -188,7 +188,7 @@ The two species where VaxForge fell behind, *Coxiella burnetii* (2 of 4) and *St
 |  | LF (lef) | P15917 | Preclinical (protective) | #9 | #108 | filt. | Baillie 2010, 10.1016/j.vaccine.2010.07.075 |
 |  | EF (cya) | P40136 | Toxin component / candidate | #6 | #119 | filt. | Baillie 2010, 10.1016/j.vaccine.2010.07.075 |
 |  | CapB (γ-PGA) | P19580 | Preclinical (protective adjunct) | ✗ | #1196 | filt. | Schneerson 2003, 10.1073/pnas.1633512100 |
-|  | EA1 (S-layer) | P94217 | Immunodominant candidate | #65 | #2 | #2 | — |
+|  | EA1 (S-layer) | P94217 | Immunodominant candidate | #65 | #2 | #2 | Zhang 2007, 10.1016/j.vaccine.2007.11.072 |
 
 **Host selection changes the predicted epitope repertoire, a dimension the comparators cannot address.** VaxForge draws binding predictions from curated allele panels for four hosts, human, mouse, bovine and pig (Table 4), taken from IMGT/HLA for human and IPD-MHC for the others. For human, mouse and bovine, both class I and class II run on real NetMHCpan and NetMHCIIpan models, including the BoLA-DRB3 class II panel for cattle; pig class I is real while its class II rests on a single validated allele. The panels are representative subsets rather than the complete databases, and invalid allele names are dropped at runtime, so the reported epitopes are conservative.
 

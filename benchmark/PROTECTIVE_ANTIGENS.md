@@ -201,8 +201,9 @@ aday-antijen / immunodominant). Aksesyonlar `PATHOGEN_ACCESSIONS.md`.
 | **LF (lef)** (P15917) | LF/LF-D1 tam **koruma** sağlar (B.anthracis spor challenge); AVP koruyuculuğuna katkı | Baillie 2010 — **10.1016/j.vaccine.2010.07.075** |
 | **EF (cya)** (P40136) | Ödem toksini bileşeni; toksin-nötralizasyon hedefi/aday (PA+LF ile tripartit) | Baillie 2010 — **10.1016/j.vaccine.2010.07.075** (bağlam) |
 | **CapB / γ-PGA kapsül** (P19580) | γ-DPGA-protein konjugatı koruyucu IgG + opsonofagositoz; antraks aşısına ek | Schneerson 2003 — **10.1073/pnas.1633512100** |
-| **S-tabaka EA1 (eag)** (P94217) | Yüzey S-tabaka; immunodominant/aday antijen | — (immunodominant; koruma verisi sınırlı) |
+| **S-tabaka EA1 (eag)** (P94217) | Yüzey S-tabaka; plazmit-EA1 kalıcı tip-1/2 yanıt + T-epitop; PA-dışı aday antraks antijeni | Zhang 2007 — **10.1016/j.vaccine.2007.11.072** |
 > **PA ruhsatlı insan aşısı bileşeni** (BioThrax/AVA, AVP). LF/kapsül koruyucu-ek; EF/EA1 aday.
+> **EA1 atıfı eklendi (2026-10-03):** Zhang 2007, plazmit-EA1 kalıcı bağışık yanıt + T-epitop.
 
 ## Atıf listesi — yeni 6 bakteri (Methods-hazır, DOI-doğrulanmış 2026-10-02, PubMed)
 14. Wang Y, et al. Efficient activation of T cells by HMDCs pulsed with *Coxiella burnetii* Com1. *BMC Immunol*. 2011;12:52. **doi:10.1186/1471-2172-12-52**
@@ -220,3 +221,4 @@ aday-antijen / immunodominant). Aksesyonlar `PATHOGEN_ACCESSIONS.md`.
 26. Baillie LW, et al. An anthrax subunit vaccine candidate based on protective regions of PA and LF. *Vaccine*. 2010;28(41):6740-8. **doi:10.1016/j.vaccine.2010.07.075**
 27. Rhie GE, et al. Efficacy of non-toxic deletion mutants of protective antigen from *Bacillus anthracis*. *FEMS Immunol Med Microbiol*. 2005;45(2):341-7. **doi:10.1016/j.femsim.2005.05.009**
 28. Schneerson R, et al. Poly(γ-D-glutamic acid)-protein conjugates induce IgG to the capsule of *Bacillus anthracis*. *PNAS*. 2003;100(15):8945-50. **doi:10.1073/pnas.1633512100**
+29. Zhang Y, et al. Plasmid-based vaccination with candidate anthrax vaccine antigens (EA1/SAP/capA) induces durable Th1/Th2 responses. *Vaccine*. 2007;26(5):614-22. **doi:10.1016/j.vaccine.2007.11.072**
