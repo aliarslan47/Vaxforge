@@ -1,0 +1,15 @@
+[2026-10-03 12:50:25] === ASI SUSU ZINCIRI BASLADI (rb51/s19/s2) ===
+[2026-10-03 12:50:25] RAKIP baslat: brucella_rb51
+[2026-10-03 14:09:42] RAKIP bitti: brucella_rb51
+[2026-10-03 14:09:42] RAKIP baslat: brucella_s19
+[2026-10-03 15:29:06] RAKIP bitti: brucella_s19
+[2026-10-03 15:29:06] RAKIP baslat: brucella_s2
+[2026-10-03 16:42:38] RAKIP bitti: brucella_s2
+[2026-10-03 16:42:38] === FAZ 1 (rakipler) BITTI ===
+[2026-10-03 16:42:38] VAXFORGE baslat: brucella_rb51
+[2026-10-03 19:45:23] VAXFORGE bitti: brucella_rb51 (recall=3/4)
+[2026-10-03 19:45:23] VAXFORGE baslat: brucella_s19
+[2026-10-03 22:51:20] VAXFORGE bitti: brucella_s19 (recall=3/4)
+[2026-10-03 22:51:20] VAXFORGE baslat: brucella_s2
+[2026-10-04 01:48:23] VAXFORGE bitti: brucella_s2 (recall=4/5)
+[2026-10-04 01:48:23] === ASI SUSU ZINCIRI TAMAMEN BITTI ===

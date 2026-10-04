@@ -1,0 +1,25 @@
+[2026-10-01 02:00:33] === ZINCIR BASLADI ===
+[2026-10-01 02:00:33] RAKIP baslat: ssuis
+[2026-10-01 02:47:05] RAKIP bitti: ssuis (vaxign tsv=1922, nerve aday=210)
+[2026-10-01 02:47:05] RAKIP baslat: brucella
+[2026-10-01 03:42:33] RAKIP bitti: brucella (vaxign tsv=NA, nerve aday=92)
+[2026-10-01 03:42:33] RAKIP baslat: mbovis
+[2026-10-01 04:52:08] RAKIP bitti: mbovis (vaxign tsv=NA, nerve aday=465)
+[2026-10-01 04:52:08] RAKIP baslat: leptospira
+[2026-10-01 06:23:45] RAKIP bitti: leptospira (vaxign tsv=3676, nerve aday=528)
+[2026-10-01 06:23:45] RAKIP baslat: banthracis
+[2026-10-01 08:36:05] RAKIP bitti: banthracis (vaxign tsv=5493, nerve aday=145)
+[2026-10-01 08:36:05] === FAZ 1 (rakipler) BITTI ===
+[2026-10-01 08:36:05] VAXFORGE baslat: coxiella
+[2026-10-01 12:38:50] VAXFORGE bitti: coxiella
+[2026-10-01 12:38:50] VAXFORGE baslat: ssuis
+[2026-10-01 16:29:24] VAXFORGE bitti: ssuis
+[2026-10-01 16:29:24] VAXFORGE baslat: brucella
+[2026-10-01 21:25:34] VAXFORGE HATA: brucella (log: results/brucella/vaxforge_run.log) — devam
+[2026-10-01 21:25:34] VAXFORGE baslat: mbovis
+[2026-10-02 01:30:09] VAXFORGE bitti: mbovis
+[2026-10-02 01:30:09] VAXFORGE baslat: leptospira
+[2026-10-02 06:45:58] VAXFORGE bitti: leptospira
+[2026-10-02 06:45:58] VAXFORGE baslat: banthracis
+[2026-10-02 10:46:18] VAXFORGE bitti: banthracis
+[2026-10-02 10:46:18] === ZINCIR TAMAMEN BITTI ===

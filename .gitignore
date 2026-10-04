@@ -5,6 +5,9 @@
 outputs/
 # Benchmark pipeline koşu çıktıları (yeniden üretilebilir; küratörlü results/*.json + figures/ izlenir)
 benchmark/results/run_*/
+# Rakip araç ham çıktıları (yeniden üretilebilir; küratörlü vaxforge_summary.json + *_headtohead.json izlenir)
+benchmark/results/*/nerve/
+benchmark/results/*/vaxignml/
 
 # Python
 __pycache__/
@@ -32,4 +35,5 @@ data/validation/*.gb
 # Türetilmiş/geçici FASTA'lar (prep_proteome.py ile *_proteome.faa'dan yeniden üretilir)
 data/validation/*_prepared.faa
 data/validation/*_prepared_vaxign.faa
+data/validation/*_vaxign.faa
 data/validation/*_smoke.faa
