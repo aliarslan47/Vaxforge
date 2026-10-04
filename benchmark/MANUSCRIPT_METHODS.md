@@ -76,6 +76,21 @@ bacterial protective antigens (Ong et al., 2020). That the independent-ML tool (
 attains high recall shows the soft-filter behaviour distinguishing VaxForge is not a single-tool
 artefact.
 
+### A.5 Brucella vaccine-strain validation
+
+Beyond the virulent benchmark panel, we applied VaxForge to three licensed live-attenuated brucellosis
+vaccine strains to test whether it returns a consistent answer on the genomes that deployed vaccines are
+built from: the cattle vaccines *Brucella abortus* S19 (RefSeq assembly GCF_000018725.1) and RB51
+(GCF_000366025.1), and the Chinese small-ruminant vaccine *Brucella suis* S2 (GCF_000209635.2). Each was
+run on its own RefSeq proteome at full scale under default parameters. The ground-truth set was the same
+outer-membrane, periplasmic and cytoplasmic protective antigens used for the virulent reference
+*B. suis* 1330 — Omp25, Omp31, BP26/Omp28, SodC and L7/L12 — except that *omp31* is deleted in
+*B. abortus* and is therefore absent from the S19 and RB51 genomes (Cloeckaert et al., 2002), leaving
+four ground-truth antigens for those two strains and five for *B. suis* S2. Because *B. suis* S2 carries
+the identical five-antigen set as the virulent *B. suis* 1330, it provides a direct attenuated-versus-virulent
+comparison within one species. Accessions are listed in `PATHOGEN_ACCESSIONS.md`; results are in Table S2
+and Figure S1 of the main text.
+
 ---
 
 ## B. Pipeline scale-safety validation
@@ -150,6 +165,7 @@ antigens were recovered at rank 1 (Getah, RVFV, JEV), and the two orthopoxvirus 
 - Hampson K, et al. *PLoS Negl Trop Dis*. 2015;9(4):e0003709. doi:10.1371/journal.pntd.0003709
 - Conte A, et al. *BMC Bioinformatics*. 2024;25:378. doi:10.1186/s12859-024-06004-0
 - Ong E, et al. *Bioinformatics*. 2020;36(10):3185–3191. doi:10.1093/bioinformatics/btaa119
+- Cloeckaert A, Vizcaíno N, Paquet JY, Bowden RA, Elzer PH. *Vet Microbiol*. 2002;90(1–4):229–247. doi:10.1016/s0378-1135(02)00211-0
 - Kuklin NA, et al. *Infect Immun*. 2006;74(4):2215–2223. doi:10.1128/iai.74.4.2215-2223.2006
 - Phelps CC, et al. *Vaccine*. 2020;38(36):5803–5813. doi:10.1016/j.vaccine.2020.06.049
 - Gil-Cruz C, et al. *PNAS*. 2009;106(24):9803–9808. doi:10.1073/pnas.0812431106

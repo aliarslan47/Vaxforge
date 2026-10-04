@@ -268,12 +268,88 @@ def fig7_virus_multihost(vs):
     fig.tight_layout(); fig.savefig(FIG / "fig7_virus_multihost.png", dpi=150); plt.close(fig)
 
 
+def _brucella_strain_data():
+    """Virülan referans (B. suis 1330) + üç ruhsatlı canlı-atenüe aşı suşunun (RB51/S19/S2)
+    VaxForge aday-listesi antijen rank'ları. 1330 head-to-head JSON'dan, aşı suşları
+    vaxforge_summary.json protective_detail'den (tekrarlanabilir)."""
+    def norm(name):
+        n = name.lower()
+        if "omp25" in n: return "Omp25"
+        if "omp31" in n: return "Omp31"
+        if "bp26" in n or "omp28" in n: return "BP26"
+        if "sodc" in n: return "SodC"
+        if "l7" in n or "l12" in n: return "L7/L12"
+        return None
+    strains = []
+    h = json.load(open(BENCH / "results" / "brucella_headtohead.json"))
+    vf = next(t for t in h["tools"] if t["tool"] == "VaxForge")
+    ranks = {}
+    for k, v in vf["ranks"].items():
+        a = norm(k)
+        if a:
+            ranks[a] = v if isinstance(v, int) else None
+    strains.append(("B. suis 1330 (virulent)", ranks, vf["n_candidates"]))
+    for slug, label in [("brucella_rb51", "B. abortus RB51"),
+                        ("brucella_s19", "B. abortus S19"),
+                        ("brucella_s2", "B. suis S2")]:
+        d = json.load(open(BENCH / "results" / slug / "vaxforge_summary.json"))
+        ranks = {}
+        for a in d["protective_detail"]:
+            key = norm(a["antigen"])
+            if key:
+                ranks[key] = a["protein_rank"]
+        strains.append((label, ranks, d["n_candidate_proteins"]))
+    return strains
+
+
+def figS1_brucella_vaccine():
+    """Virülan B. suis 1330 + üç ruhsatlı aşı suşunda (RB51/S19/S2) koruyucu antijenlerin
+    VaxForge rank'ı (nokta; ✗ = geri getirilmedi). Antijen satır, suş renk. Yüzey/periplazmik
+    antijenler (Omp25/Omp31/BP26/SodC) tüm suşlarda bulunur; sitoplazmik L7/L12 hepsinde
+    tasarım gereği elenir; Omp31 B. abortus'ta yoktur (delesyon) → o suşlarda nokta yok."""
+    strains = _brucella_strain_data()
+    antigens = ["L7/L12", "SodC", "BP26", "Omp31", "Omp25"]  # alt→üst
+    colL = ["#333333", "#1f77b4", "#ff7f0e", "#2ca02c"]
+    allr = [v for _, r, _ in strains for v in r.values() if isinstance(v, int)]
+    max_rank = max(allr)
+    elim_x = max_rank + 70
+    fig, ax = plt.subplots(figsize=(8.2, 4.4))
+    offs = np.linspace(0.24, -0.24, len(strains))
+    for si, (label, r, ncand) in enumerate(strains):
+        xr, yr, ye = [], [], []
+        for j, a in enumerate(antigens):
+            if a not in r:
+                continue
+            v = r[a]
+            if isinstance(v, int):
+                xr.append(v); yr.append(j + offs[si])
+            else:
+                ye.append(j + offs[si])
+        ax.scatter(xr, yr, s=80, color=colL[si], label=f"{label}  (n={ncand})", zorder=3)
+        for xx, yy in zip(xr, yr):
+            ax.annotate(str(int(xx)), (xx, yy), textcoords="offset points",
+                        xytext=(0, 6), ha="center", fontsize=7, color=colL[si])
+        ax.scatter([elim_x] * len(ye), ye, s=80, marker="x", color=colL[si], zorder=3)
+    ax.axvline(elim_x - 35, ls=":", color="gray", lw=1)
+    ax.set_yticks(range(len(antigens))); ax.set_yticklabels(antigens)
+    ax.set_ylim(-0.6, len(antigens) - 0.4)
+    ax.set_xlim(0, elim_x + 40)
+    ticks = list(range(0, max_rank + 1, 100))
+    ax.set_xticks(ticks + [elim_x]); ax.set_xticklabels([str(v) for v in ticks] + ["not\nrecovered"])
+    ax.set_xlabel("Rank in VaxForge candidate list (lower is better)")
+    ax.set_ylabel("Brucella protective antigen")
+    ax.legend(loc="center right", fontsize=7.5)
+    ax.grid(axis="x", alpha=0.3)
+    fig.tight_layout(); fig.savefig(FIG / "figS1_brucella_vaccine.png", dpi=150); plt.close(fig)
+
+
 def main():
     h204, full, rab = _load()
     fig1_recovery(h204); fig2_recall(h204); fig3_fold_recall(h204, full)
     fig4_bacteria_panel(); fig5_jaccard(rab)
     vs = _load_viruses()
     fig6_virus_rank(vs); fig7_virus_multihost(vs)
+    figS1_brucella_vaccine()
     # eski (yeniden numaralanmış) dosyaları temizle
     for old in ["fig4_multihost_jaccard.png", "fig5_bacteria_panel.png"]:
         p = FIG / old

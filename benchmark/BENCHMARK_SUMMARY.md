@@ -104,6 +104,24 @@ Tam-proteom ölçeğinde üç hata VaxForge recall'ını yapay düşürüyor/ko�
 - Toksisite/alerjen filtreleri **suçsuzdu** (bağımsız test). Fix'ler sonrası etkilenen türler yeniden koşuldu → nihai sonuçlar.
   Yayında Methods/validation'a girer (`MANUSCRIPT_METHODS.md` §B, üç kusur).
 
+## 1c. BRUCELLA AŞI SUŞU VALİDASYONU — virülan-vs-aşı (2026-10-04, TAM PROTEOM)
+
+Üç **ruhsatlı canlı-atenüe** bruselloz aşı suşu kendi RefSeq proteomunda koşuldu; virülan referans
+*B. suis* 1330 ile kıyas (→ MANUSCRIPT Tablo S2 + Şekil S1, METHODS §A.5):
+
+| Suş | Tür | Protein | Antijen | Recall | Fisher p | En iyi sıra | Kaçırılan |
+|---|---|---|---|---|---|---|---|
+| 1330 (virülan ref.) | *B. suis* | 3249 | 5 | 4/5 | 0,026 | SodC #26 | L7/L12 |
+| RB51 (sığır) | *B. abortus* | 2971 | 4 | 3/4 | 0,055 | BP26 #87 | L7/L12 |
+| S19 (sığır) | *B. abortus* | 2964 | 4 | 3/4 | 0,055 | BP26 #89 | L7/L12 |
+| S2 (küçük ruminant) | *B. suis* | 2979 | 5 | 4/5 | 0,015 | Omp31 #24 | L7/L12 |
+
+- **Tutarlılık bulgusu:** yüzey/periplazmik antijenler (Omp25/Omp31/BP26/SodC) üç aşı suşunda da bulundu;
+  **tek ve tutarlı kayıp L7/L12** (sitoplazmik ribozomal → lokalizasyon filtresi tasarım gereği eler),
+  tıpkı virülan 1330'daki gibi. Omp31 *B. abortus*'ta YOK (delesyon; Cloeckaert 2002) → RB51/S19 4 antijen.
+- *B. suis* S2 (aynı 5-antijen seti) virülan 1330'u birebir tekrarladı (4/5). Rakipler koşuldu ama derlenmiş
+  head-to-head yok → VaxForge sağlamlık validasyonu olarak sunuldu.
+
 ## 2. VİRÜS KOLU — Rabies × 4 konak (yalnız VaxForge; NERVE bacterial-only, Vaxign-ML host'suz)
 
 Ground-truth = glikoprotein **G (NP_056796)**. VaxForge G'yi **rank #2/5** buldu; Vaxign-ML
@@ -127,6 +145,7 @@ DeLong (AUC karşılaştırma), Jaccard (çok-konak). Küçük-n dürüstlüğü
 - `fig5_multihost_jaccard.png` — rabies G host×host Jaccard (çok-konak) ★
 - `fig6_virus_antigen_rank.png` — 10 virüs ground-truth antijen rank, VaxForge vs Vaxign-ML
 - `fig7_virus_multihost.png` — virüs başına host-çifti epitop Jaccard aralığı (çok-konak)
+- `figS1_brucella_vaccine.png` — **Ek Şekil S1**: virülan 1330 + 3 aşı suşu (RB51/S19/S2) antijen rank nokta-grafiği
 
 ## 5. SEÇİM GEREKÇELERİ & YAZIM AŞAMASI (TAMAMLANDI 2026-09-20)
 Patojen (MenB, rabies, 3 bakteri) + konak (insan/sığır/fare/domuz) **biyolojik kullanım + seçilim

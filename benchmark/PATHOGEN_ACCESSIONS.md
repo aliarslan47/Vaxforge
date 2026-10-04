@@ -68,7 +68,11 @@ Config: `benchmark/bacteria/<bug>.json`. **Genom küçükten büyüğe koşu sı
    - NOT: referans P1/7 (UP000002055) UniProtKB'de boşaltılmış → aynı serotip-2 klinik izolat BM407.
 3. **Brucella suis** biovar 1 · 1330 · UP000007104 (3249) · taxid 204722/29461 · GCF_000223195.1 · 3.32 Mb · Gram−
    - Q45689 Omp25 · P0A3U5 Omp31 · P0A3U9 BP26 · P66827 SodC · P0A469 L7/L12(RplL)
-   - Aşı suşları (eklenebilir): B.abortus S19/RB51, B.melitensis Rev.1, B.suis S2 — virülan-vs-aşı antijen recall için.
+   - Aşı suşları (KOŞULDU; virülan-vs-aşı antijen recall — Tablo S2 + Şekil S1):
+     - **B.abortus RB51** (rough, canlı-atenüe) · GCF_000366025.1 · 2971 protein · taxid 235 · 4 antijen (Omp31 YOK, B.abortus delesyonu; Cloeckaert 2002) · recall 3/4
+     - **B.abortus S19** (smooth, canlı-atenüe) · GCF_000018725.1 · 2964 protein · taxid 235 · 4 antijen (Omp31 YOK) · recall 3/4
+     - **B.suis S2** (oral, Çin, canlı-atenüe) · GCF_000209635.2 · 2979 protein · taxid 29461 · 5 antijen (Omp31 VAR) · recall 4/5
+     - Her üçünde de tek kayıp L7/L12 (sitoplazmik → lokalizasyon filtresi, tasarım gereği).
 4. **Mycobacterium bovis** AF2122/97 · UP000001419 (4088) · taxid 233413/1765 · GCF_000195835.3 · 4.35 Mb · Gram+(asit-dirençli)
    - P0A565 ESAT-6(EsxA) · P0A567 CFP-10(EsxB) · P0C2T2 Ag85B(FbpB) · P0A5Q5 MPB64 · P0A5B8 HspX(Acr)
 5. **Leptospira interrogans** serovar Lai 56601 · UP000001408 (3676) · taxid 189518/173 · GCF_000092565.1 · 4.7 Mb · Gram−(spiroket)
