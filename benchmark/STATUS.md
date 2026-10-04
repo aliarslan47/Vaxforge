@@ -1,12 +1,13 @@
 # VaxForge yeni-virüs benchmark — DURUM
 
-- Son güncelleme: **2026-10-02 19:32:08**
-- Faz: **fix**
-- Son olay: **netMHCpan deadlock fix**
-- Detay: netmhc_local.py: izole TMPDIR+stdin=DEVNULL+timeout 7200->1200; brucella kilidini cozdu, 4/5 ile yeniden kostu
+- Son güncelleme: **2026-10-04 12:57:10**
+- Faz: **analysis**
+- Son olay: **kaçan-antijen mekanistik atfı**
+- Detay: 11 kaybın tamamı atfedildi — 6 konak-homoloji (tasarım), 2 Gram(+) membrane açığı (düzeltilebilir), 1 PSORTb hatası, 2 epitop-aşaması; ölçek-bug'ı YOK
 
 ## Son 10 olay
 
+- `2026-10-04 12:57:10` [analysis] kaçan-antijen atfı TAMAM — 48 antijen; 6 self-homoloji (Fisher p=3.8e-05, yakalananlarda 0/37) · 2 Gram(+) membrane açığı · 1 PSORTb · 2 epitop; MISS_ATTRIBUTION.md
 - `2026-10-01 00:20:24` [vaxignml] vaxignml bitti — reovirus: sigma-1 rank #1/11 (23s)
 - `2026-10-01 00:20:24` [vaxignml] vaxignml virüs — jev başladı
 - `2026-10-01 00:20:47` [vaxignml] vaxignml bitti — jev: envelope protein E rank #3/15 (23s)

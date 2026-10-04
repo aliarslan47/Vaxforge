@@ -1,0 +1,448 @@
+{
+ "n_antigens": 48,
+ "n_recovered": 37,
+ "threshold_human_identity": 35.0,
+ "evalue": 0.0001,
+ "db": "tools/db/human.dmnd (UniProt Swiss-Prot human)",
+ "contingency": {
+  "missed_human_ge35": 6,
+  "missed_human_lt35": 5,
+  "recovered_human_ge35": 0,
+  "recovered_human_lt35": 37
+ },
+ "fisher_p": 3.76e-05,
+ "antigens": [
+  {
+   "bug": "banthracis",
+   "acc": "P13423",
+   "antigen": "Protective Antigen PA (pagA, pXO1) — antraks aşısı ana antijeni",
+   "rank": 2,
+   "recovered": true,
+   "human_pident": 0.0,
+   "miss_cause": null
+  },
+  {
+   "bug": "banthracis",
+   "acc": "P15917",
+   "antigen": "Lethal Factor LF (lef, pXO1)",
+   "rank": 9,
+   "recovered": true,
+   "human_pident": 0.0,
+   "miss_cause": null
+  },
+  {
+   "bug": "banthracis",
+   "acc": "P40136",
+   "antigen": "Edema Factor EF (cya, pXO1, adenilat siklaz)",
+   "rank": 6,
+   "recovered": true,
+   "human_pident": 0.0,
+   "miss_cause": null
+  },
+  {
+   "bug": "banthracis",
+   "acc": "P19580",
+   "antigen": "CapB (pXO2, poli-γ-D-glutamat kapsül)",
+   "rank": null,
+   "recovered": false,
+   "human_pident": 0.0,
+   "miss_cause": "localization_grampos_membrane"
+  },
+  {
+   "bug": "banthracis",
+   "acc": "P94217",
+   "antigen": "S-tabaka proteini EA1 (eag)",
+   "rank": 65,
+   "recovered": true,
+   "human_pident": 0.0,
+   "miss_cause": null
+  },
+  {
+   "bug": "brucella",
+   "acc": "Q45689",
+   "antigen": "Omp25 (25 kDa dış membran immunojenik protein)",
+   "rank": 102,
+   "recovered": true,
+   "human_pident": 0.0,
+   "miss_cause": null
+  },
+  {
+   "bug": "brucella",
+   "acc": "P0A3U5",
+   "antigen": "Omp31 (31 kDa dış membran)",
+   "rank": 36,
+   "recovered": true,
+   "human_pident": 0.0,
+   "miss_cause": null
+  },
+  {
+   "bug": "brucella",
+   "acc": "P0A3U9",
+   "antigen": "BP26/Omp28 (26 kDa periplazmik immunojenik)",
+   "rank": 181,
+   "recovered": true,
+   "human_pident": 0.0,
+   "miss_cause": null
+  },
+  {
+   "bug": "brucella",
+   "acc": "P66827",
+   "antigen": "SodC (Cu-Zn süperoksit dismutaz)",
+   "rank": 26,
+   "recovered": true,
+   "human_pident": 0.0,
+   "miss_cause": null
+  },
+  {
+   "bug": "brucella",
+   "acc": "P0A469",
+   "antigen": "L7/L12 ribozomal protein (RplL)",
+   "rank": null,
+   "recovered": false,
+   "human_pident": 0.0,
+   "miss_cause": "epitope_stage"
+  },
+  {
+   "bug": "coxiella",
+   "acc": "H7C7D7",
+   "antigen": "Com1 (27 kDa outer membrane protein)",
+   "rank": 42,
+   "recovered": true,
+   "human_pident": 0.0,
+   "miss_cause": null
+  },
+  {
+   "bug": "coxiella",
+   "acc": "P51752",
+   "antigen": "Mip (peptidyl-prolyl cis-trans isomerase)",
+   "rank": null,
+   "recovered": false,
+   "human_pident": 43.7,
+   "miss_cause": "self_homology"
+  },
+  {
+   "bug": "coxiella",
+   "acc": "Q83DT1",
+   "antigen": "OmpH (outer membrane protein H)",
+   "rank": 177,
+   "recovered": true,
+   "human_pident": 0.0,
+   "miss_cause": null
+  },
+  {
+   "bug": "coxiella",
+   "acc": "P19421",
+   "antigen": "GroEL (60 kDa chaperonin, HtpB)",
+   "rank": null,
+   "recovered": false,
+   "human_pident": 51.7,
+   "miss_cause": "self_homology"
+  },
+  {
+   "bug": "leptospira",
+   "acc": "Q8EYU4",
+   "antigen": "LigA (Ig benzeri tekrar A)",
+   "rank": null,
+   "recovered": false,
+   "human_pident": 0.0,
+   "miss_cause": "psortb_misassignment"
+  },
+  {
+   "bug": "leptospira",
+   "acc": "Q8EZS3",
+   "antigen": "LigB (Ig benzeri tekrar B)",
+   "rank": 171,
+   "recovered": true,
+   "human_pident": 0.0,
+   "miss_cause": null
+  },
+  {
+   "bug": "leptospira",
+   "acc": "O34094",
+   "antigen": "LipL32 (majör dış membran lipoprotein)",
+   "rank": 145,
+   "recovered": true,
+   "human_pident": 0.0,
+   "miss_cause": null
+  },
+  {
+   "bug": "leptospira",
+   "acc": "Q8F8E1",
+   "antigen": "LipL41 (dış membran lipoprotein)",
+   "rank": 107,
+   "recovered": true,
+   "human_pident": 0.0,
+   "miss_cause": null
+  },
+  {
+   "bug": "leptospira",
+   "acc": "G1UB30",
+   "antigen": "OmpL1 (dış membran porin)",
+   "rank": 150,
+   "recovered": true,
+   "human_pident": 0.0,
+   "miss_cause": null
+  },
+  {
+   "bug": "listeria",
+   "acc": "P13128",
+   "antigen": "LLO (listeriolysin O, immunodominant)",
+   "rank": 7,
+   "recovered": true,
+   "human_pident": 0.0,
+   "miss_cause": null
+  },
+  {
+   "bug": "listeria",
+   "acc": "P21171",
+   "antigen": "p60 (invasion-associated endopeptidase, iap)",
+   "rank": 1,
+   "recovered": true,
+   "human_pident": 0.0,
+   "miss_cause": null
+  },
+  {
+   "bug": "listeria",
+   "acc": "P0DJM0",
+   "antigen": "InlA (internalin A)",
+   "rank": 2,
+   "recovered": true,
+   "human_pident": 0.0,
+   "miss_cause": null
+  },
+  {
+   "bug": "listeria",
+   "acc": "P0DQD2",
+   "antigen": "InlB (internalin B)",
+   "rank": 15,
+   "recovered": true,
+   "human_pident": 0.0,
+   "miss_cause": null
+  },
+  {
+   "bug": "listeria",
+   "acc": "P33379",
+   "antigen": "ActA (actin assembly-inducing protein)",
+   "rank": null,
+   "recovered": false,
+   "human_pident": 0.0,
+   "miss_cause": "localization_grampos_membrane"
+  },
+  {
+   "bug": "mbovis",
+   "acc": "P0A565",
+   "antigen": "ESAT-6 (EsxA, 6 kDa erken salgı antijeni)",
+   "rank": null,
+   "recovered": false,
+   "human_pident": 0.0,
+   "miss_cause": "epitope_stage"
+  },
+  {
+   "bug": "mbovis",
+   "acc": "P0A567",
+   "antigen": "CFP-10 (EsxB)",
+   "rank": 27,
+   "recovered": true,
+   "human_pident": 0.0,
+   "miss_cause": null
+  },
+  {
+   "bug": "mbovis",
+   "acc": "P0C2T2",
+   "antigen": "Ag85B (FbpB, mikolil transferaz)",
+   "rank": 1,
+   "recovered": true,
+   "human_pident": 0.0,
+   "miss_cause": null
+  },
+  {
+   "bug": "mbovis",
+   "acc": "P0A5Q5",
+   "antigen": "MPB64 (immunojenik protein, M.bovis MPT64 homoloğu)",
+   "rank": 202,
+   "recovered": true,
+   "human_pident": 0.0,
+   "miss_cause": null
+  },
+  {
+   "bug": "mbovis",
+   "acc": "P0A5B8",
+   "antigen": "HspX/Acr (alfa-kristalin, 16 kDa)",
+   "rank": 114,
+   "recovered": true,
+   "human_pident": 0.0,
+   "miss_cause": null
+  },
+  {
+   "bug": "menb",
+   "acc": "Q9JXV4",
+   "antigen": "fHbp",
+   "rank": 2,
+   "recovered": true,
+   "human_pident": 0.0,
+   "miss_cause": null
+  },
+  {
+   "bug": "menb",
+   "acc": "Q9JXK7",
+   "antigen": "NadA",
+   "rank": 4,
+   "recovered": true,
+   "human_pident": 0.0,
+   "miss_cause": null
+  },
+  {
+   "bug": "menb",
+   "acc": "Q7DD37",
+   "antigen": "NHBA(VFDB-)",
+   "rank": 3,
+   "recovered": true,
+   "human_pident": 0.0,
+   "miss_cause": null
+  },
+  {
+   "bug": "menb",
+   "acc": "P0DH58",
+   "antigen": "PorA",
+   "rank": 1,
+   "recovered": true,
+   "human_pident": 0.0,
+   "miss_cause": null
+  },
+  {
+   "bug": "salmonella",
+   "acc": "P37592",
+   "antigen": "OmpD (outer membrane porin D)",
+   "rank": 63,
+   "recovered": true,
+   "human_pident": 0.0,
+   "miss_cause": null
+  },
+  {
+   "bug": "salmonella",
+   "acc": "P0A263",
+   "antigen": "OmpC (outer membrane porin C)",
+   "rank": 51,
+   "recovered": true,
+   "human_pident": 0.0,
+   "miss_cause": null
+  },
+  {
+   "bug": "salmonella",
+   "acc": "P06179",
+   "antigen": "FliC (phase-1 flagellin)",
+   "rank": 8,
+   "recovered": true,
+   "human_pident": 0.0,
+   "miss_cause": null
+  },
+  {
+   "bug": "salmonella",
+   "acc": "Q7BVH7",
+   "antigen": "SseB (SPI-2 secreted effector/translocon)",
+   "rank": 12,
+   "recovered": true,
+   "human_pident": 0.0,
+   "miss_cause": null
+  },
+  {
+   "bug": "salmonella",
+   "acc": "P02936",
+   "antigen": "OmpA (outer membrane protein A)",
+   "rank": 20,
+   "recovered": true,
+   "human_pident": 0.0,
+   "miss_cause": null
+  },
+  {
+   "bug": "saureus",
+   "acc": "Q2FZF0",
+   "antigen": "IsdB (iron-regulated surface determinant B)",
+   "rank": 4,
+   "recovered": true,
+   "human_pident": 0.0,
+   "miss_cause": null
+  },
+  {
+   "bug": "saureus",
+   "acc": "Q2G015",
+   "antigen": "ClfA (clumping factor A)",
+   "rank": 23,
+   "recovered": true,
+   "human_pident": 0.0,
+   "miss_cause": null
+  },
+  {
+   "bug": "saureus",
+   "acc": "Q2G1X0",
+   "antigen": "Hla (alpha-hemolysin)",
+   "rank": 9,
+   "recovered": true,
+   "human_pident": 0.0,
+   "miss_cause": null
+  },
+  {
+   "bug": "saureus",
+   "acc": "Q2FZE9",
+   "antigen": "IsdA (iron-regulated surface determinant A)",
+   "rank": 10,
+   "recovered": true,
+   "human_pident": 0.0,
+   "miss_cause": null
+  },
+  {
+   "bug": "saureus",
+   "acc": "P02976",
+   "antigen": "SpA (immunoglobulin G-binding protein A)",
+   "rank": 8,
+   "recovered": true,
+   "human_pident": 0.0,
+   "miss_cause": null
+  },
+  {
+   "bug": "ssuis",
+   "acc": "A0A0H3MU02",
+   "antigen": "Suilysin SLY (thiol-activated sitolizin)",
+   "rank": 6,
+   "recovered": true,
+   "human_pident": 0.0,
+   "miss_cause": null
+  },
+  {
+   "bug": "ssuis",
+   "acc": "A0A0H3N5B2",
+   "antigen": "Enolaz (yüzey adezini/plazminojen bağlayan)",
+   "rank": null,
+   "recovered": false,
+   "human_pident": 49.8,
+   "miss_cause": "self_homology"
+  },
+  {
+   "bug": "ssuis",
+   "acc": "A0A0H3MSV3",
+   "antigen": "GAPDH (plr/gapA, yüzey)",
+   "rank": null,
+   "recovered": false,
+   "human_pident": 43.9,
+   "miss_cause": "self_homology"
+  },
+  {
+   "bug": "ssuis",
+   "acc": "A0A0H3N193",
+   "antigen": "6-fosfoglukonat dehidrogenaz (gnd)",
+   "rank": null,
+   "recovered": false,
+   "human_pident": 52.3,
+   "miss_cause": "self_homology"
+  },
+  {
+   "bug": "ssuis",
+   "acc": "A0A0H3MXM0",
+   "antigen": "DnaJ (şaperon, immunojenik)",
+   "rank": null,
+   "recovered": false,
+   "human_pident": 37.0,
+   "miss_cause": "self_homology"
+  }
+ ]
+}
