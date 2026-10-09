@@ -41,7 +41,13 @@ tools:
           bacteria: [extracellular, outer_membrane, cell_wall, periplasm]
           virus:    [surface, envelope, membrane]
           parasite: [extracellular, plasma_membrane, secreted, gpi_anchored]
-        desc: "Kabul edilen lokalizasyonlar (dışındakiler elenir)"
+        desc: "Kabul edilen lokalizasyonlar (dışındakiler elenir). Bakteri listesi Gram-NEGATİF mimariye göredir."
+      allowed_gram_positive:
+        default:
+          bacteria: [extracellular, cell_wall, membrane]
+          virus:    [surface, envelope, membrane]
+          parasite: [extracellular, plasma_membrane, secreted, gpi_anchored]
+        desc: "Gram-POZİTİF bakteride kabul edilen lokalizasyonlar. Gram(+)'de dış zar yoktur; sitoplazmik zar hücrenin dış sınırıdır ve yüzeye çıkan proteinler PSORTb'de 'Cytoplasmic Membrane' (→ membrane) etiketi alır. Gömülü çok-sarmallı proteinleri transmembrane.max_helices ayıklamaya devam eder."
 
   signal_peptide:
     step: antigen_funnel

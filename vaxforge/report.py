@@ -114,7 +114,7 @@ def write_package(outdir: Path, peptides: list[Peptide],
         thr = evaluate.thr_lookup(run_meta)
         tool_rows = []
         for i, p in enumerate(peptides, 1):
-            for r in evaluate.candidate_rows(p, thr):
+            for r in evaluate.candidate_rows(p, thr, gram=run_meta.get("gram")):
                 tool_rows.append({
                     "#": i, "peptit": p.seq, "tip": p.kind, "adaylık": p.candidacy,
                     "araç": r["tool"], "sonuç": r["value"], "eşik": r["cutoff"],

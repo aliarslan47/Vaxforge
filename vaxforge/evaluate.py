@@ -133,7 +133,7 @@ def type_tables(peptides, meta: dict, top_n: int = 15) -> dict:
     return tables
 
 
-def candidate_rows(p, thr: dict) -> list[dict]:
+def candidate_rows(p, thr: dict, gram: str | None = None) -> list[dict]:
     """Bir aday için sıralı araç-sonuç satırları (pipeline sırasıyla)."""
     m = p.metrics
     rows: list[dict] = []
@@ -144,7 +144,10 @@ def candidate_rows(p, thr: dict) -> list[dict]:
     # ---- Kaynak protein: funnel araçları -----------------------------------
     loc = m.get("localization")
     if loc is not None:
+        # Gram-duyarlı: Gram(+)'de 'membrane' meşru yüzey etiketidir (bkz. funnel.run).
         allowed = gv("localization", "allowed") or []
+        if gram == "positive":
+            allowed = gv("localization", "allowed_gram_positive") or allowed
         st = PASS if loc in allowed else (FAIL if allowed else NA)
         rows.append(_row("Hücre-altı lokalizasyon (DeepLoc)", loc,
                          f"∈ {{{', '.join(allowed)}}}" if allowed else "—",

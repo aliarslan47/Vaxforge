@@ -117,7 +117,16 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
     # virüste DeepLoc YUMUŞAK (virionlar için güvenilmez → sadece etiketle).
     deeploc_ok = profile in ("parasite", "virus") and deeploc.available()
     loc_hard = profile == "bacteria" or (profile == "parasite" and deeploc_ok)
-    loc_allowed = set(tools["localization"].params["allowed"].value)
+    # Gram-duyarlı izinli liste. Gram(+)'de dış zar yoktur: yüzeye çıkan proteinler
+    # PSORTb'de 'Cytoplasmic Membrane' (→ 'membrane') alır ve Gram-negatif mantığıyla
+    # yazılmış liste bunları eler (CapB/B. anthracis ve ActA/L. monocytogenes vakaları;
+    # ikisi de membrane skor 10.0, TM=1). Gömülü çok-sarmallıları max_helices ayıklar.
+    _loc_key = "allowed"
+    if profile == "bacteria" and gram == "positive":
+        _gp = tools["localization"].params.get("allowed_gram_positive")
+        if _gp and _gp.value:
+            _loc_key = "allowed_gram_positive"
+    loc_allowed = set(tools["localization"].params[_loc_key].value)
     max_tm = int(tools["transmembrane"].params["max_helices"].value)
     vaxijen_thr = float(tools["antigenicity_vaxijen"].params["threshold"].value)
     sp_min = float(tools["signal_peptide"].params["min_probability"].value)

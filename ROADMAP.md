@@ -112,3 +112,54 @@ vaxijen, strain_fetch, host_db (+ mimicry/immforge_score genişletildi).
 - **UI NOTU**: klinik-not kartı + risk rozetleri kullanıcı isteğiyle KALDIRILDI (bileşen `results.tsx`'te
   duruyor, veri backend'de duruyor; geri açmak tek satır). Panelde sadece I:x·II:y + tooltip kaldı.
 - `tests/test_modules.py`: hla_disease birim testi (12/12 yeşil). Plan: ~/.claude/plans/delegated-painting-liskov.md
+
+## 2026-10-10 — Makale yeniden tasarımı (Nature kalıbı) + Gram(+) lokalizasyon düzeltmesi
+
+**Gerekçe (kullanıcı):** benchmark makalesinin yazımı acemi bulundu → hedef-dergi makaleleri
+okunup sıfırdan yeniden tasarlanacak. Okunanlar: PLGDL (Zai 2025, *Nat Commun*,
+10.1038/s41467-025-67778-2, tam metin), NERVE 2.0 (Conte 2024, 10.1186/s12859-024-06004-0,
+tam metin), Vaxign-ML (Ong 2020), Vaxign-DL+ESM (Chen 2024 ön baskı), betimleyicisiz ESM-2
+(Podda 2025, 10.1371/journal.pone.0323895). Tüm DOI'ler PubMed'den doğrulandı.
+
+**Yapısal yeniden tasarım** (`MANUSCRIPT.md` + `MANUSCRIPT_TR.md`, docx'ler yeniden üretildi):
+- Nature-ailesi sırası: Giriş → **Sonuçlar** → Tartışma → **Yöntemler** (Yöntemler artık sonda).
+  Eski sıra Yöntemler'i öne koyuyordu; "acemi" duran en belirgin şey buydu.
+- Özet 450+ kelimelik veri dökümünden ~215 kelimeye indirildi, tek tezli.
+- Sonuçlar'dan Yöntemler'i tekrarlayan "The VaxForge pipeline" paragrafı yetenek yüzeyine
+  (Tablo 1) bağlanan kısa bir mimari paragrafına dönüştü.
+- Ek materyal ayrı bölüme çekildi (Tablo S1/S2, Şekil S1/S2); Şekil 5'in Şekil 7'den sonra
+  geldiği sıra bozukluğu giderildi (eski fig5 → Ek Şekil 2). Şekil dosya eşlemesi başlıkta.
+- **YENİ ana sonuç bölümü:** kaçan-antijen atfı (Tablo 4) artık dipnot değil merkezî argüman.
+  Tartışma'da tasarım tercihi olarak savunuluyor (PLGDL'in "deliberate methodological choice"
+  retoriği), HSP60 moleküler mimikri atıflarıyla (Matsuura 2009, Lucchese & Flöel 2020) +
+  üç dürüstlük kaydı (eşik parametre tercihi / homoloji ≠ patoloji / moonlighting hedefte yükümlülük).
+- **Yeni nesil konumlandırma eklendi:** protein-dil-modeli sınıflandırıcıları (Vaxign-DL, PLGDL,
+  Podda) farklı soruyu yanıtlıyor → rakip değil, huninin skorlama aşamasının yerine geçecek
+  tamamlayıcı. 2026 gönderiminin yalnız 2020 sınıflandırıcısıyla kıyaslanması açığı kapandı.
+- NERVE 2.0 ile yakınsama argümanı: kendi kıyasında Vaxign-ML'i fold 1,58 ile zayıf buluyor,
+  biz aynı ödünleşmeyi ters uçtan gözlüyoruz; ayrıca NERVE'in ground-truth seti sitozolik/
+  bilinmeyen-lokalizasyon antijenlerini dışlamış, bizimki dışlamıyor → recall'ımız ihtiyatlı.
+- Limitations açık ve tam (Gram(+) açığı kusur olarak, PSORTb LigA, epitop eşiği, ActA,
+  toksisite filtresi, AUC küçük-örneklem, CPU ölçek, deneysel doğrulama yok).
+
+**Okuma sırasında bulunan 3 METİN HATASI düzeltildi** (atıf analizi 2026-10-04 ile çelişiyordu):
+1. *C. burnetii*/*S. suis* kayıpları "lokalizasyon filtresi" diye yazılmıştı → gerçekte 6 antijen
+   **konak-homoloji** filtresinden düşüyor (Fisher p=3,8e-05).
+2. L7/L12 "lokalizasyon eliyor" yazılmıştı → üç sert filtreyi geçip **epitop aşamasında** kayboluyor
+   (Brucella aşı-suşu bölümü ve Ek Şekil 1 altyazısı da düzeltildi).
+3. ActA "zor hedef" diye geçiştirilmişti → **Gram(+) yapılandırma açığı**.
+
+**Kod düzeltmesi — Gram-duyarlı lokalizasyon:**
+- `config/thresholds.yaml`: `localization.allowed_gram_positive = [extracellular, cell_wall, membrane]`.
+- `vaxforge/funnel.py`: `profile == "bacteria" and gram == "positive"` → bu listeyi seçer.
+- `vaxforge/evaluate.py`: `candidate_rows(..., gram=...)` → rapor da gram-duyarlı
+  (`vaxforge/report.py` çağrısı güncellendi). `vaxforge/psortb.py` bayat yorumları düzeltildi.
+- Özgüllük güvencesi: `transmembrane.max_helices` gömülü çok-sarmallıları ayıklamaya devam eder;
+  `cytoplasm` hiçbir Gram tipinde kabul edilmez.
+- Test: `tests/test_modules.py::test_localization_allowed_is_gram_aware`. **15/15 yeşil**
+  (13 modül + 2 smoke, uçtan uca pipeline dahil, 241 s).
+
+**KALAN:** Gram(+) dalının yeniden koşulması — yalnız 5 tür (saureus/listeria/ssuis/mbovis/
+banthracis); Gram(−) 5 tür etkilenmiyor. Beklenti: CapB + ActA geri gelir → 37/48 → 39/48,
+Gram(+) türlerde fold bir miktar düşer. Makale bu nedenle recall'ı açıkça "taban" olarak
+çerçeveliyor, yani metin yeniden koşumdan önce de tutarlı.

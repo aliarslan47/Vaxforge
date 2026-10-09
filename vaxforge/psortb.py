@@ -23,13 +23,16 @@ from pathlib import Path
 IMAGE = "docker.io/brinkmanlab/psortb_commandline:1.0.2"
 
 # PSORTb 'Final_Localization' -> config bakteri lokalizasyon sözlüğü.
-# config allowed(bacteria) = [extracellular, outer_membrane, cell_wall, periplasm]
+# config allowed(bacteria, Gram−) = [extracellular, outer_membrane, cell_wall, periplasm]
+# config allowed_gram_positive(bacteria, Gram+) = [extracellular, cell_wall, membrane]
 _LOC_MAP = {
     "extracellular": "extracellular",
     "outermembrane": "outer_membrane",
     "cellwall": "cell_wall",
     "periplasmic": "periplasm",
-    "cytoplasmicmembrane": "membrane",   # iç membran — bakteri allowed'da yok → elenir
+    # Gram−'de iç membran (allowed'da yok → elenir); Gram+'da hücrenin DIŞ sınırıdır
+    # ve yüzeye çıkan proteinler bu etiketi alır → allowed_gram_positive'de kabul edilir.
+    "cytoplasmicmembrane": "membrane",
     "cytoplasmic": "cytoplasm",          # elenir
     "unknown": "unknown",                # PSORTb belirsiz → funnel gate'i 'atlar' (elemez)
 }

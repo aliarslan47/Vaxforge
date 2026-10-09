@@ -152,3 +152,41 @@ def test_hla_disease_annotation():
     assert hd.annotate("HLA-A*99:99") == []
     s = hd.summarize(["HLA-B*57:01", "HLA-B*53:01", "HLA-A*99:99"])
     assert s["n_adverse"] == 1 and s["n_protective"] == 1 and len(s["entries"]) == 2
+
+
+def test_localization_allowed_is_gram_aware():
+    """Gram(+) bakteride PSORTb 'membrane' (sitoplazmik zar) meşru yüzey etiketidir.
+
+    Gram-negatif mantığıyla yazılmış izinli liste CapB (B. anthracis) ve ActA
+    (L. monocytogenes) gibi gerçek yüzey antijenlerini eliyordu (ikisi de membrane
+    skor 10.0, TM=1). Bkz. benchmark/MISS_ATTRIBUTION.md §2.
+    """
+    from vaxforge.config_loader import ThresholdConfig
+    from vaxforge import psortb
+
+    cfg = ThresholdConfig.load()
+    assert cfg.validate() == [], "config yapısal olarak temiz olmalı"
+
+    params = cfg.resolve("bacteria")["localization"].params
+    gram_neg = set(params["allowed"].value)
+    gram_pos = set(params["allowed_gram_positive"].value)
+
+    # PSORTb 'Cytoplasmic Membrane' -> 'membrane' eşlemesi korunuyor
+    assert psortb._LOC_MAP["cytoplasmicmembrane"] == "membrane"
+
+    # asıl regresyon: Gram+ listesi 'membrane'i kabul eder, Gram− listesi etmez
+    assert "membrane" in gram_pos, "Gram(+) yüzey antijenleri elenmemeli"
+    assert "membrane" not in gram_neg, "Gram(−)'de iç membran elenmeye devam etmeli"
+
+    # Gram+'da anlamsız bölmeler listede olmamalı (dış zar / periplazma yok)
+    assert "outer_membrane" not in gram_pos and "periplasm" not in gram_pos
+
+    # sitoplazma hiçbir Gram tipinde kabul edilmez (güvenlik/özgüllük korunuyor)
+    assert "cytoplasm" not in gram_neg and "cytoplasm" not in gram_pos
+
+    # funnel gerçekten gram'a göre listeyi seçiyor mu (imza/akış kontrolü)
+    import inspect
+    from vaxforge import funnel
+    src = inspect.getsource(funnel.run)
+    assert "allowed_gram_positive" in src, "funnel.run gram-duyarlı listeyi seçmeli"
+    assert "gram" in inspect.signature(funnel.run).parameters

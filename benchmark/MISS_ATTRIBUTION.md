@@ -59,8 +59,21 @@ etiketi alır. CapB ve ActA tam bu yüzden eleniyor (ikisi de Gram(+), ikisi de 
 TM=1). Bakteri listesi Gram-negatif mantığıyla yazılmış; Gram-pozitife uygulandığında meşru yüzey
 antijenlerini kesiyor.
 
-Bu, 1. maddeden farklı olarak savunulabilir bir tasarım tercihi değil, **tutarsızlık**. Düzeltmek
-Gram'a göre izinli liste ayırmayı gerektirir ve 10 bakterinin tamamının yeniden koşulması demektir.
+Bu, 1. maddeden farklı olarak savunulabilir bir tasarım tercihi değil, **tutarsızlık**.
+
+**DÜZELTİLDİ (2026-10-10).** `config/thresholds.yaml`'a `localization.allowed_gram_positive`
+eklendi (`[extracellular, cell_wall, membrane]`); `funnel.run` artık `profile == "bacteria" and
+gram == "positive"` olduğunda bu listeyi seçiyor (`evaluate.candidate_rows` rapor tarafında da
+gram-duyarlı). Gömülü çok-sarmallı proteinleri `transmembrane.max_helices` ayıklamaya devam
+ediyor, yani özgüllük güvencesi korunuyor. Regresyon testi:
+`tests/test_modules.py::test_localization_allowed_is_gram_aware`.
+
+**Yeniden koşum kapsamı — düzeltme:** burada başlangıçta "10 bakterinin tamamı" yazılmıştı, bu
+yanlıştı. İzinli liste yalnız Gram-pozitif dalda değişti, dolayısıyla etkilenen **5 tür**:
+`saureus`, `listeria`, `ssuis`, `mbovis`, `banthracis`. Beş Gram-negatif tür (`coxiella`,
+`brucella`, `salmonella`, `leptospira` + Brucella aşı suşları) bit-bit aynı sonucu verir.
+Beklenen etki: CapB ve ActA geri gelirse recall 37/48 → 39/48; Gram(+) türlerde aday sayısı
+artacağı için fold-zenginleşme bir miktar düşecektir (ödünleşmenin ölçülmesi gereken tarafı).
 
 ## 3. PSORTb yanlış ataması, 1/11
 
