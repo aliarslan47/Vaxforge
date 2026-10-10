@@ -71,6 +71,13 @@ def score(peptides: list[Peptide], weights: dict[str, float]) -> list[Peptide]:
         if p.metrics.get("self_mimicry"):
             val *= 0.9
             p.notes.append("moleküler mimikri (konak self eşleşme) → skor ×0.9")
+        # Toksisite: aynı mantıkta yumuşak ceza. Katsayı survival.run'da
+        # config'ten (toxicity.toxicity_penalty) okunup metriğe yazılır; epitop
+        # düzeyinde ELEME YOK, bkz. survival.py modül açıklaması.
+        tox_factor = p.metrics.get("toxicity_penalty_factor")
+        if tox_factor:
+            val *= float(tox_factor)
+            p.notes.append(f"toksik işaretli (ToxinPred3) → skor ×{tox_factor}")
         p.candidacy = round(val, 4)
         p.metrics["score_components"] = comp
     peptides.sort(key=lambda x: x.candidacy, reverse=True)

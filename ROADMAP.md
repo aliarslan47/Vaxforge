@@ -163,3 +163,71 @@ tam metin), Vaxign-ML (Ong 2020), Vaxign-DL+ESM (Chen 2024 ön baskı), betimley
 banthracis); Gram(−) 5 tür etkilenmiyor. Beklenti: CapB + ActA geri gelir → 37/48 → 39/48,
 Gram(+) türlerde fold bir miktar düşer. Makale bu nedenle recall'ı açıkça "taban" olarak
 çerçeveliyor, yani metin yeniden koşumdan önce de tutarlı.
+
+## 2026-10-10 (II) — Filtre kalibrasyonu: toksisite kapısı yanlış uzunluk sınıfında kullanılıyordu
+
+**Tetikleyici.** Gram(+) düzeltmesinden sonra ActA huniyi geçmeye başladı ama yine
+"aday peptit üretmedi" durumunda kaldı; listeria'da LLO da kayboldu. Epitop
+aşamasındaki süzmeyi ölçtük.
+
+**Bulgu.** Toksisite kapısı ToxinPred2 Model 2 (hibrit, eşik 0.6) ile çalışıyordu.
+Bağımsız kontrol setlerinde (n=1000): insan Swiss-Prot self 9-mer'lerinin **%75.2**'si,
+deneysel **doğrulanmış** IEDB 9-mer epitoplarının **%63.1**'i "toksik" işaretlendi.
+Influenza M1(58-66) **GILGFVFTL** (ml_score 0.663) dahil. Aynı araç TAM PROTEİNDE
+%94.3 duyarlılık / %4.7 yanlış-pozitif veriyor. Sorun araç değil **uzunluk sınıfı**:
+ToxinPred2 "toxicity of *proteins*" için eğitilmiştir, AAC özellikleri 9-mer'de
+bilgi taşımaz. Epitop aşaması pratikte rastgele bir 4'te-3 kırımıydı; az epitop
+üreten proteinler (ESAT-6, L7/L12, ActA, LLO) bu yüzden tümüyle kayboluyordu.
+
+**Düzeltme.**
+- `vaxforge/toxinpred3.py` (YENİ): ToxinPred3 sarmalayıcı (Rathore 2024,
+  doi:10.1016/j.compbiomed.2024.108926) — peptit düzeyi için eğitilmiş.
+  `scripts/convert_toxinpred3_model.py` ile sklearn köprüsü (IFNepitope2 ile aynı
+  yamalı unpickler); upstream'in tek-dizi girdide çöken AAC/DPC birleştirmesi
+  sarmalayıcıda kukla dizi ile aşıldı.
+- `config/thresholds.yaml` → `toxicity.hard_filter: false`; yeni paramlar
+  `hard_discard_score` (yüksek-güven eleme) ve `toxicity_penalty` (×0.9).
+- `vaxforge/survival.py` yeniden yazıldı: epitopta ToxinPred3 **işaretler**,
+  elemez; ToxinPred2'ye DÜŞMEZ. Gerçek araç yoksa kapı ATLANIR — eskiden
+  demonstrasyon sezgiselleri (kompozisyon vekilleri) sessizce sert filtre gibi
+  davranıp özellikle hidrofobik MHC-I bağlayıcılarını eliyordu.
+- `vaxforge/scoring.py`: `toxicity_penalty_factor` yumuşak cezası (mimikriyle aynı desen).
+- `vaxforge/mev.py`: konstruktta sert toksisite elemesi ToxinPred2 hibritle KALIYOR
+  (orada kalibre). Alerjenite konstruktta artık FAO/WHO **birincil** ölçütüyle
+  (80 aa pencerede ≥%35 kimlik, diamond → `allergen.predict_protein`): 6-mer kuralı
+  tam proteinde rastgele non-alerjen proteinlerin 8/8'ini işaretliyordu, yeni ölçüt
+  0/8 işaretliyor ve gerçek alerjenleri %100 kimlikle yakalıyor.
+- `vaxforge/pipeline.py`: sağ kalım özeti tümüyle `meta["survival"]`e yazılıyor.
+  (`n_epitope` ÜRETİLEN peptit sayısıdır; eleme yalnız bağlanma eşiğini geçenlere
+  uygulanır — ikisi karıştırılınca alerjenite kapısı olduğundan agresif görünüyordu.)
+
+**Kalıcı düzenek.** `benchmark/calibrate_filters.py` + `write_calibration_md.py`:
+her kapıyı insan self k-mer'leri, doğrulanmış IEDB epitopları ve uzunluk-eşli
+protein setlerinde tarar; `results/filter_calibration.json` + `FILTER_CALIBRATION.md`.
+Testler: `test_toxicity_gate_is_soft_and_length_appropriate`,
+`test_allergen_criterion_matches_sequence_length`. 15/15 modül testi yeşil.
+
+**Kayıt düzeltmesi.** `MISS_ATTRIBUTION.md`'deki "mühendislik hatası yok" sonucu
+geri alındı; 4. kategori (2 kayıp) + ActA + LLO bu kalibrasyon hatasına atfedildi.
+
+**Durdurulan iş.** Gram(+) yeniden koşumu (ssuis, listeria bitmişti; saureus
+yarıda) kullanıcı talimatıyla DURDURULDU — bozuk toksisite kapısıyla üretilen
+sayıların değeri yoktu. Yeniden koşum kalibre edilmiş kapıyla, tek kod sürümünde
+10 türün tamamı için yapılacak.
+
+**Kayıt notu.** Yarım kalan Gram(+) koşumunun yazdığı sonuç dosyaları
+(`results/{listeria,ssuis}*`) geri alındı: bozuk toksisite kapısıyla üretildiler ve
+kalan 8 tür eski kodla kaldığı için kıyas tablosunu iç tutarsız yapıyorlardı.
+Depodaki kıyas verisi şimdilik tümüyle düzeltme-öncesi; yeniden koşum kalibre edilmiş
+kapıyla tek kod sürümünde yapılacak. (Ölçülen ham değerler kayıt için: ssuis
+aday 288→422, recall 1/5 değişmedi, fold 1.34→0.91; listeria aday 478→538,
+recall 4/5→3/5 — ActA huniyi geçti ama toksisite kapısında kaldı, LLO da aynı kapıda.)
+
+**Örnek veri doğrulaması (2026-10-10).** `benchmark/demo_toxicity_gate.py` örnek
+proteom koşusunun nihai aday listesi (26 peptit) üzerinde iki kapıyı yan yana
+değerlendirir. Eski kapı (ToxinPred2 Model 2 hibrit, t=0.6, sert) bu adayların
+16'sını (%61.5) elerdi; yeni kapı (ToxinPred3 ExtraTrees, işaretleme ≥0.6, eleme
+≥0.85) hiçbirini işaretlemedi. Aynı koşunun sağ kalım özeti: 51 girdi peptit →
+51 peptit (0 alerjen elenen, 0 toksik işaretlenen). Veri:
+`benchmark/results/demo_toxicity_gate.json`. Betik `--run-json` ile var olan bir
+koşu üzerinden tekrar koşulabilir (pipeline'ı yeniden çalıştırmaz).

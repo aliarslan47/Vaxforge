@@ -84,7 +84,10 @@ def type_tables(peptides, meta: dict, top_n: int = 15) -> dict:
     """
     thr = thr_lookup(meta)
     ag_thr = _num(thr.get(("antigenicity_vaxijen", "threshold"), (0.4,))[0]) or 0.4
-    tox_max = _num(thr.get(("toxicity", "max_toxicity_score"), (0.6,))[0]) or 0.6
+    # NOT: toksisite artık epitop düzeyinde SERT filtre değil (bkz. survival.py);
+    # max_toxicity_score bir İŞARETLEME eşiğidir. Sütun "toksik işaretli mi"yi
+    # gösterir, "elendi mi"yi değil.
+    tox_max = _num(thr.get(("toxicity", "max_toxicity_score"), (0.38,))[0]) or 0.38
 
     def antigenic(p):
         a = _num(p.metrics.get("parent_antigenicity"))
@@ -261,10 +264,21 @@ def candidate_rows(p, thr: dict, gram: str | None = None) -> list[dict]:
                          "non-alerjen", FAIL if is_alg else PASS,
                          p.methods.get("allergen", ""), hard=True))
     if m.get("toxicity") is not None:
-        v = _num(m.get("toxicity")); c = _num(gv("toxicity", "max_toxicity_score"))
-        st = (PASS if v <= c else FAIL) if (v is not None and c is not None) else NA
-        rows.append(_row("Toksisite (ToxinPred2)", v, f"≤ {c}", st,
-                         p.methods.get("toxicity", ""), hard=True))
+        # YUMUŞAK: işaretleme eşiği üstü elenmez, skoru ×toxicity_penalty olur;
+        # eleme yalnız hard_discard_score üstünde. Kalibrasyon gerekçesi:
+        # benchmark/FILTER_CALIBRATION.md
+        v = _num(m.get("toxicity"))
+        c = _num(gv("toxicity", "max_toxicity_score"))
+        hc = _num(gv("toxicity", "hard_discard_score"))
+        if v is None or c is None:
+            st = NA
+        elif hc is not None and v >= hc:
+            st = FAIL
+        else:
+            st = PASS
+        want = f"< {c} (işaret)" + (f" · eleme ≥ {hc}" if hc is not None else "")
+        rows.append(_row("Toksisite (ToxinPred3, yumuşak)", v, want, st,
+                         p.methods.get("toxicity", ""), hard=False))
     # Moleküler mimikri (YUMUŞAK — elemez; otoimmünite uyarısı + skor ×0.9)
     if "self_mimicry" in m:
         sm = bool(m.get("self_mimicry"))

@@ -37,3 +37,16 @@ data/validation/*_prepared.faa
 data/validation/*_prepared_vaxign.faa
 data/validation/*_vaxign.faa
 data/validation/*_smoke.faa
+
+# ToxinPred2/3 betiklerinin çalışma dizinine bıraktığı ara dosyalar
+Sequence_1
+seq.aac
+seq.dpc
+seq.pred
+seq.out
+outfile.csv
+merci*.csv
+merci.txt
+blast_hybrid.csv
+final_output
+RES_*.out

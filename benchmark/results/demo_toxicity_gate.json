@@ -1,0 +1,34 @@
+{
+ "input": "outputs/demo_toxicity_gate/run_2026-10-10T11-01-31/run.json",
+ "n_candidates": 26,
+ "note": "peptit seti = koşunun NİHAİ aday listesi; 'eski kapı' sayısı, ToxinPred2'nin sert uygulanması halinde kaybedilecek nihai aşı adaylarını gösterir",
+ "survival_summary": {
+  "girdi_peptit": 51,
+  "alerjenite_sonrasi": 51,
+  "alerjen_elenen": 0,
+  "toksisite_sonrasi": 51,
+  "toksik_isaretlenen": 0,
+  "toksik_elenen": 0,
+  "alerjenite": "GERÇEK (FAO/WHO 6-mer)",
+  "toksisite": "GERÇEK (ToxinPred3 ExtraTrees, peptit düzeyi)",
+  "toksisite_modu": "yumuşak işaretleme ≥0.6, eleme ≥0.85",
+  "toksisite_kalibrasyon": "benchmark/results/filter_calibration.json"
+ },
+ "old_gate": {
+  "engine": "ToxinPred2 hibrit",
+  "threshold": 0.6,
+  "mode": "sert",
+  "eliminated": 16,
+  "eliminated_pct": 61.5
+ },
+ "new_gate": {
+  "engine": "ToxinPred3 ET",
+  "soft_threshold": 0.6,
+  "hard_threshold": 0.85,
+  "mode": "yumuşak + yüksek-güven eleme",
+  "flagged": 0,
+  "flagged_pct": 0.0,
+  "eliminated": 0,
+  "eliminated_pct": 0.0
+ }
+}

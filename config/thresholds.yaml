@@ -156,19 +156,31 @@ tools:
   # --- 5) Sağ kalım elemesi ---------------------------------------------------
   allergenicity:
     step: survival
-    engine: "AllerTOP / AllergenFP"
-    description: "Alerjen tahmini; alerjen adaylar elenir. Sert filtre."
+    engine: "FAO/WHO 6-mer (UniProt alerjen DB)"
+    description: "Alerjen tahmini; alerjen adaylar elenir. Sert filtre. KALİBRASYON (2026-10-10, benchmark/calibrate_filters.py): 9-mer'de yanlış-pozitif ~%2-3, 15-mer'de ~%7 → epitop uzunluğunda sert filtre olarak kullanılabilir. UYARI: aynı kural TAM PROTEİNDE non-alerjen proteinlerin ~%95'ini işaretler (6-mer kuralının bilinen özgüllük sorunu) — protein/MEV düzeyine UYGULANMAZ."
     hard_filter: true
     params:
       require_non_allergen: { default: {bacteria: true, virus: true, parasite: true}, desc: "Sadece non-alerjenler geçer" }
 
   toxicity:
     step: survival
-    engine: "ToxinPred"
-    description: "Toksisite tahmini; toksik peptitler elenir. Sert filtre."
-    hard_filter: true
+    engine: "ToxinPred3 (peptit düzeyi) / ToxinPred2 (protein + MEV düzeyi)"
+    description: >-
+      Toksisite tahmini. EPİTOP DÜZEYİNDE YUMUŞAK: tek bir 9-mer'in toksisitesi
+      için altın standart yoktur (toksisite katlanmış proteinin işlevidir), bu
+      yüzden işaretleme skora yansıtılır, eleme yalnız yüksek-güven eşiğinin
+      üstünde yapılır. Sert eleme araçların kendi uzunluk sınıfında, yani protein
+      ve nihai MEV konstruktu düzeyinde korunur (mev.py, ToxinPred2 hibrit).
+      KALİBRASYON (2026-10-10): ToxinPred2 Model 2 ile 0.6 eşiği 9-mer'lerde insan
+      self peptitlerinin %74'ünü, doğrulanmış IEDB epitoplarının %78'ini "toksik"
+      işaretliyordu (influenza M1 58-66 GILGFVFTL dahil) — epitop aşaması rastgele
+      bir 4'te-3 kırımına dönüşmüştü. ToxinPred3 ExtraTrees peptit düzeyi için
+      eğitilmiştir ve aynı setlerde yanlış-pozitif oranı eşik 0.7'de ~%2-4'e düşer.
+    hard_filter: false
     params:
-      max_toxicity_score: { default: {bacteria: 0.6, virus: 0.6, parasite: 0.6}, range: [0.0, 1.0], desc: "Bu skorun ÜSTÜ toksik -> elenir (ToxinPred2 ML skoru; araç iç kesimi 0.6)" }
+      max_toxicity_score: { default: {bacteria: 0.6, virus: 0.6, parasite: 0.6}, range: [0.0, 1.0], desc: "YUMUŞAK işaretleme eşiği. Üstü 'toksik işaretli' sayılır, ELENMEZ; adaylık puanı toxicity_penalty ile çarpılır. 0.6, eşik taramasında doğrulanmış IEDB epitoplarında yanlış-pozitifi ≤%5'e indiren değerdir (9-mer %4.5, 15-mer %4.9). Yazar varsayılanı 0.38 genel peptit-ilaç taraması içindir; orada yanlış işaretleme ucuz, bizde doğrulanmış epitopların %22'sini cezalandırıyordu." }
+      hard_discard_score:  { default: {bacteria: 0.85, virus: 0.85, parasite: 0.85}, range: [0.0, 1.0], desc: "YÜKSEK-GÜVEN eleme eşiği; yalnız bunun üstü elenir. Eleme geri alınamaz olduğu için ölçüt daha katı: doğrulanmış IEDB epitoplarında yanlış-pozitif ≤%0.5 (9-mer %0.2, 15-mer %0.6), insan self 9-mer %1.8. Bkz. benchmark/FILTER_CALIBRATION.md." }
+      toxicity_penalty:    { default: {bacteria: 0.9, virus: 0.9, parasite: 0.9}, range: [0.1, 1.0], desc: "Toksik işaretli peptidin adaylık puanı bu katsayıyla çarpılır (moleküler mimikri cezasıyla aynı mantık)." }
 
   population_coverage:
     step: survival

@@ -16,6 +16,14 @@ importlib-resources>=5.8
 # (scripts/convert_ifn_models.py referans CLI için kalıcı dönüştürür).
 # ifnepitope2  # --no-deps ile elle kurulur
 #
+# Peptit düzeyi toksisite: ToxinPred3 (AAC+DPC ExtraTrees + MERCI motifleri).
+# KURULUM: pip install toxinpred3  ·  SONRA BİR KEZ:
+#   .venv/bin/python3 scripts/convert_toxinpred3_model.py
+# (model eski sklearn ile pickle'lanmış; dönüştürülmezse 'incompatible dtype'.)
+# Epitop aşamasında ToxinPred2 KULLANILMAZ — tam-protein modeli olduğu için
+# 9-mer'lerde kalibrasyonu geçmedi; bkz. benchmark/FILTER_CALIBRATION.md.
+toxinpred3>=1.4
+#
 # Ağır/harici araçlar (diamond, prodigal, AlphaFold, GROMACS ...) konteyner
 # (podman) veya ayrı GPU makinesinde; buraya dahil değildir.
 python-docx

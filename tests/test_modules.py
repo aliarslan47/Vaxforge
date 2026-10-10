@@ -190,3 +190,63 @@ def test_localization_allowed_is_gram_aware():
     src = inspect.getsource(funnel.run)
     assert "allowed_gram_positive" in src, "funnel.run gram-duyarlı listeyi seçmeli"
     assert "gram" in inspect.signature(funnel.run).parameters
+
+
+def test_toxicity_gate_is_soft_and_length_appropriate():
+    """Toksisite kapısı epitop düzeyinde YUMUŞAK ve peptit-düzeyi araç kullanıyor.
+
+    REGRESYON (2026-10-10): ToxinPred2 (tam-protein modeli) 9-mer'lere sert filtre
+    olarak uygulanıyordu; kalibrasyonda insan self 9-mer'lerinin %75'i ve
+    doğrulanmış IEDB epitoplarının %63'ü "toksik" işaretlendi (influenza M1 58-66
+    GILGFVFTL dahil) → ESAT-6/L7-L12/ActA/LLO "aday peptit üretmedi" durumuna
+    düşüyordu. Bu test o mimarinin geri gelmesini engeller.
+    """
+    import inspect
+    from vaxforge.config_loader import ThresholdConfig
+    from vaxforge import survival
+
+    cfg = ThresholdConfig.load()
+    assert cfg.validate() == []
+
+    tox = cfg.resolve("bacteria")["toxicity"]
+    assert tox.hard_filter is False, "epitop düzeyinde toksisite sert filtre OLMAMALI"
+    assert "hard_discard_score" in tox.params, "yüksek-güven eleme eşiği tanımlı olmalı"
+    assert "toxicity_penalty" in tox.params, "yumuşak ceza katsayısı tanımlı olmalı"
+    soft = float(tox.params["max_toxicity_score"].value)
+    hard = float(tox.params["hard_discard_score"].value)
+    assert soft < hard, "işaretleme eşiği eleme eşiğinin altında olmalı"
+
+    src = inspect.getsource(survival.run)
+    # peptit düzeyinde ToxinPred3; ToxinPred2'ye DÜŞMEK yasak (uzunluk sınıfı yanlış)
+    assert "toxinpred3.predict" in src
+    assert "toxinpred.predict" not in src
+    # gerçek araç yoksa oyuncak sezgisel SERT filtre olarak kullanılmamalı
+    assert "_tox_score" in inspect.getsource(survival), "vekil anotasyon olarak kalmalı"
+    assert "ATLANDI" in src, "araç yoksa kapı atlanmalı (sessizce elemek yok)"
+
+    # scoring yumuşak cezayı uyguluyor mu
+    from vaxforge import scoring
+    assert "toxicity_penalty_factor" in inspect.getsource(scoring.score)
+
+
+def test_allergen_criterion_matches_sequence_length():
+    """Alerjenite ölçütü uzunluk sınıfına göre seçiliyor.
+
+    FAO/WHO 6-mer kuralı kısa peptitlerde özgül (9-mer'de yanlış-pozitif ~%2-3)
+    ama TAM PROTEİNDE rastgele non-alerjen proteinlerin neredeyse tamamını
+    işaretliyor. Bu yüzden MEV konstruktu (bir protein) için Codex/FAO-WHO'nun
+    birincil ölçütü (80 aa pencerede ≥%35 kimlik) kullanılır.
+    """
+    import inspect
+    from vaxforge import allergen, mev
+
+    assert hasattr(allergen, "predict_protein")
+    assert allergen._WINDOW == 80 and allergen._MIN_ID == 35.0
+
+    src = inspect.getsource(mev)
+    assert "allergen.protein_available()" in src
+    assert "predict_protein" in src, "konstrukt protein ölçütüyle değerlendirilmeli"
+
+    # ölçüt uygulanamıyorsa dürüst 'bilinmiyor' (None) döner, False DEĞİL
+    out = allergen.predict_protein("")
+    assert out["allergen"] is None

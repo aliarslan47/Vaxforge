@@ -265,19 +265,31 @@ def characterize(seq: str, cassette: str | None = None) -> dict:
         ag, ag_method = sequtils.antigenicity_proxy(s), "fizikokimyasal proxy"
         ag_flag = ag >= 0.4
 
-    # Alerjenite (FAO/WHO 6-mer)
-    if allergen.available():
+    # Alerjenite — konstrukt bir PROTEİNDİR, dolayısıyla FAO/WHO'nun birincil
+    # ölçütü (80 aa pencerede ≥%35 kimlik) kullanılır. 6-mer kuralı yalnız kısa
+    # peptitlerde özgül: 2026-10-10 kalibrasyonunda rastgele non-alerjen
+    # proteinlerin ~%95'ini (8/8 örnekte) alerjen işaretledi, 80aa/%35 ölçütü ise
+    # aynı proteinlerin hiçbirini işaretlemeyip gerçek alerjenleri yakaladı.
+    if allergen.protein_available():
+        al = allergen.predict_protein(s)
+        allergenic = al.get("allergen")
+        al_method = "FAO/WHO 80aa/%35 kimlik (diamond, protein düzeyi)"
+        al_identity = al.get("identity")
+    elif allergen.available():
         al = allergen.predict([s]).get(s, {})
         allergenic = bool(al.get("allergen"))
-        al_method = "FAO/WHO 6-mer"
+        al_method = "FAO/WHO 6-mer (UYARI: protein düzeyinde düşük özgüllük)"
+        al_identity = None
     else:
-        allergenic, al_method = None, "yok"
+        allergenic, al_method, al_identity = None, "yok", None
 
-    # Toksisite (ToxinPred2)
+    # Toksisite — ToxinPred2 hibrit BURADA doğru araçtır: tam uzunluk protein
+    # üzerinde kalibrasyonda %94 duyarlılık / %4.7 yanlış-pozitif verdi. (Aynı
+    # araç 9-mer epitoplarda kullanılamaz; bkz. survival.py.)
     if toxinpred.available():
         tx = toxinpred.predict([s]).get(s, {})
         toxic = bool(tx.get("toxic"))
-        tx_method = "ToxinPred2"
+        tx_method = "ToxinPred2 hibrit (protein düzeyi; kalibre)"
     else:
         toxic, tx_method = None, "yok"
 
@@ -293,7 +305,8 @@ def characterize(seq: str, cassette: str | None = None) -> dict:
         "gravy": pp.get("gravy"),
         "aromaticity": pp.get("aromaticity"),
         "antigenicity": {"score": ag, "antigenic": ag_flag, "method": ag_method},
-        "allergen": {"allergenic": allergenic, "method": al_method},
+        "allergen": {"allergenic": allergenic, "identity": al_identity,
+                     "method": al_method},
         "toxicity": {"toxic": toxic, "method": tx_method},
         # İçsel düzensizlik (metapredict); araç yoksa None.
         "disorder": (

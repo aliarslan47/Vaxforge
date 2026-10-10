@@ -80,7 +80,50 @@ artacağı için fold-zenginleşme bir miktar düşecektir (ödünleşmenin öl�
 LigA (*Leptospira*) → PSORTb `cytoplasm` skor 9.97. Literatürde bilinen yüzey lipoproteini.
 VaxForge'un değil, üst-aracın hatası; limitasyon olarak raporlanır.
 
-## 4. Epitop/bağlanma aşaması, 2/11
+## 4. Epitop/bağlanma aşaması, 2/11 — **YENİDEN SINIFLANDIRILDI (2026-10-10): KALİBRASYON HATASI**
+
+**Bu bölümün ilk hâli yanlıştı.** "Tahmin düzeyinde meşru ıska" denen şey ölçüldü ve
+mühendislik/kalibrasyon hatası olduğu bulundu. Ölçüm: `benchmark/calibrate_filters.py`
+(sonuç: `results/filter_calibration.json`).
+
+Toksisite kapısı ToxinPred2 Model 2 (hibrit) + eşik 0.6 ile çalışıyordu. Bağımsız
+kontrol setlerinde (n=1000):
+
+| kontrol seti | "toksik" işaretlenen |
+|---|---|
+| insan Swiss-Prot 9-mer (self, toksik değil) | **%75.2** |
+| insan Swiss-Prot 15-mer | %66.3 |
+| IEDB'de deneysel **doğrulanmış** epitoplar (9-mer) | **%63.1** |
+| IEDB doğrulanmış epitoplar (13-17-mer) | %57.7 |
+| tam uzunluk toksin proteinleri (duyarlılık) | %94.3 |
+| tam uzunluk non-toksin proteinleri | %4.7 |
+
+Influenza M1(58-66) **GILGFVFTL** — literatürün en çok doğrulanmış zararsız insan CD8
+epitobu — `ml_score 0.663` ile "toksik" işaretlenip eleniyordu.
+
+Yani kapı epitop uzunluğunda bilgi taşımıyor; rastgele bir 4'te-3 kırımıydı. Az sayıda
+epitop üreten bir proteinin tümüyle kaybolma olasılığı bu yüzden yüksek: **ESAT-6 ve
+L7/L12 buradan kayboldu.** Toksisite hipotezinin "çürütülmesi" (bkz. aşağıdaki eski
+paragraf) de bu yüzden yanıltıcıydı: ölçülen oran proteinler arasında ayırt edici
+değildi, çünkü skor dağılımı eşiğin tam üstüne yığılıyor.
+
+**Kök neden araç değil, uzunluk sınıfı.** ToxinPred2'nin başlığı "toxicity of
+*proteins*"tir; AAC özellikleri 9-mer'de anlamsızdır. Aynı araç tam proteinde kusursuz
+(%94.3 duyarlılık / %4.7 yanlış-pozitif) — bu yüzden MEV konstruktu düzeyinde korunuyor.
+
+**Düzeltme (uygulandı).** Epitop düzeyinde ToxinPred3 (peptit için eğitilmiş, Rathore
+2024, doi:10.1016/j.compbiomed.2024.108926) **yumuşak** olarak kullanılıyor: işaretler,
+adaylık puanını ×0.9 yapar, eleme yalnız kalibre edilmiş yüksek-güven eşiğinin üstünde.
+Sert toksisite elemesi protein/MEV düzeyinde ToxinPred2 hibrit ile sürüyor.
+Regresyon testi: `tests/test_modules.py::test_toxicity_gate_is_soft_and_length_appropriate`.
+
+**Yan bulgu — alerjenite.** Aynı tarama FAO/WHO 6-mer kuralının 9-mer'de özgül
+(yanlış-pozitif ~%2-3) ama tam proteinde kullanılamaz olduğunu gösterdi (rastgele
+non-alerjen proteinlerin neredeyse tamamı işaretlendi). MEV konstruktu bir protein
+olduğu için orada Codex/FAO-WHO'nun birincil ölçütüne (80 aa pencerede ≥%35 kimlik,
+diamond) geçildi; peptit düzeyinde 6-mer kuralı kalıyor.
+
+### Eski (2026-10-04) metin — kayıt için
 
 ESAT-6 ve L7/L12 üç sert filtreyi de geçti (funnel'da hayatta), 0 aday peptit üretti.
 
@@ -90,11 +133,27 @@ dört proteinin en düşüğü — buna rağmen 0 peptit; kontrol CFP-10 %82 ile
 MHC-bağlanma/skorlama eşiğinde gerçekleşiyor: sistematik kusur değil, tahmin düzeyinde meşru ıska.
 L7/L12'de %90 toksik işaretleme katkıda bulunuyor olabilir, ancak tek başına kanıtlanamadı.
 
-## Sonuç
+## Sonuç — **2026-10-10'da düzeltildi**
 
-Önceki iki vakadan (PSORTb konteyner timeout'u, netMHCpan dev-batch) farklı olarak burada
-**mühendislik hatası yok**. %77 recall'ın bileşimi: 6 güvenlik gereği (bilinçli), 2 düzeltilebilir
-yapılandırma açığı, 1 üst-araç hatası, 2 tahmin düzeyi ıska.
+İlk hâlinde burada "**mühendislik hatası yok**" yazıyordu. Bu **yanlıştı**: 4. maddedeki
+2 kayıp, ölçüldüğünde kalibre edilmemiş bir kapıdan (tam-protein toksisite modelinin
+9-mer'lere sert filtre olarak uygulanması) çıktı. Ayrıca 2. maddedeki Gram(+) açığının
+düzeltilmesi ActA'yı geri getirmedi; ActA huniyi geçmeye başladı ama aynı toksisite
+kapısında kayboldu — yani iki kayıp daha aynı adrese taşındı.
+
+%77 recall'ın güncel bileşimi:
+
+| sebep | n | durum |
+|---|---|---|
+| Konak-homoloji sert filtresi (otoimmünite) | 6 | **tasarım tercihi** — savunulabilir, ödünleşme olarak raporlanır |
+| Gram(+) `membrane` yapılandırma açığı | 2 | düzeltildi (CapB/ActA huniyi geçiyor) |
+| PSORTb yanlış ataması (LigA) | 1 | üst-araç limiti |
+| Toksisite kapısı kalibrasyon hatası | 2 (+ActA, +LLO) | **düzeltildi** — mühendislik hatası |
+
+Yani iki özdeş ders: hem Gram listesi hem toksisite eşiği, bir aracın **kendi geçerlilik
+alanı dışında** kullanılmasıydı. Yeni kural: her sert kapı, bağımsız kontrol setlerinde
+(insan self k-mer + doğrulanmış IEDB epitopları + uzunluk-eşli protein setleri)
+kalibre edilmeden üretimde kullanılmaz — `benchmark/calibrate_filters.py`.
 
 Yeniden üretim: `results/miss_attribution.json` (her antijen için insan %kimlik + yakalanma durumu
 + atfedilen sebep).

@@ -152,12 +152,18 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
     peptides, ssum = survival.run(peptides, resolved)
     meta["n_after_allergen"] = ssum["alerjenite_sonrasi"]
     meta["n_after_toxicity"] = ssum["toksisite_sonrasi"]
+    # Tüm özeti sakla: 'n_epitope' ÜRETİLEN peptit sayısıdır, sağ kalım elemesine
+    # yalnız bağlanma eşiğini geçenler (ssum['girdi_peptit']) girer. İkisi
+    # karıştırılınca alerjenite kapısı olduğundan çok daha agresif görünüyordu.
+    meta["survival"] = ssum
     yield _ev("survival_allergen", "done",
               f"Alerjenite ({ssum['alerjenite']}): {ssum['girdi_peptit']} → "
               f"{ssum['alerjenite_sonrasi']} peptit ({ssum['alerjen_elenen']} alerjen elendi)", ssum)
     yield _ev("survival_toxicity", "done",
               f"Toksisite ({ssum['toksisite']}): {ssum['alerjenite_sonrasi']} → "
-              f"{ssum['toksisite_sonrasi']} peptit ({ssum['toksik_elenen']} toksik elendi)", ssum)
+              f"{ssum['toksisite_sonrasi']} peptit "
+              f"({ssum['toksik_isaretlenen']} işaretlendi → skor cezası, "
+              f"{ssum['toksik_elenen']} yüksek-güvenle elendi)", ssum)
 
     # 5b) Moleküler mimikri — epitop-seviyesi konak self-eşleşmesi (YUMUŞAK: elemez,
     # işaretler + skorda hafif ceza). Protein-seviyesi homoloji funnel'da zaten sert.
