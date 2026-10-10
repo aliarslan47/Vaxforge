@@ -66,11 +66,26 @@ def score(peptides: list[Peptide], weights: dict[str, float]) -> list[Peptide]:
             continue
         wsum = sum(weights.get(k, 0) for k in comp) or 1.0
         val = sum(weights.get(k, 0) * v for k, v in comp.items()) / wsum
-        # Moleküler mimikri: yumuşak ceza (ELEME YOK) — konak self-eşleşen epitop
-        # otoimmünite riski taşır (Vaccine Design Ch4); skoru ×0.9 ile düşürülür.
+        # Moleküler mimikri: TAM eşleşme artık pipeline'da eleniyor (sert kapı).
+        # Buraya düşen tam-eşleşme yalnız kapı kapalıyken (discard_exact_match
+        # false) gelir; o durumda eski yumuşak ceza korunur.
         if p.metrics.get("self_mimicry"):
             val *= 0.9
-            p.notes.append("moleküler mimikri (konak self eşleşme) → skor ×0.9")
+            p.notes.append("moleküler mimikri (konak self tam eşleşme) → skor ×0.9")
+        # BLOSUM-yakın mimikri: elenmez, konfigürasyondan okunan ceza uygulanır
+        # (TCR dejenerasyonu — birebir olmayan peptit de çapraz-reaktif olabilir).
+        mim_factor = p.metrics.get("mimicry_penalty_factor")
+        if mim_factor:
+            val *= float(mim_factor)
+            p.notes.append(f"kısmi mimikri (BLOSUM62 yakın) → skor ×{mim_factor}")
+        # Protein düzeyi konak-homolojisi: kaynak antijen konağa benziyorsa
+        # (protein-bütünü kimlik ≥ min_identity) ceza. Eleme YOK — ölçüldü:
+        # protein-bütünü kimlik epitop-düzeyi riskin vekili değil (enolaz %49.8
+        # kimlik, 9-mer'lerinin %1.9'u self). Risk mimikri kapısında kapanıyor.
+        hh_factor = p.metrics.get("host_homology_penalty_factor")
+        if hh_factor:
+            val *= float(hh_factor)
+            p.notes.append(f"kaynak antijen konak-benzeri işaretli → skor ×{hh_factor}")
         # Toksisite: aynı mantıkta yumuşak ceza. Katsayı survival.run'da
         # config'ten (toxicity.toxicity_penalty) okunup metriğe yazılır; epitop
         # düzeyinde ELEME YOK, bkz. survival.py modül açıklaması.

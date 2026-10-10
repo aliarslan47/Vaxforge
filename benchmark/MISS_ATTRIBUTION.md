@@ -17,7 +17,7 @@ VaxForge'un 11 kaybı önceki iki vakadaki gibi bir ölçek-bug'ı mı, yoksa y�
 | PSORTb yanlış atama (üst-araç limiti) | 1 | LigA (*Leptospira*) |
 | Epitop/bağlanma aşaması (tahmin düzeyi) | 2 | ESAT-6 (*M. bovis*), L7/L12 (*Brucella*) |
 
-## 1. Konak-homoloji filtresi — tasarım gereği, 6/11
+## 1. Konak-homoloji filtresi — 6/11, **YENİDEN SINIFLANDIRILDI (2026-10-10): GRANÜLARİTE HATASI**
 
 `config/thresholds.yaml` → `human_homology.min_identity = 35`, `hard_filter: true`.
 
@@ -43,6 +43,35 @@ başarısızlık değil, ölçülebilir bir **güvenlik–duyarlılık ödünle�
 patoloji: bu proteinlerin gerçekten otoimmünite yapacağı ayrı ve kanıtlanmamış bir iddiadır;
 doğru ifade "ihtiyatlı filtre uygulanıyor"dur. (c) HSP60/enolaz otoimmün çapraz-reaktivite
 literatürü makaleye girecekse DOI ile doğrulanmalı — bu analizde atıf doğrulaması YAPILMADI.
+
+### Yeniden sınıflandırma (2026-10-10): "tasarım tercihi" kısmen yanlıştı
+
+Yukarıdaki "bilerek atıyor" yorumu kapının **varlığını** haklı çıkarıyor ama
+**granülaritesini** sorgulamıyordu. Ölçüldüğünde ikisi ayrıştı
+(`benchmark/measure_homology_granularity.py`, S. suis, k=9, insan Swiss-Prot):
+
+| Antijen | protein-bütünü kimlik | 9-mer | self ile TAM eşleşen | oran | güvenli k-mer |
+|---|---|---|---|---|---|
+| gnd | %52.3 | 467 | 14 | %3.00 | 453 |
+| Enolaz | %49.8 | 427 | 8 | %1.87 | 419 |
+| GAPDH | %43.9 | 328 | 7 | %2.13 | 321 |
+| DnaJ | %37.0 | 370 | 5 | %1.35 | 365 |
+| Suilizin (yakalanan) | %0 | 489 | 0 | %0 | 489 |
+
+Protein-bütünü kimlik, epitop-düzeyi otoimmünite riskinin vekili değil: enolazda
+8 riskli 9-mer'i elemek için 419 self-olmayan epitop da atılıyordu. Yani kayıp
+"güvenlik için ödenen bedel" değil, **gereğinden pahalı ödenmiş bir bedeldi**.
+
+Düzeltme: protein düzeyi homoloji YUMUŞAK (işaret + skor ×0.75; eleme yalnız
+≥%90, yani konak proteininin kendisi), epitop düzeyi mimikri SERT (konak self ile
+tam eşleşen epitop elenir; kalibrasyon: doğrulanmış IEDB epitoplarında %1.3 YP).
+Otoimmünite güvenliği kaybolmuyor, riskin gerçekte bulunduğu granülariteye taşınıyor.
+Korunan ihtiyat: BLOSUM-yakın eşleşmeler elenmiyor ama skor cezası alıyor (TCR
+dejenerasyonu), ve protein-düzeyi işaret raporda görünür kalıyor.
+
+**Bu 6 antijenin geri döneceği iddiası DEĞİLDİR.** Artık huniden geçebilirler;
+lokalizasyon/TM/antijenite kapıları ve ×0.75 ceza hâlâ önlerinde. Gerçek etki
+yeniden koşumla ölçülecek.
 
 ## 2. Lokalizasyon — Gram-pozitif `membrane` açığı, 2/11 (DÜZELTİLEBİLİR)
 
@@ -145,13 +174,15 @@ kapısında kayboldu — yani iki kayıp daha aynı adrese taşındı.
 
 | sebep | n | durum |
 |---|---|---|
-| Konak-homoloji sert filtresi (otoimmünite) | 6 | **tasarım tercihi** — savunulabilir, ödünleşme olarak raporlanır |
+| Konak-homoloji kapısı — yanlış granülarite | 6 | **düzeltildi** — protein düzeyi yumuşak, epitop düzeyi sert; kapının varlığı tasarım tercihi, protein-bütünü eleme mühendislik hatasıydı |
 | Gram(+) `membrane` yapılandırma açığı | 2 | düzeltildi (CapB/ActA huniyi geçiyor) |
 | PSORTb yanlış ataması (LigA) | 1 | üst-araç limiti |
 | Toksisite kapısı kalibrasyon hatası | 2 (+ActA, +LLO) | **düzeltildi** — mühendislik hatası |
 
-Yani iki özdeş ders: hem Gram listesi hem toksisite eşiği, bir aracın **kendi geçerlilik
-alanı dışında** kullanılmasıydı. Yeni kural: her sert kapı, bağımsız kontrol setlerinde
+Yani **üç** özdeş ders: Gram listesi, toksisite eşiği ve konak-homoloji granülaritesi —
+üçü de bir ölçümün **kendi geçerlilik alanı dışında** kullanılmasıydı (yanlış organizma
+sınıfı, yanlış uzunluk sınıfı, yanlış granülarite). Bu sayımla 11 kaybın 10'u mühendislik
+kaynaklı çıkıyor; ilk raporun "mühendislik hatası yok" sonucu tümüyle geri alınmıştır. Yeni kural: her sert kapı, bağımsız kontrol setlerinde
 (insan self k-mer + doğrulanmış IEDB epitopları + uzunluk-eşli protein setleri)
 kalibre edilmeden üretimde kullanılmaz — `benchmark/calibrate_filters.py`.
 

@@ -1,0 +1,82 @@
+{
+  "pathogen": "Streptococcus suis (serotype 2) BM407",
+  "input": "ssuis_prepared.faa (TAM PROTEOM, 1922 protein)",
+  "gram": "positive",
+  "genome_mb": 2.17,
+  "fairness": "her araç DEFAULT parametre; eşik tuning yok; özdeş tam-proteom girdi",
+  "ground_truth": {
+    "A0A0H3MU02": "Suilysin SLY (thiol-activated sitolizin)",
+    "A0A0H3N5B2": "Enolaz (yüzey adezini/plazminojen bağlayan)",
+    "A0A0H3MSV3": "GAPDH (plr/gapA, yüzey)",
+    "A0A0H3N193": "6-fosfoglukonat dehidrogenaz (gnd)",
+    "A0A0H3MXM0": "DnaJ (şaperon, immunojenik)"
+  },
+  "n_protective": 5,
+  "n_background": 1917,
+  "tools": [
+    {
+      "tool": "VaxForge",
+      "n_candidates": 288,
+      "recall": "1/5",
+      "ranks": {
+        "GAPDH": null,
+        "Enolaz": null,
+        "6-fosfoglukonat": null,
+        "Suilysin": 6,
+        "DnaJ": null
+      },
+      "recovered": [
+        "Suilysin"
+      ],
+      "fold_enrichment": 1.34,
+      "fisher_p": 0.5562949186466885,
+      "auc": null,
+      "note": "candidacy skoru; funnel soft-VFDB"
+    },
+    {
+      "tool": "Vaxign-ML",
+      "n_candidates": 628,
+      "recall": "5/5",
+      "ranks": {
+        "GAPDH": 220,
+        "Enolaz": 150,
+        "6-fosfoglukonat": 68,
+        "Suilysin": 52,
+        "DnaJ": 482
+      },
+      "recovered": [
+        "6-fosfoglukonat",
+        "DnaJ",
+        "Enolaz",
+        "GAPDH",
+        "Suilysin"
+      ],
+      "fold_enrichment": 3.077046548956661,
+      "fisher_p": 0.003684347373826714,
+      "auc": 0.8804381846635367,
+      "auc_ci": [
+        0.7452492617682821,
+        0.9682457053617908
+      ],
+      "note": "protegenicity (XGBoost); pred>=0.5 protective"
+    },
+    {
+      "tool": "NERVE 2.0",
+      "n_candidates": 0,
+      "recall": "0/5",
+      "ranks": {
+        "GAPDH": "DISCARDED",
+        "Enolaz": "DISCARDED",
+        "6-fosfoglukonat": "DISCARDED",
+        "Suilysin": "DISCARDED",
+        "DnaJ": "DISCARDED"
+      },
+      "recovered": [],
+      "fold_enrichment": null,
+      "fisher_p": 1.0,
+      "auc": null,
+      "discarded_reasons": {},
+      "note": "select modülü sert filtreler (localization + adhesin pad>=0.5)"
+    }
+  ]
+}

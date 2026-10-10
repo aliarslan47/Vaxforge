@@ -250,3 +250,55 @@ def test_allergen_criterion_matches_sequence_length():
     # ölçüt uygulanamıyorsa dürüst 'bilinmiyor' (None) döner, False DEĞİL
     out = allergen.predict_protein("")
     assert out["allergen"] is None
+
+
+def test_autoimmunity_gate_is_at_epitope_granularity():
+    """Otoimmünite güvenliği doğru granülaritede: protein düzeyi yumuşak,
+    epitop düzeyi sert. Ölçüm: protein-bütünü kimlik epitop-düzeyi self-eşleşme
+    oranının vekili değil (benchmark/measure_homology_granularity.py)."""
+    import pathlib
+
+    from vaxforge.config_loader import ThresholdConfig
+
+    res = ThresholdConfig.load().resolve("bacteria")
+    hh, mm = res["human_homology"], res["molecular_mimicry"]
+
+    # protein düzeyi: ELEMEZ, işaretler + skor cezası verir
+    assert hh.hard_filter is False
+    assert "hard_discard_identity" in hh.params and "homology_penalty" in hh.params
+    soft = float(hh.params["min_identity"].value)
+    hard = float(hh.params["hard_discard_identity"].value)
+    assert soft < hard, "işaretleme eşiği eleme eşiğinin altında olmalı"
+    assert 0.0 < float(hh.params["homology_penalty"].value) < 1.0
+
+    # epitop düzeyi: SERT — konak self tam eşleşme elenir
+    assert mm.hard_filter is True
+    assert bool(mm.params["discard_exact_match"].value) is True
+    assert 0.0 < float(mm.params["near_match_penalty"].value) < 1.0
+
+    root = pathlib.Path(__file__).resolve().parent.parent
+    fsrc = (root / "vaxforge" / "funnel.py").read_text(encoding="utf-8")
+    assert "host_homology_penalty_factor" in fsrc
+    psrc = (root / "vaxforge" / "pipeline.py").read_text(encoding="utf-8")
+    assert "mim_discard" in psrc and "p.passed = False" in psrc
+    ssrc = (root / "vaxforge" / "scoring.py").read_text(encoding="utf-8")
+    assert "host_homology_penalty_factor" in ssrc
+    assert "mimicry_penalty_factor" in ssrc
+
+
+def test_homology_granularity_measurement_recorded():
+    """Kapıyı yumuşatan ölçüm dosyada: sert eleme hangi veriyle gevşetildi."""
+    import json
+    import pathlib
+
+    f = (pathlib.Path(__file__).resolve().parent.parent / "benchmark"
+         / "results" / "homology_granularity.json")
+    assert f.exists(), "ölçüm dosyası yok — kapı kalibrasyonsuz gevşetilmiş olur"
+    d = json.loads(f.read_text(encoding="utf-8"))
+    rows = d["antigens"]
+    assert rows
+    # ölçümün özü: protein-bütünü kimliği yüksek ama self k-mer oranı düşük
+    hi = [r for r in rows if (r["protein_pident"] or 0) >= 35]
+    assert hi, "≥%35 kimlikli antijen yok — ölçüm ilgisiz"
+    assert all(r["pct_self_exact"] < 10 for r in hi), \
+        "protein kimliği yüksek antijenlerde self k-mer oranı da yüksekse sert eleme haklıydı"

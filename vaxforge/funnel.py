@@ -132,6 +132,11 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
     sp_min = float(tools["signal_peptide"].params["min_probability"].value)
     hh_id = float(tools["human_homology"].params["min_identity"].value)
     hh_ev = float(tools["human_homology"].params["evalue"].value)
+    _hhp = tools["human_homology"].params
+    # Kalibrasyon sonrası: protein-bütünü homolojisi YUMUŞAK (bkz. thresholds.yaml
+    # notu). Eleme yalnız konak proteininin kendisi sayılacak kadar yüksek kimlikte.
+    hh_hard = float(_hhp["hard_discard_identity"].value) if "hard_discard_identity" in _hhp else 101.0
+    hh_pen = float(_hhp["homology_penalty"].value) if "homology_penalty" in _hhp else 1.0
 
     survivors: list[ProteinRecord] = []
     # -- FAZ 9: DB'si olmayan seçili konaklar için otomatik proteom DB sağla (UniProt).
@@ -267,10 +272,20 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
             pr.annotations["self_homology_by_host"] = hd["by_host"]
             pr.annotations["human_homology"] = pid   # geriye-uyum (rapor/evaluate)
             pr.annotations["method_human_homology"] = f"GERÇEK (diamond → {', '.join(hh_scanned)} proteom)"
-            ok_hh = pid < hh_id   # eşik ÜSTÜ konağa benzer -> elenir
+            # YUMUŞAK: eşik üstü işaretlenir + skor cezası alır; eleme yalnız
+            # hard_discard_identity üstünde (pratikte konak proteininin kendisi).
+            # Otoimmünite elemesi epitop düzeyinde mimicry kapısında yapılıyor.
+            flagged = pid >= hh_id
+            ok_hh = pid < hh_hard
+            if flagged:
+                pr.annotations["host_homology_flag"] = True
+                pr.annotations["host_homology_penalty_factor"] = hh_pen
             pr.mark("funnel:human_homology", ok_hh,
-                    f"konak-öz %{pid} < {hh_id} (güvenli)" if ok_hh
-                    else f"{worst_host} %{pid} ≥ {hh_id} → OTOİMMÜNİTE riski, elendi", human_pident=pid)
+                    (f"konak-öz %{pid} < {hh_id} (güvenli)" if not flagged
+                     else f"{worst_host} %{pid} ≥ {hh_id} → konak-benzeri işaretli, "
+                          f"skor ×{hh_pen}; eleme epitop düzeyinde (mimikri)") if ok_hh
+                    else f"{worst_host} %{pid} ≥ {hh_hard} → konak proteininin kendisi, elendi",
+                    human_pident=pid)
         else:
             pr.annotations["human_homology"] = "not_run"
             pr.trace.append({"step": "funnel:human_homology", "ok": True,

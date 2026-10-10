@@ -168,16 +168,20 @@ def candidate_rows(p, thr: dict, gram: str | None = None) -> list[dict]:
                          m.get("method_tm", ""), hard=True))
     hh = m.get("human_homology")
     if hh is not None:
+        # Protein-bütünü homolojisi YUMUŞAK (kalibrasyon: epitop-düzeyi riskin
+        # vekili değil); eleme yalnız hard_discard_identity üstünde.
+        hc = _num(gv("human_homology", "hard_discard_identity"))
         if hh == "not_run":
-            rows.append(_row("İnsan homolojisi (diamond)", "çalıştırılmadı (DB yok)",
+            rows.append(_row("Konak homolojisi (diamond)", "çalıştırılmadı (DB yok)",
                              f"< %{gv('human_homology', 'min_identity')}", NA,
-                             "ZORUNLU — DB bağlı değil", hard=True))
+                             "DB bağlı değil", hard=False))
         else:
             v = _num(hh); c = _num(gv("human_homology", "min_identity"))
-            st = (PASS if v < c else FAIL) if (v is not None and c is not None) else NA
-            rows.append(_row("İnsan homolojisi (diamond, otoimmünite)",
-                             f"%{round(v, 1) if v is not None else v}", f"< %{c}", st,
-                             m.get("method_human_homology", ""), hard=True))
+            st = (PASS if (hc is None or v < hc) else FAIL) if v is not None else NA
+            want = f"< %{c} (işaret)" + (f" · eleme ≥ %{hc}" if hc is not None else "")
+            rows.append(_row("Konak homolojisi (diamond, protein düzeyi, yumuşak)",
+                             f"%{round(v, 1) if v is not None else v}", want, st,
+                             m.get("method_human_homology", ""), hard=False))
     ag = _num(m.get("parent_antigenicity"))
     if ag is not None:
         c = _num(gv("antigenicity_vaxijen", "threshold"))
@@ -279,14 +283,19 @@ def candidate_rows(p, thr: dict, gram: str | None = None) -> list[dict]:
         want = f"< {c} (işaret)" + (f" · eleme ≥ {hc}" if hc is not None else "")
         rows.append(_row("Toksisite (ToxinPred3, yumuşak)", v, want, st,
                          p.methods.get("toxicity", ""), hard=False))
-    # Moleküler mimikri (YUMUŞAK — elemez; otoimmünite uyarısı + skor ×0.9)
+    # Moleküler mimikri — SERT: konak self ile tam eşleşen epitop elenir
+    # (kalibrasyon: doğrulanmış IEDB epitoplarında %1.3 yanlış-pozitif).
+    # BLOSUM-yakın eşleşme elenmez, skor cezası alır.
     if "self_mimicry" in m:
         sm = bool(m.get("self_mimicry"))
         host = m.get("self_mimicry_host", ""); match = m.get("self_mimicry_match", "")
-        val = (f"⚠️ konak self eşleşme [{host}: {match}]" if sm else "temiz")
+        near = bool(m.get("self_mimicry_near"))
+        val = (f"⚠️ konak self TAM eşleşme [{host}: {match}]" if sm
+               else (f"kısmi (BLOSUM62 yakın) [{host}]" if near else "temiz"))
         rows.append(_row("Moleküler mimikri (konak self 9-mer)", val,
-                         "self-eşleşme yok (yumuşak)", NA if sm else PASS,
-                         p.methods.get("self_mimicry", ""), kind="skor"))
+                         "tam eşleşme yok (eleme) · kısmi → skor cezası",
+                         FAIL if sm else PASS,
+                         p.methods.get("self_mimicry", ""), hard=True))
 
     # ---- IEDB literatür/bilinen-epitop eşleşmesi (pozitif kontrol, bilgilendirici) ----
     ie = m.get("iedb")

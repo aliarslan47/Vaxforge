@@ -1,0 +1,107 @@
+{
+  "bug": "ssuis",
+  "organism": "Streptococcus suis (serotype 2)",
+  "strain": "BM407",
+  "input": "ssuis_prepared.faa (Streptococcus suis (serotype 2) BM407, 1922 protein TAM PROTEOM)",
+  "taxon": "NCBITaxon:1307",
+  "gram": "positive",
+  "full_proteome": true,
+  "runtime_s": 13826.3,
+  "n_testset": 1922,
+  "n_protective": 5,
+  "n_background": 1917,
+  "n_input_proteins": 1922,
+  "n_discovery": 1922,
+  "n_funnel": 295,
+  "n_candidate_proteins": 288,
+  "recall_at_antigen": "1/5",
+  "protective_producing_candidates": [
+    "A0A0H3MU02"
+  ],
+  "background_producing_candidates": 287,
+  "fold_enrichment": 1.34,
+  "fisher_p": 0.5562949186466885,
+  "permutation_rank": {
+    "test": "permutation_rank_test",
+    "statistic": 6.0,
+    "p_value": 0.0198980101989801,
+    "ci95": null,
+    "n": 1,
+    "detail": {
+      "statistic_type": "best_rank",
+      "N_total": 288,
+      "null_mean": 143.4581,
+      "positive_ranks": [
+        6.0
+      ]
+    },
+    "caveat": "küçük-n (n_pos=1, N=288) → test hesaplandı ama güç düşük; sonuç betimsel yorumlanmalı"
+  },
+  "protective_detail": [
+    {
+      "accession": "A0A0H3MU02",
+      "antigen": "Suilysin SLY (thiol-activated sitolizin)",
+      "in_testset": true,
+      "vfdb_hit": true,
+      "produced_candidate": true,
+      "best_candidacy": 0.8743,
+      "protein_rank": 6,
+      "n_candidate_proteins": 288,
+      "interpretation": "VFDB-pozitif, aday üretti"
+    },
+    {
+      "accession": "A0A0H3N5B2",
+      "antigen": "Enolaz (yüzey adezini/plazminojen bağlayan)",
+      "in_testset": true,
+      "vfdb_hit": false,
+      "produced_candidate": false,
+      "best_candidacy": null,
+      "protein_rank": null,
+      "n_candidate_proteins": 288,
+      "interpretation": "aday peptit üretmedi (funnel ya da funnel-sonrası epitop/alerjen/toksisite elemesi)"
+    },
+    {
+      "accession": "A0A0H3MSV3",
+      "antigen": "GAPDH (plr/gapA, yüzey)",
+      "in_testset": true,
+      "vfdb_hit": false,
+      "produced_candidate": false,
+      "best_candidacy": null,
+      "protein_rank": null,
+      "n_candidate_proteins": 288,
+      "interpretation": "aday peptit üretmedi (funnel ya da funnel-sonrası epitop/alerjen/toksisite elemesi)"
+    },
+    {
+      "accession": "A0A0H3N193",
+      "antigen": "6-fosfoglukonat dehidrogenaz (gnd)",
+      "in_testset": true,
+      "vfdb_hit": true,
+      "produced_candidate": false,
+      "best_candidacy": null,
+      "protein_rank": null,
+      "n_candidate_proteins": 288,
+      "interpretation": "aday peptit üretmedi (funnel ya da funnel-sonrası epitop/alerjen/toksisite elemesi)"
+    },
+    {
+      "accession": "A0A0H3MXM0",
+      "antigen": "DnaJ (şaperon, immunojenik)",
+      "in_testset": true,
+      "vfdb_hit": false,
+      "produced_candidate": false,
+      "best_candidacy": null,
+      "protein_rank": null,
+      "n_candidate_proteins": 288,
+      "interpretation": "aday peptit üretmedi (funnel ya da funnel-sonrası epitop/alerjen/toksisite elemesi)"
+    }
+  ],
+  "iedb_source": "IEDB kaynak-organizma seti (NCBITaxon:1307)",
+  "iedb_matched_candidates": 0,
+  "report_paths": {
+    "csv": "/home/msi-nb/vaxforge/outputs/run_2026-10-01T12-38-51/candidates.csv",
+    "fasta": "/home/msi-nb/vaxforge/outputs/run_2026-10-01T12-38-51/top_peptides.fasta",
+    "xlsx": "/home/msi-nb/vaxforge/outputs/run_2026-10-01T12-38-51/candidates_full.xlsx",
+    "json": "/home/msi-nb/vaxforge/outputs/run_2026-10-01T12-38-51/run.json",
+    "html": "/home/msi-nb/vaxforge/outputs/run_2026-10-01T12-38-51/report.html",
+    "pdf": "/home/msi-nb/vaxforge/outputs/run_2026-10-01T12-38-51/report.pdf"
+  }
+}

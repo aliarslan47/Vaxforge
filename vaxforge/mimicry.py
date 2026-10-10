@@ -4,10 +4,17 @@ Bir aday epitop, KONAĞIN kendi proteinindeki bir parçayla birebir aynıysa
 'moleküler mimikri' = otoimmünite / merkezi-tolerans (T-hücre negatif seçilim)
 riski taşır (Vaccine Design Ch4: otoimmün çapraz-reaktif epitopları çıkar).
 
-Protein-seviyesi insan/konak homolojisi funnel'da ZATEN sert filtre; bu modül
-GRANULAR (epitop-seviyesi) uyarı katmanıdır: YUMUŞAK — epitopu ELEMEZ, yalnız
-işaretler + skorda hafif ceza (kullanıcı kararı). k=9 (MHC-I çekirdek uzunluğu;
-paylaşılan 9-mer bir CD8+ epitobu olabilir), config'ten ayarlanır.
+KALİBRASYON (2026-10-10) sonrası otoimmünite güvenliğinin ASIL kapısı burasıdır.
+Önceden protein-bütünü homolojisi funnel'da sert filtreydi, bu modül ise yumuşak
+uyarı katmanı. Ölçüm bunu tersine çevirdi: protein-bütünü kimlik, epitop-düzeyi
+riskin vekili değil (S. suis enolazı insana %49.8 benzer ama 9-mer'lerinin yalnız
+%1.9'u self ile birebir aynı — benchmark/results/homology_granularity.json).
+Şimdi: konak self ile TAM eşleşen epitop ELENİR (n=1000 kontrolde doğrulanmış IEDB
+epitoplarında %1.3 yanlış-pozitif), BLOSUM-yakın eşleşme elenmez, skor cezası alır
+(TCR dejenerasyonu). Protein düzeyi homoloji yumuşak: işaret + skor cezası.
+k=9 (MHC-I çekirdek uzunluğu; paylaşılan 9-mer bir CD8+ epitobu olabilir),
+config'ten ayarlanır. Bu k-mer kuralı tam proteine ASLA uygulanmaz: rastgele
+non-toksin proteinlerin %66.3'ünü işaretliyor.
 
 Şablon: allergen.py (FAO/WHO 6-mer) — aynı önbellekli k-mer küme deseni. Konak
 self-proteomları tools/db/{host}_sprot.fasta.gz (human/bovine/mouse/pig/chicken).

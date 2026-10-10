@@ -231,3 +231,44 @@ değerlendirir. Eski kapı (ToxinPred2 Model 2 hibrit, t=0.6, sert) bu adayları
 51 peptit (0 alerjen elenen, 0 toksik işaretlenen). Veri:
 `benchmark/results/demo_toxicity_gate.json`. Betik `--run-json` ile var olan bir
 koşu üzerinden tekrar koşulabilir (pipeline'ı yeniden çalıştırmaz).
+
+## 2026-10-10 (III) — Otoimmünite kapısının granülaritesi
+
+**Bulgu.** Konak-homoloji kapısı (`funnel.py`, `min_identity=35`, sert) protein
+BÜTÜNÜNDE kimlik ölçüp tüm antijeni eliyordu. S. suis'in kaçan 4 antijeni
+(enolaz, GAPDH, 6-fosfoglukonat dehidrogenaz, DnaJ) tam bu kapıda, epitop
+tahmini hiç koşmadan düşüyordu. Ölçüm (`benchmark/measure_homology_granularity.py`):
+
+| Antijen | protein-bütünü kimlik | 9-mer | self-tam eşleşen | oran | güvenli k-mer |
+|---|---|---|---|---|---|
+| gnd | %52.3 | 467 | 14 | %3.00 | 453 |
+| Enolaz | %49.8 | 427 | 8 | %1.87 | 419 |
+| GAPDH | %43.9 | 328 | 7 | %2.13 | 321 |
+| DnaJ | %37.0 | 370 | 5 | %1.35 | 365 |
+| Suilizin (yakalanan) | %0 | 489 | 0 | %0 | 489 |
+
+Yani protein-bütünü kimlik, epitop-düzeyi otoimmünite riskinin vekili değil:
+enolazda 8 riskli 9-mer için 419 self-olmayan epitop da atılıyordu. Toksisite
+kapısıyla aynı hata ailesi — orada yanlış uzunluk sınıfı, burada yanlış
+granülarite.
+
+**Düzeltme (toksisitedekinin aynadaki görüntüsü).**
+- `human_homology`: `hard_filter: false`. ≥%35 → işaretlenir + skor ×0.75;
+  eleme yalnız `hard_discard_identity=90` üstünde (konak proteininin kendisi /
+  kontaminasyon güvenliği). Ceza `funnel.py`'de annotasyona yazılır,
+  `pipeline.py` bunu peptitlere taşır, `scoring.py` uygular.
+- `molecular_mimicry`: `hard_filter: true`. Konak self ile TAM eşleşen epitop
+  elenir; BLOSUM-yakın eşleşme elenmez, skor ×0.9. Kalibrasyon dayanağı:
+  n=1000'de insan self k-mer'lerinde %100 yakalama, DENEYSEL DOĞRULANMIŞ IEDB
+  epitoplarında %1.3 (9-mer) / %1.7 (15-mer) yanlış-pozitif.
+- Rapor katmanları hizalandı (`evaluate.py` iki satır, `runner.py` iki adım,
+  `mimicry.py` modül açıklaması).
+- Yeni test: `test_autoimmunity_gate_is_at_epitope_granularity` +
+  `test_homology_granularity_measurement_recorded`. 17/17 yeşil.
+
+**Beklenen etki ve riski.** Bu 4 antijen artık huniden geçebilir; ama geçmesi
+garanti değil — lokalizasyon/TM/antijenite kapıları hâlâ önlerinde ve skorları
+×0.75 ceza alıyor. Karşı taraf dürüstçe: tam eşleşme otoimmünitenin tamamı
+değil, TCR dejenerasyonu nedeniyle birebir olmayan peptit de çapraz-reaktif
+olabilir (anti-enolaz / anti-GAPDH otoantikorları literatürde gerçek). Bu yüzden
+yakın eşleşme cezası korunuyor ve protein-düzeyi işaret raporda görünür kalıyor.

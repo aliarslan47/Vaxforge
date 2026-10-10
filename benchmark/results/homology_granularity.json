@@ -1,0 +1,69 @@
+{
+ "bug": "ssuis",
+ "host": "human",
+ "k": 9,
+ "question": "protein-bütünü konak kimliği, epitop-düzeyi self-eşleşme oranının vekili mi?",
+ "finding": "hayır: protein-bütünü kimlik %37-52 olan antijenlerin 9-mer'lerinin yalnız %1.4-3.0'ü konak self ile birebir aynı; sert protein-düzeyi eleme, az sayıda riskli k-mer için yüzlerce self-olmayan epitobu da atıyor",
+ "antigens": [
+  {
+   "acc": "A0A0H3MU02",
+   "antigen": "Suilysin SLY (thiol-activated sitolizin)",
+   "recovered": true,
+   "miss_cause": null,
+   "protein_pident": 0.0,
+   "length": 497,
+   "n_kmer": 489,
+   "n_self_exact": 0,
+   "pct_self_exact": 0.0,
+   "n_safe_kmer": 489
+  },
+  {
+   "acc": "A0A0H3N5B2",
+   "antigen": "Enolaz (yüzey adezini/plazminojen bağlayan)",
+   "recovered": false,
+   "miss_cause": "self_homology",
+   "protein_pident": 49.8,
+   "length": 435,
+   "n_kmer": 427,
+   "n_self_exact": 8,
+   "pct_self_exact": 1.87,
+   "n_safe_kmer": 419
+  },
+  {
+   "acc": "A0A0H3MSV3",
+   "antigen": "GAPDH (plr/gapA, yüzey)",
+   "recovered": false,
+   "miss_cause": "self_homology",
+   "protein_pident": 43.9,
+   "length": 336,
+   "n_kmer": 328,
+   "n_self_exact": 7,
+   "pct_self_exact": 2.13,
+   "n_safe_kmer": 321
+  },
+  {
+   "acc": "A0A0H3N193",
+   "antigen": "6-fosfoglukonat dehidrogenaz (gnd)",
+   "recovered": false,
+   "miss_cause": "self_homology",
+   "protein_pident": 52.3,
+   "length": 475,
+   "n_kmer": 467,
+   "n_self_exact": 14,
+   "pct_self_exact": 3.0,
+   "n_safe_kmer": 453
+  },
+  {
+   "acc": "A0A0H3MXM0",
+   "antigen": "DnaJ (şaperon, immunojenik)",
+   "recovered": false,
+   "miss_cause": "self_homology",
+   "protein_pident": 37.0,
+   "length": 378,
+   "n_kmer": 370,
+   "n_self_exact": 5,
+   "pct_self_exact": 1.35,
+   "n_safe_kmer": 365
+  }
+ ]
+}

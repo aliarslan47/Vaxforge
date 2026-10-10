@@ -135,6 +135,16 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
     yield _ev("epitope", "running", f"B/T-hücre epitop tahmini · konaklar: {host_lbls}")
     peptides = epitope.run(proteins, resolved, hosts)
     meta["n_epitope"] = len(peptides)
+    # Protein düzeyi konak-homoloji cezasını peptitlere taşı: funnel artık
+    # konak-benzeri antijeni elemiyor, işaretliyor; ceza skorda uygulanıyor.
+    _hh_pen = {pr.id: pr.annotations["host_homology_penalty_factor"]
+               for pr in proteins if pr.annotations.get("host_homology_flag")}
+    if _hh_pen:
+        for pep in peptides:
+            f = _hh_pen.get(pep.parent)
+            if f:
+                pep.metrics["host_homology_penalty_factor"] = f
+                pep.metrics["host_homology_parent"] = True
     real_i = any("GERÇEK" in p.methods.get("mhc_score", "") for p in peptides if p.kind == "MHC-I")
     real_ii = any("GERÇEK" in p.methods.get("mhc_score", "") for p in peptides if p.kind == "MHC-II")
     tag = " · " + " ".join(["MHC-I=GERÇEK" if real_i else "MHC-I=proxy",
@@ -165,10 +175,15 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
               f"({ssum['toksik_isaretlenen']} işaretlendi → skor cezası, "
               f"{ssum['toksik_elenen']} yüksek-güvenle elendi)", ssum)
 
-    # 5b) Moleküler mimikri — epitop-seviyesi konak self-eşleşmesi (YUMUŞAK: elemez,
-    # işaretler + skorda hafif ceza). Protein-seviyesi homoloji funnel'da zaten sert.
-    mim_k = int(resolved["molecular_mimicry"].params["k"].value) \
-        if "molecular_mimicry" in resolved else 9
+    # 5b) Moleküler mimikri — epitop-seviyesi konak self-eşleşmesi. Kalibrasyon
+    # sonrası otoimmünite güvenliğinin ASIL kapısı burası: konak self ile TAM
+    # eşleşen epitop ELENİR (n=1000'de doğrulanmış IEDB epitoplarında %1.3 YP),
+    # BLOSUM-yakın eşleşme yalnız skor cezası alır (TCR dejenerasyonu). Protein
+    # düzeyi homoloji artık yumuşak — bkz. config/thresholds.yaml notu.
+    _mm = resolved["molecular_mimicry"].params if "molecular_mimicry" in resolved else {}
+    mim_k = int(_mm["k"].value) if "k" in _mm else 9
+    mim_discard = bool(_mm["discard_exact_match"].value) if "discard_exact_match" in _mm else False
+    mim_near_pen = float(_mm["near_match_penalty"].value) if "near_match_penalty" in _mm else 0.9
     mim = mimicry.predict([p.seq for p in peptides], [h.name for h in hosts], k=mim_k)
     n_mim = 0       # tam eşleşme (sert mimikri)
     n_near = 0      # kısmi eşleşme (tek konservatif ikame — BLOSUM62)
@@ -185,19 +200,32 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
                                          "BLOSUM62 Hamming-1 kısmi (konservatif ikame)")
             if d["self_match"]:
                 n_mim += 1
+                if mim_discard:
+                    p.passed = False
+                    p.notes.append(f"konak self {mim_k}-mer tam eşleşme "
+                                   f"({d['host']}) → otoimmünite riski, elendi")
             elif d["near_match"]:
                 n_near += 1
+                p.metrics["mimicry_penalty_factor"] = mim_near_pen
+    _mode = ("SERT: tam eşleşme elenir, BLOSUM-yakın eşleşme skor ×"
+             f"{mim_near_pen}" if mim_discard else "YUMUŞAK: işaretler, elemez")
     meta["mimicry"] = {
         "available": True, "k": mim_k,
         "n_candidates": len(peptides), "n_exact": n_mim, "n_near": n_near,
+        "n_discarded": n_mim if mim_discard else 0,
         "hosts": [h.name for h in hosts],
+        "hard_filter": mim_discard,
+        "calibration": "benchmark/results/filter_calibration.json",
         "method": ("tam k-mer eşleşme (sert mimikri) + BLOSUM62 Hamming-1 konservatif "
-                   "ikame (kısmi mimikri) — YUMUŞAK: işaretler, elemez"),
+                   f"ikame (kısmi mimikri) — {_mode}"),
     }
     yield _ev("mimicry", "done",
               f"Moleküler mimikri: {n_mim} tam + {n_near} kısmi (BLOSUM62) / {len(peptides)} "
-              f"peptit konak self {mim_k}-mer eşleşmesi (yumuşak uyarı)",
-              {"n_exact": n_mim, "n_near": n_near, "k": mim_k})
+              f"peptit konak self {mim_k}-mer eşleşmesi "
+              + (f"({n_mim} elendi, kısmi olanlar skor ×{mim_near_pen})" if mim_discard
+                 else "(yumuşak uyarı)"),
+              {"n_exact": n_mim, "n_near": n_near, "k": mim_k,
+               "n_discarded": n_mim if mim_discard else 0})
 
     # 5c) Glikozilasyon — glikan-maskeli B-epitop filtresi (YUMUŞAK: işaretler, elemez).
     # N-X-S/T sequon ile örtüşen B-epitobu in vivo glikanla kaplı olabilir → antikor erişemez.
