@@ -29,7 +29,7 @@ alanında açıkça belirtilir.
 
 from __future__ import annotations
 
-from . import allergen, toxinpred, toxinpred3
+from . import allergen, toxinpred3  # ToxinPred2 BİLEREK yok: protein boyunda kalibre, epitopta değil
 from .config_loader import ResolvedTool
 from .models import Peptide
 from .sequtils import KD, sanitize
