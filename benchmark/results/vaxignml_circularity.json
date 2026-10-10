@@ -1,0 +1,666 @@
+{
+ "question": "benchmark ground-truth antijenlerimiz Vaxign-ML'in eğitim setinde (Protegen) var mı?",
+ "vaxignml": {
+  "citation": "Ong E, Wang H, Wong MU, Seetharaman M, Valdez N, He Y. Bioinformatics 2020;36(10):3185-3191",
+  "doi": "10.1093/bioinformatics/btaa119",
+  "training_positives": "397 BPAg (584'ten homolog temizliği sonrası), Protegen 31-07-2019",
+  "training_negatives": "aynı 50 bakterinin UniProt proteomlarından BPAg'lere <%30 benzer proteinler",
+  "deployed_model": "tüm Protegen verisiyle eğitilmiş XGBoost"
+ },
+ "protegen": {
+  "file": "protegen-bacterium.faa",
+  "n_records": 660,
+  "citation": "Yang B, Sayers S, Xiang Z, He Y. Nucleic Acids Res 2011;39(Database issue):D1073-8",
+  "doi": "10.1093/nar/gkq944"
+ },
+ "thresholds": {
+  "same_protein": 90,
+  "homolog_leak": 30
+ },
+ "per_bug": {
+  "banthracis": {
+   "n": 5,
+   "same": 2,
+   "homolog": 3,
+   "clean": 0
+  },
+  "brucella": {
+   "n": 5,
+   "same": 5,
+   "homolog": 0,
+   "clean": 0
+  },
+  "brucella_rb51": {
+   "n": 4,
+   "same": 3,
+   "homolog": 0,
+   "clean": 1
+  },
+  "brucella_s19": {
+   "n": 4,
+   "same": 3,
+   "homolog": 0,
+   "clean": 1
+  },
+  "brucella_s2": {
+   "n": 5,
+   "same": 4,
+   "homolog": 0,
+   "clean": 1
+  },
+  "coxiella": {
+   "n": 4,
+   "same": 3,
+   "homolog": 0,
+   "clean": 1
+  },
+  "leptospira": {
+   "n": 5,
+   "same": 3,
+   "homolog": 1,
+   "clean": 1
+  },
+  "listeria": {
+   "n": 5,
+   "same": 2,
+   "homolog": 0,
+   "clean": 3
+  },
+  "mbovis": {
+   "n": 5,
+   "same": 4,
+   "homolog": 0,
+   "clean": 1
+  },
+  "salmonella": {
+   "n": 5,
+   "same": 1,
+   "homolog": 4,
+   "clean": 0
+  },
+  "saureus": {
+   "n": 5,
+   "same": 4,
+   "homolog": 0,
+   "clean": 1
+  },
+  "ssuis": {
+   "n": 5,
+   "same": 2,
+   "homolog": 3,
+   "clean": 0
+  }
+ },
+ "antigens": [
+  {
+   "bug": "banthracis",
+   "acc": "P13423",
+   "antigen": "Protective Antigen PA (pagA, pXO1) — antraks aşısı ana antijeni",
+   "protegen_hit": "Protegen:",
+   "pident": 100.0,
+   "align_len": 764,
+   "evalue": 0.0,
+   "verdict": "eğitim etiketinin kendisi"
+  },
+  {
+   "bug": "banthracis",
+   "acc": "P15917",
+   "antigen": "Lethal Factor LF (lef, pXO1)",
+   "protegen_hit": "Protegen:",
+   "pident": 100.0,
+   "align_len": 809,
+   "evalue": 0.0,
+   "verdict": "eğitim etiketinin kendisi"
+  },
+  {
+   "bug": "brucella",
+   "acc": "P0A3U5",
+   "antigen": "Omp31 (31 kDa dış membran)",
+   "protegen_hit": "Protegen:",
+   "pident": 100.0,
+   "align_len": 240,
+   "evalue": 4.87e-173,
+   "verdict": "eğitim etiketinin kendisi"
+  },
+  {
+   "bug": "brucella",
+   "acc": "P0A3U9",
+   "antigen": "BP26/Omp28 (26 kDa periplazmik immunojenik)",
+   "protegen_hit": "Protegen:",
+   "pident": 100.0,
+   "align_len": 250,
+   "evalue": 7.09e-171,
+   "verdict": "eğitim etiketinin kendisi"
+  },
+  {
+   "bug": "brucella",
+   "acc": "P66827",
+   "antigen": "SodC (Cu-Zn süperoksit dismutaz)",
+   "protegen_hit": "Protegen:",
+   "pident": 100.0,
+   "align_len": 173,
+   "evalue": 1.66e-129,
+   "verdict": "eğitim etiketinin kendisi"
+  },
+  {
+   "bug": "brucella",
+   "acc": "P0A469",
+   "antigen": "L7/L12 ribozomal protein (RplL)",
+   "protegen_hit": "Protegen:",
+   "pident": 100.0,
+   "align_len": 124,
+   "evalue": 9.11e-67,
+   "verdict": "eğitim etiketinin kendisi"
+  },
+  {
+   "bug": "brucella_rb51",
+   "acc": "WP_002964371.1",
+   "antigen": "L7/L12 ribozomal protein",
+   "protegen_hit": "Protegen:",
+   "pident": 100.0,
+   "align_len": 124,
+   "evalue": 9.11e-67,
+   "verdict": "eğitim etiketinin kendisi"
+  },
+  {
+   "bug": "brucella_s19",
+   "acc": "WP_002964371.1",
+   "antigen": "L7/L12 ribozomal protein",
+   "protegen_hit": "Protegen:",
+   "pident": 100.0,
+   "align_len": 124,
+   "evalue": 9.11e-67,
+   "verdict": "eğitim etiketinin kendisi"
+  },
+  {
+   "bug": "brucella_s2",
+   "acc": "WP_004681766.1",
+   "antigen": "Omp31 (31 kDa dış membran)",
+   "protegen_hit": "Protegen:",
+   "pident": 100.0,
+   "align_len": 240,
+   "evalue": 4.87e-173,
+   "verdict": "eğitim etiketinin kendisi"
+  },
+  {
+   "bug": "brucella_s2",
+   "acc": "WP_002964581.1",
+   "antigen": "BP26/Omp28 (periplazmik immunojenik)",
+   "protegen_hit": "Protegen:",
+   "pident": 100.0,
+   "align_len": 250,
+   "evalue": 7.09e-171,
+   "verdict": "eğitim etiketinin kendisi"
+  },
+  {
+   "bug": "brucella_s2",
+   "acc": "WP_002964371.1",
+   "antigen": "L7/L12 ribozomal protein",
+   "protegen_hit": "Protegen:",
+   "pident": 100.0,
+   "align_len": 124,
+   "evalue": 9.11e-67,
+   "verdict": "eğitim etiketinin kendisi"
+  },
+  {
+   "bug": "coxiella",
+   "acc": "P51752",
+   "antigen": "Mip (peptidyl-prolyl cis-trans isomerase)",
+   "protegen_hit": "Protegen:",
+   "pident": 100.0,
+   "align_len": 230,
+   "evalue": 3e-153,
+   "verdict": "eğitim etiketinin kendisi"
+  },
+  {
+   "bug": "coxiella",
+   "acc": "P19421",
+   "antigen": "GroEL (60 kDa chaperonin, HtpB)",
+   "protegen_hit": "Protegen:",
+   "pident": 100.0,
+   "align_len": 552,
+   "evalue": 0.0,
+   "verdict": "eğitim etiketinin kendisi"
+  },
+  {
+   "bug": "listeria",
+   "acc": "P13128",
+   "antigen": "LLO (listeriolysin O, immunodominant)",
+   "protegen_hit": "Protegen:",
+   "pident": 100.0,
+   "align_len": 529,
+   "evalue": 0.0,
+   "verdict": "eğitim etiketinin kendisi"
+  },
+  {
+   "bug": "mbovis",
+   "acc": "P0A565",
+   "antigen": "ESAT-6 (EsxA, 6 kDa erken salgı antijeni)",
+   "protegen_hit": "Protegen:",
+   "pident": 100.0,
+   "align_len": 95,
+   "evalue": 1.76e-64,
+   "verdict": "eğitim etiketinin kendisi"
+  },
+  {
+   "bug": "mbovis",
+   "acc": "P0A567",
+   "antigen": "CFP-10 (EsxB)",
+   "protegen_hit": "Protegen:",
+   "pident": 100.0,
+   "align_len": 100,
+   "evalue": 1.47e-63,
+   "verdict": "eğitim etiketinin kendisi"
+  },
+  {
+   "bug": "mbovis",
+   "acc": "P0C2T2",
+   "antigen": "Ag85B (FbpB, mikolil transferaz)",
+   "protegen_hit": "Protegen:",
+   "pident": 100.0,
+   "align_len": 325,
+   "evalue": 3.11e-248,
+   "verdict": "eğitim etiketinin kendisi"
+  },
+  {
+   "bug": "mbovis",
+   "acc": "P0A5Q5",
+   "antigen": "MPB64 (immunojenik protein, M.bovis MPT64 homoloğu)",
+   "protegen_hit": "Protegen:",
+   "pident": 100.0,
+   "align_len": 228,
+   "evalue": 1.4e-166,
+   "verdict": "eğitim etiketinin kendisi"
+  },
+  {
+   "bug": "saureus",
+   "acc": "Q2FZF0",
+   "antigen": "IsdB (iron-regulated surface determinant B)",
+   "protegen_hit": "Protegen:",
+   "pident": 100.0,
+   "align_len": 645,
+   "evalue": 0.0,
+   "verdict": "eğitim etiketinin kendisi"
+  },
+  {
+   "bug": "brucella_rb51",
+   "acc": "WP_002969580.1",
+   "antigen": "BP26/Omp28 (periplazmik immunojenik)",
+   "protegen_hit": "Protegen:",
+   "pident": 99.6,
+   "align_len": 250,
+   "evalue": 1.18e-169,
+   "verdict": "eğitim etiketinin kendisi"
+  },
+  {
+   "bug": "brucella_s19",
+   "acc": "WP_002969580.1",
+   "antigen": "BP26/Omp28 (periplazmik immunojenik)",
+   "protegen_hit": "Protegen:",
+   "pident": 99.6,
+   "align_len": 250,
+   "evalue": 1.18e-169,
+   "verdict": "eğitim etiketinin kendisi"
+  },
+  {
+   "bug": "brucella",
+   "acc": "Q45689",
+   "antigen": "Omp25 (25 kDa dış membran immunojenik protein)",
+   "protegen_hit": "Protegen:",
+   "pident": 99.5,
+   "align_len": 213,
+   "evalue": 2.09e-156,
+   "verdict": "eğitim etiketinin kendisi"
+  },
+  {
+   "bug": "brucella_rb51",
+   "acc": "WP_002963844.1",
+   "antigen": "Omp25 (25 kDa dış membran immunojenik)",
+   "protegen_hit": "Protegen:",
+   "pident": 99.5,
+   "align_len": 213,
+   "evalue": 2.09e-156,
+   "verdict": "eğitim etiketinin kendisi"
+  },
+  {
+   "bug": "brucella_s19",
+   "acc": "WP_002963844.1",
+   "antigen": "Omp25 (25 kDa dış membran immunojenik)",
+   "protegen_hit": "Protegen:",
+   "pident": 99.5,
+   "align_len": 213,
+   "evalue": 2.09e-156,
+   "verdict": "eğitim etiketinin kendisi"
+  },
+  {
+   "bug": "brucella_s2",
+   "acc": "WP_002963844.1",
+   "antigen": "Omp25 (25 kDa dış membran immunojenik)",
+   "protegen_hit": "Protegen:",
+   "pident": 99.5,
+   "align_len": 213,
+   "evalue": 2.09e-156,
+   "verdict": "eğitim etiketinin kendisi"
+  },
+  {
+   "bug": "coxiella",
+   "acc": "H7C7D7",
+   "antigen": "Com1 (27 kDa outer membrane protein)",
+   "protegen_hit": "Protegen:",
+   "pident": 99.2,
+   "align_len": 245,
+   "evalue": 1.11e-171,
+   "verdict": "eğitim etiketinin kendisi"
+  },
+  {
+   "bug": "saureus",
+   "acc": "Q2G1X0",
+   "antigen": "Hla (alpha-hemolysin)",
+   "protegen_hit": "Protegen:",
+   "pident": 98.7,
+   "align_len": 319,
+   "evalue": 5.08e-235,
+   "verdict": "eğitim etiketinin kendisi"
+  },
+  {
+   "bug": "saureus",
+   "acc": "P02976",
+   "antigen": "SpA (immunoglobulin G-binding protein A)",
+   "protegen_hit": "Protegen:",
+   "pident": 97.9,
+   "align_len": 516,
+   "evalue": 2.01e-267,
+   "verdict": "eğitim etiketinin kendisi"
+  },
+  {
+   "bug": "leptospira",
+   "acc": "Q8EZS3",
+   "antigen": "LigB (Ig benzeri tekrar B)",
+   "protegen_hit": "Protegen:",
+   "pident": 96.5,
+   "align_len": 1890,
+   "evalue": 0.0,
+   "verdict": "eğitim etiketinin kendisi"
+  },
+  {
+   "bug": "listeria",
+   "acc": "P21171",
+   "antigen": "p60 (invasion-associated endopeptidase, iap)",
+   "protegen_hit": "Protegen:",
+   "pident": 96.1,
+   "align_len": 51,
+   "evalue": 1.69e-22,
+   "verdict": "eğitim etiketinin kendisi"
+  },
+  {
+   "bug": "saureus",
+   "acc": "Q2G015",
+   "antigen": "ClfA (clumping factor A)",
+   "protegen_hit": "Protegen:",
+   "pident": 95.5,
+   "align_len": 933,
+   "evalue": 1.44e-305,
+   "verdict": "eğitim etiketinin kendisi"
+  },
+  {
+   "bug": "ssuis",
+   "acc": "A0A0H3N5B2",
+   "antigen": "Enolaz (yüzey adezini/plazminojen bağlayan)",
+   "protegen_hit": "Protegen:",
+   "pident": 95.2,
+   "align_len": 435,
+   "evalue": 2.85e-302,
+   "verdict": "eğitim etiketinin kendisi"
+  },
+  {
+   "bug": "leptospira",
+   "acc": "O34094",
+   "antigen": "LipL32 (majör dış membran lipoprotein)",
+   "protegen_hit": "Protegen:",
+   "pident": 94.8,
+   "align_len": 155,
+   "evalue": 1.21e-107,
+   "verdict": "eğitim etiketinin kendisi"
+  },
+  {
+   "bug": "leptospira",
+   "acc": "G1UB30",
+   "antigen": "OmpL1 (dış membran porin)",
+   "protegen_hit": "Protegen:",
+   "pident": 93.8,
+   "align_len": 320,
+   "evalue": 2.87e-221,
+   "verdict": "eğitim etiketinin kendisi"
+  },
+  {
+   "bug": "salmonella",
+   "acc": "P02936",
+   "antigen": "OmpA (outer membrane protein A)",
+   "protegen_hit": "Protegen:",
+   "pident": 93.7,
+   "align_len": 350,
+   "evalue": 3.89e-247,
+   "verdict": "eğitim etiketinin kendisi"
+  },
+  {
+   "bug": "ssuis",
+   "acc": "A0A0H3N193",
+   "antigen": "6-fosfoglukonat dehidrogenaz (gnd)",
+   "protegen_hit": "Protegen:",
+   "pident": 90.1,
+   "align_len": 473,
+   "evalue": 1.3e-318,
+   "verdict": "eğitim etiketinin kendisi"
+  },
+  {
+   "bug": "ssuis",
+   "acc": "A0A0H3MSV3",
+   "antigen": "GAPDH (plr/gapA, yüzey)",
+   "protegen_hit": "Protegen:",
+   "pident": 87.2,
+   "align_len": 336,
+   "evalue": 3.22e-210,
+   "verdict": "homolog — bilgi sızdırır"
+  },
+  {
+   "bug": "salmonella",
+   "acc": "P0A263",
+   "antigen": "OmpC (outer membrane porin C)",
+   "protegen_hit": "Protegen:",
+   "pident": 60.4,
+   "align_len": 384,
+   "evalue": 7.69e-153,
+   "verdict": "homolog — bilgi sızdırır"
+  },
+  {
+   "bug": "salmonella",
+   "acc": "P37592",
+   "antigen": "OmpD (outer membrane porin D)",
+   "protegen_hit": "Protegen:",
+   "pident": 60.2,
+   "align_len": 377,
+   "evalue": 1.21e-152,
+   "verdict": "homolog — bilgi sızdırır"
+  },
+  {
+   "bug": "ssuis",
+   "acc": "A0A0H3MU02",
+   "antigen": "Suilysin SLY (thiol-activated sitolizin)",
+   "protegen_hit": "Protegen:",
+   "pident": 50.9,
+   "align_len": 464,
+   "evalue": 4.52e-170,
+   "verdict": "homolog — bilgi sızdırır"
+  },
+  {
+   "bug": "salmonella",
+   "acc": "P06179",
+   "antigen": "FliC (phase-1 flagellin)",
+   "protegen_hit": "Protegen:",
+   "pident": 49.0,
+   "align_len": 498,
+   "evalue": 8.24e-111,
+   "verdict": "homolog — bilgi sızdırır"
+  },
+  {
+   "bug": "ssuis",
+   "acc": "A0A0H3MXM0",
+   "antigen": "DnaJ (şaperon, immunojenik)",
+   "protegen_hit": "Protegen:",
+   "pident": 46.0,
+   "align_len": 383,
+   "evalue": 2.47e-91,
+   "verdict": "homolog — bilgi sızdırır"
+  },
+  {
+   "bug": "banthracis",
+   "acc": "P40136",
+   "antigen": "Edema Factor EF (cya, pXO1, adenilat siklaz)",
+   "protegen_hit": "Protegen:",
+   "pident": 38.1,
+   "align_len": 218,
+   "evalue": 6.08e-35,
+   "verdict": "homolog — bilgi sızdırır"
+  },
+  {
+   "bug": "leptospira",
+   "acc": "Q8EYU4",
+   "antigen": "LigA (Ig benzeri tekrar A)",
+   "protegen_hit": "Protegen:",
+   "pident": 37.4,
+   "align_len": 666,
+   "evalue": 1.29e-128,
+   "verdict": "homolog — bilgi sızdırır"
+  },
+  {
+   "bug": "banthracis",
+   "acc": "P19580",
+   "antigen": "CapB (pXO2, poli-γ-D-glutamat kapsül)",
+   "protegen_hit": "Protegen:",
+   "pident": 37.0,
+   "align_len": 46,
+   "evalue": 1.24e-06,
+   "verdict": "homolog — bilgi sızdırır"
+  },
+  {
+   "bug": "salmonella",
+   "acc": "Q7BVH7",
+   "antigen": "SseB (SPI-2 secreted effector/translocon)",
+   "protegen_hit": "Protegen:",
+   "pident": 32.5,
+   "align_len": 114,
+   "evalue": 1.84e-07,
+   "verdict": "homolog — bilgi sızdırır"
+  },
+  {
+   "bug": "banthracis",
+   "acc": "P94217",
+   "antigen": "S-tabaka proteini EA1 (eag)",
+   "protegen_hit": "Protegen:",
+   "pident": 32.0,
+   "align_len": 169,
+   "evalue": 1.37e-20,
+   "verdict": "homolog — bilgi sızdırır"
+  },
+  {
+   "bug": "coxiella",
+   "acc": "Q83DT1",
+   "antigen": "OmpH (outer membrane protein H)",
+   "protegen_hit": "Protegen:",
+   "pident": 26.8,
+   "align_len": 164,
+   "evalue": 4.36e-11,
+   "verdict": "bağımsız"
+  },
+  {
+   "bug": "brucella_s2",
+   "acc": "WP_002971189.1",
+   "antigen": "SodC (Cu-Zn süperoksit dismutaz)",
+   "protegen_hit": "Protegen:",
+   "pident": 21.2,
+   "align_len": 660,
+   "evalue": 7.29e-11,
+   "verdict": "bağımsız"
+  },
+  {
+   "bug": "brucella_rb51",
+   "acc": "WP_002965937.1",
+   "antigen": "SodC (Cu-Zn süperoksit dismutaz)",
+   "protegen_hit": null,
+   "pident": 0.0,
+   "align_len": null,
+   "evalue": null,
+   "verdict": "bağımsız"
+  },
+  {
+   "bug": "brucella_s19",
+   "acc": "WP_002965937.1",
+   "antigen": "SodC (Cu-Zn süperoksit dismutaz)",
+   "protegen_hit": null,
+   "pident": 0.0,
+   "align_len": null,
+   "evalue": null,
+   "verdict": "bağımsız"
+  },
+  {
+   "bug": "leptospira",
+   "acc": "Q8F8E1",
+   "antigen": "LipL41 (dış membran lipoprotein)",
+   "protegen_hit": null,
+   "pident": 0.0,
+   "align_len": null,
+   "evalue": null,
+   "verdict": "bağımsız"
+  },
+  {
+   "bug": "listeria",
+   "acc": "P0DJM0",
+   "antigen": "InlA (internalin A)",
+   "protegen_hit": null,
+   "pident": 0.0,
+   "align_len": null,
+   "evalue": null,
+   "verdict": "bağımsız"
+  },
+  {
+   "bug": "listeria",
+   "acc": "P0DQD2",
+   "antigen": "InlB (internalin B)",
+   "protegen_hit": null,
+   "pident": 0.0,
+   "align_len": null,
+   "evalue": null,
+   "verdict": "bağımsız"
+  },
+  {
+   "bug": "listeria",
+   "acc": "P33379",
+   "antigen": "ActA (actin assembly-inducing protein)",
+   "protegen_hit": null,
+   "pident": 0.0,
+   "align_len": null,
+   "evalue": null,
+   "verdict": "bağımsız"
+  },
+  {
+   "bug": "mbovis",
+   "acc": "P0A5B8",
+   "antigen": "HspX/Acr (alfa-kristalin, 16 kDa)",
+   "protegen_hit": null,
+   "pident": 0.0,
+   "align_len": null,
+   "evalue": null,
+   "verdict": "bağımsız"
+  },
+  {
+   "bug": "saureus",
+   "acc": "Q2FZE9",
+   "antigen": "IsdA (iron-regulated surface determinant A)",
+   "protegen_hit": null,
+   "pident": 0.0,
+   "align_len": null,
+   "evalue": null,
+   "verdict": "bağımsız"
+  }
+ ]
+}

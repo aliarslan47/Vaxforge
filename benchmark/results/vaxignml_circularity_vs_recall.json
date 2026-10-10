@@ -1,0 +1,354 @@
+[
+ {
+  "bug": "banthracis",
+  "antigen": "Protective Antigen PA (pagA, pXO1) — antraks aşısı ana antijeni",
+  "pident": 100.0,
+  "cls": "eğitim etiketinin kendisi",
+  "vaxignml_rank": 13,
+  "vaxforge_rank": 2
+ },
+ {
+  "bug": "banthracis",
+  "antigen": "Lethal Factor LF (lef, pXO1)",
+  "pident": 100.0,
+  "cls": "eğitim etiketinin kendisi",
+  "vaxignml_rank": 108,
+  "vaxforge_rank": 9
+ },
+ {
+  "bug": "banthracis",
+  "antigen": "Edema Factor EF (cya, pXO1, adenilat siklaz)",
+  "pident": 38.1,
+  "cls": "homolog — bilgi sızdırır",
+  "vaxignml_rank": 119,
+  "vaxforge_rank": 6
+ },
+ {
+  "bug": "banthracis",
+  "antigen": "CapB (pXO2, poli-γ-D-glutamat kapsül)",
+  "pident": 37.0,
+  "cls": "homolog — bilgi sızdırır",
+  "vaxignml_rank": 1196,
+  "vaxforge_rank": null
+ },
+ {
+  "bug": "banthracis",
+  "antigen": "S-tabaka proteini EA1 (eag)",
+  "pident": 32.0,
+  "cls": "homolog — bilgi sızdırır",
+  "vaxignml_rank": 2,
+  "vaxforge_rank": 65
+ },
+ {
+  "bug": "brucella",
+  "antigen": "Omp31 (31 kDa dış membran)",
+  "pident": 100.0,
+  "cls": "eğitim etiketinin kendisi",
+  "vaxignml_rank": 218,
+  "vaxforge_rank": 36
+ },
+ {
+  "bug": "brucella",
+  "antigen": "BP26/Omp28 (26 kDa periplazmik immunojenik)",
+  "pident": 100.0,
+  "cls": "eğitim etiketinin kendisi",
+  "vaxignml_rank": 255,
+  "vaxforge_rank": 181
+ },
+ {
+  "bug": "brucella",
+  "antigen": "SodC (Cu-Zn süperoksit dismutaz)",
+  "pident": 100.0,
+  "cls": "eğitim etiketinin kendisi",
+  "vaxignml_rank": 589,
+  "vaxforge_rank": 26
+ },
+ {
+  "bug": "brucella",
+  "antigen": "L7/L12 ribozomal protein (RplL)",
+  "pident": 100.0,
+  "cls": "eğitim etiketinin kendisi",
+  "vaxignml_rank": 430,
+  "vaxforge_rank": null
+ },
+ {
+  "bug": "brucella",
+  "antigen": "Omp25 (25 kDa dış membran immunojenik protein)",
+  "pident": 99.5,
+  "cls": "eğitim etiketinin kendisi",
+  "vaxignml_rank": 101,
+  "vaxforge_rank": 102
+ },
+ {
+  "bug": "coxiella",
+  "antigen": "Mip (peptidyl-prolyl cis-trans isomerase)",
+  "pident": 100.0,
+  "cls": "eğitim etiketinin kendisi",
+  "vaxignml_rank": 28,
+  "vaxforge_rank": null
+ },
+ {
+  "bug": "coxiella",
+  "antigen": "GroEL (60 kDa chaperonin, HtpB)",
+  "pident": 100.0,
+  "cls": "eğitim etiketinin kendisi",
+  "vaxignml_rank": 8,
+  "vaxforge_rank": null
+ },
+ {
+  "bug": "coxiella",
+  "antigen": "Com1 (27 kDa outer membrane protein)",
+  "pident": 99.2,
+  "cls": "eğitim etiketinin kendisi",
+  "vaxignml_rank": 64,
+  "vaxforge_rank": 42
+ },
+ {
+  "bug": "coxiella",
+  "antigen": "OmpH (outer membrane protein H)",
+  "pident": 26.8,
+  "cls": "bağımsız",
+  "vaxignml_rank": 713,
+  "vaxforge_rank": 177
+ },
+ {
+  "bug": "leptospira",
+  "antigen": "LigB (Ig benzeri tekrar B)",
+  "pident": 96.5,
+  "cls": "eğitim etiketinin kendisi",
+  "vaxignml_rank": 18,
+  "vaxforge_rank": 171
+ },
+ {
+  "bug": "leptospira",
+  "antigen": "LipL32 (majör dış membran lipoprotein)",
+  "pident": 94.8,
+  "cls": "eğitim etiketinin kendisi",
+  "vaxignml_rank": 788,
+  "vaxforge_rank": 145
+ },
+ {
+  "bug": "leptospira",
+  "antigen": "OmpL1 (dış membran porin)",
+  "pident": 93.8,
+  "cls": "eğitim etiketinin kendisi",
+  "vaxignml_rank": 588,
+  "vaxforge_rank": 150
+ },
+ {
+  "bug": "leptospira",
+  "antigen": "LigA (Ig benzeri tekrar A)",
+  "pident": 37.4,
+  "cls": "homolog — bilgi sızdırır",
+  "vaxignml_rank": 227,
+  "vaxforge_rank": null
+ },
+ {
+  "bug": "leptospira",
+  "antigen": "LipL41 (dış membran lipoprotein)",
+  "pident": 0.0,
+  "cls": "bağımsız",
+  "vaxignml_rank": 83,
+  "vaxforge_rank": 107
+ },
+ {
+  "bug": "listeria",
+  "antigen": "LLO (listeriolysin O, immunodominant)",
+  "pident": 100.0,
+  "cls": "eğitim etiketinin kendisi",
+  "vaxignml_rank": 19,
+  "vaxforge_rank": 7
+ },
+ {
+  "bug": "listeria",
+  "antigen": "p60 (invasion-associated endopeptidase, iap)",
+  "pident": 96.1,
+  "cls": "eğitim etiketinin kendisi",
+  "vaxignml_rank": 70,
+  "vaxforge_rank": 1
+ },
+ {
+  "bug": "listeria",
+  "antigen": "InlA (internalin A)",
+  "pident": 0.0,
+  "cls": "bağımsız",
+  "vaxignml_rank": 214,
+  "vaxforge_rank": 2
+ },
+ {
+  "bug": "listeria",
+  "antigen": "InlB (internalin B)",
+  "pident": 0.0,
+  "cls": "bağımsız",
+  "vaxignml_rank": 143,
+  "vaxforge_rank": 15
+ },
+ {
+  "bug": "listeria",
+  "antigen": "ActA (actin assembly-inducing protein)",
+  "pident": 0.0,
+  "cls": "bağımsız",
+  "vaxignml_rank": 210,
+  "vaxforge_rank": null
+ },
+ {
+  "bug": "mbovis",
+  "antigen": "ESAT-6 (EsxA, 6 kDa erken salgı antijeni)",
+  "pident": 100.0,
+  "cls": "eğitim etiketinin kendisi",
+  "vaxignml_rank": 53,
+  "vaxforge_rank": null
+ },
+ {
+  "bug": "mbovis",
+  "antigen": "CFP-10 (EsxB)",
+  "pident": 100.0,
+  "cls": "eğitim etiketinin kendisi",
+  "vaxignml_rank": 70,
+  "vaxforge_rank": 27
+ },
+ {
+  "bug": "mbovis",
+  "antigen": "Ag85B (FbpB, mikolil transferaz)",
+  "pident": 100.0,
+  "cls": "eğitim etiketinin kendisi",
+  "vaxignml_rank": 38,
+  "vaxforge_rank": 1
+ },
+ {
+  "bug": "mbovis",
+  "antigen": "MPB64 (immunojenik protein, M.bovis MPT64 homoloğu)",
+  "pident": 100.0,
+  "cls": "eğitim etiketinin kendisi",
+  "vaxignml_rank": 13,
+  "vaxforge_rank": 202
+ },
+ {
+  "bug": "mbovis",
+  "antigen": "HspX/Acr (alfa-kristalin, 16 kDa)",
+  "pident": 0.0,
+  "cls": "bağımsız",
+  "vaxignml_rank": 342,
+  "vaxforge_rank": 114
+ },
+ {
+  "bug": "salmonella",
+  "antigen": "OmpA (outer membrane protein A)",
+  "pident": 93.7,
+  "cls": "eğitim etiketinin kendisi",
+  "vaxignml_rank": 185,
+  "vaxforge_rank": 20
+ },
+ {
+  "bug": "salmonella",
+  "antigen": "OmpC (outer membrane porin C)",
+  "pident": 60.4,
+  "cls": "homolog — bilgi sızdırır",
+  "vaxignml_rank": 30,
+  "vaxforge_rank": 51
+ },
+ {
+  "bug": "salmonella",
+  "antigen": "OmpD (outer membrane porin D)",
+  "pident": 60.2,
+  "cls": "homolog — bilgi sızdırır",
+  "vaxignml_rank": 28,
+  "vaxforge_rank": 63
+ },
+ {
+  "bug": "salmonella",
+  "antigen": "FliC (phase-1 flagellin)",
+  "pident": 49.0,
+  "cls": "homolog — bilgi sızdırır",
+  "vaxignml_rank": 127,
+  "vaxforge_rank": 8
+ },
+ {
+  "bug": "salmonella",
+  "antigen": "SseB (SPI-2 secreted effector/translocon)",
+  "pident": 32.5,
+  "cls": "homolog — bilgi sızdırır",
+  "vaxignml_rank": 897,
+  "vaxforge_rank": 12
+ },
+ {
+  "bug": "saureus",
+  "antigen": "IsdB (iron-regulated surface determinant B)",
+  "pident": 100.0,
+  "cls": "eğitim etiketinin kendisi",
+  "vaxignml_rank": 46,
+  "vaxforge_rank": 4
+ },
+ {
+  "bug": "saureus",
+  "antigen": "Hla (alpha-hemolysin)",
+  "pident": 98.7,
+  "cls": "eğitim etiketinin kendisi",
+  "vaxignml_rank": 29,
+  "vaxforge_rank": 9
+ },
+ {
+  "bug": "saureus",
+  "antigen": "SpA (immunoglobulin G-binding protein A)",
+  "pident": 97.9,
+  "cls": "eğitim etiketinin kendisi",
+  "vaxignml_rank": 178,
+  "vaxforge_rank": 8
+ },
+ {
+  "bug": "saureus",
+  "antigen": "ClfA (clumping factor A)",
+  "pident": 95.5,
+  "cls": "eğitim etiketinin kendisi",
+  "vaxignml_rank": 248,
+  "vaxforge_rank": 23
+ },
+ {
+  "bug": "saureus",
+  "antigen": "IsdA (iron-regulated surface determinant A)",
+  "pident": 0.0,
+  "cls": "bağımsız",
+  "vaxignml_rank": 387,
+  "vaxforge_rank": 10
+ },
+ {
+  "bug": "ssuis",
+  "antigen": "Enolaz (yüzey adezini/plazminojen bağlayan)",
+  "pident": 95.2,
+  "cls": "eğitim etiketinin kendisi",
+  "vaxignml_rank": 150,
+  "vaxforge_rank": null
+ },
+ {
+  "bug": "ssuis",
+  "antigen": "6-fosfoglukonat dehidrogenaz (gnd)",
+  "pident": 90.1,
+  "cls": "eğitim etiketinin kendisi",
+  "vaxignml_rank": 68,
+  "vaxforge_rank": null
+ },
+ {
+  "bug": "ssuis",
+  "antigen": "GAPDH (plr/gapA, yüzey)",
+  "pident": 87.2,
+  "cls": "homolog — bilgi sızdırır",
+  "vaxignml_rank": 220,
+  "vaxforge_rank": null
+ },
+ {
+  "bug": "ssuis",
+  "antigen": "Suilysin SLY (thiol-activated sitolizin)",
+  "pident": 50.9,
+  "cls": "homolog — bilgi sızdırır",
+  "vaxignml_rank": 52,
+  "vaxforge_rank": 9
+ },
+ {
+  "bug": "ssuis",
+  "antigen": "DnaJ (şaperon, immunojenik)",
+  "pident": 46.0,
+  "cls": "homolog — bilgi sızdırır",
+  "vaxignml_rank": 482,
+  "vaxforge_rank": null
+ }
+]
