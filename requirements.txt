@@ -27,3 +27,15 @@ toxinpred3>=1.4
 # Ağır/harici araçlar (diamond, prodigal, AlphaFold, GROMACS ...) konteyner
 # (podman) veya ayrı GPU makinesinde; buraya dahil değildir.
 python-docx
+
+# DeepLocPro 1.0 — prokaryot hücre-altı lokalizasyon (ikinci görüş / ölçüm aracı).
+# PyPI'da YOK. Kurulum:
+#   git clone --depth 1 https://github.com/Jaimomar99/deeplocpro.git tools/deeplocpro_src
+#   .venv/bin/pip install ./tools/deeplocpro_src
+# İlk kurulumda ESM-2 650M ağırlığı indirilir (~2.5 GB). CLI: deeplocpro -f X.faa -d cpu -g positive
+# Lisans: CC BY-NC-SA 4.0 (akademik kullanım serbest, ticari DEĞİL).
+# Atıf: Moreno J, Nielsen H, Winther O, Teufel F. Bioinformatics 2024;40(12):btae677,
+#       doi:10.1093/bioinformatics/btae677
+# NOT: BioLib imajı (KU/DeepLocPro) girdiyi CPU'da bırakıp modeli CUDA'ya koyduğu için
+# çöküyor; Jaimomar99/DeepLocPro_model reposu yalnız eğitim kodu taşır, ağırlık yok.
+# Hatta GÖMÜLÜ DEĞİL: ölçüm aracı olarak kullanılır (benchmark/measure_localization_agreement.py).

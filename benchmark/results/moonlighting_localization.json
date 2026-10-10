@@ -1,8 +1,8 @@
 {
  "bug": "ssuis",
  "question": "ssuis'in kaçan 4 antijenini hangi kapı eliyor?",
- "method": "PSORTb 3.0 (podman, --positive) doğrudan 5 antijen üzerinde",
- "finding": "dördü de yüksek güvenle sitoplazmik → lokalizasyon kapısı bağlayıcı kısıt. Konak-homoloji kapısı yumuşatıldıktan sonra bile aday üretmiyorlar. Hepsi 'moonlighting' protein: kanonik sitoplazmik (glikolitik enzim/şaperon) ama deneysel olarak klasik-olmayan salgıyla yüzeyde sergilenen. Sinyal peptidi ve salgı motifi yok → dizi-temelli lokalizasyon tahmincisi için erişilemez.",
+ "method": "PSORTb 3.0 (podman, --positive/--negative) VE DeepLocPro 1.0 (ESM-2, -d cpu, -g positive/negative) aynı antijen setinde; benchmark/measure_localization_agreement.py",
+ "finding": "dördü de yüksek güvenle sitoplazmik → lokalizasyon kapısı bağlayıcı kısıt. Konak-homoloji kapısı yumuşatıldıktan sonra bile aday üretmiyorlar. Hepsi 'moonlighting' protein: kanonik sitoplazmik (glikolitik enzim/şaperon) ama deneysel olarak klasik-olmayan salgıyla yüzeyde sergilenen. Sinyal peptidi ve salgı motifi yok → dizi-temelli lokalizasyon tahmincisi için erişilemez. DOĞRULANDI (2026-10-10): mimari olarak bağımsız ikinci bir tahminci (DeepLocPro 1.0, ESM-2 dil modeli) sekiz antijenin sekizinde aynı üst kararı veriyor. Yani bulgu tek araca dayanan bir kabul değil, iki bağımsız mimariyle ölçülmüş bir sonuç.",
  "antigens": [
   {
    "acc": "A0A0H3MU02",
@@ -41,5 +41,22 @@
   }
  ],
  "implication": "Vaxign-ML bu antijenleri lokalizasyon hakkında akıl yürüterek değil, bilinen antijenler üzerinde eğitilmiş olduğu için yakalıyor. Fark mühendislik açığı değil, mimari fark — KISITLAMA olarak raporlanır, araç eklenerek kapatılmaz (dairesellik riski).",
- "decision": "kayıt altına alındı, kapatıldı (2026-10-10 kullanıcı kararı)"
+ "decision": "kayıt altına alındı, kapatıldı (2026-10-10 kullanıcı kararı); ikinci tahminciyle doğrulandıktan sonra lokalizasyon katmanını değiştirme planı da iptal edildi — gerekçe ölçümle ortadan kalktı",
+ "second_predictor": {
+  "tool": "DeepLocPro 1.0",
+  "citation": "Moreno J, Nielsen H, Winther O, Teufel F. Bioinformatics 2024;40(12):btae677",
+  "doi": "10.1093/bioinformatics/btae677",
+  "licence": "CC BY-NC-SA 4.0",
+  "top_call_agreement_with_psortb": "8/8",
+  "calls": {
+   "Suilysin": "Extracellular 0.999",
+   "Enolaz": "Cytoplasmic 0.988",
+   "GAPDH": "Cytoplasmic 0.875",
+   "gnd": "Cytoplasmic 0.845",
+   "DnaJ": "Cytoplasmic 0.987",
+   "CapB": "Cytoplasmic Membrane 0.939",
+   "ActA": "Cytoplasmic Membrane 0.656",
+   "LigA": "Cytoplasmic 0.995"
+  }
+ }
 }

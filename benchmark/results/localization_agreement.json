@@ -1,0 +1,242 @@
+{
+ "question": "PSORTb'nin 'hücre duvarı ve yüzey' sınıfındaki zayıflığı (MCC≈0) VaxForge'un somut kayıplarına tercüme oluyor mu?",
+ "tools": {
+  "psortb": {
+   "version": "3.0",
+   "citation": "Yu NY ve ark. Bioinformatics 2010;26(13):1608-15",
+   "doi": "10.1093/bioinformatics/btq249"
+  },
+  "deeplocpro": {
+   "version": "1.0",
+   "citation": "Moreno J, Nielsen H, Winther O, Teufel F. Bioinformatics 2024;40(12):btae677",
+   "doi": "10.1093/bioinformatics/btae677",
+   "licence": "CC BY-NC-SA 4.0",
+   "published_benchmark_vs_psortb": {
+    "gram_positive": {
+     "accuracy": [
+      0.79,
+      0.5
+     ],
+     "macro_f1": [
+      0.66,
+      0.48
+     ],
+     "mcc": [
+      0.7,
+      0.41
+     ]
+    },
+    "gram_negative": {
+     "accuracy": [
+      0.74,
+      0.34
+     ],
+     "macro_f1": [
+      0.75,
+      0.35
+     ],
+     "mcc": [
+      0.69,
+      0.3
+     ]
+    },
+    "cell_wall_surface_mcc": {
+     "gram_positive": [
+      0.28,
+      -0.02
+     ],
+     "gram_negative": [
+      0.8,
+      0.0
+     ]
+    },
+    "note": "[DeepLocPro, PSORTb 3.0]; PSORTb'nin SCLBLAST modülü kapalı, 'Unknown' yanlış-negatif sayılmış"
+   }
+  }
+ },
+ "n_antigens": 8,
+ "n_top_call_agreement": 8,
+ "finding": "iki tahminci sekiz antijenin sekizinde aynı üst kararı veriyor; DeepLocPro hiçbir kaybı kurtarmıyor. ssuis'in 4 moonlighting antijenine her ikisi de yüksek güvenle sitoplazmik diyor, yani klasik-olmayan yüzey sergilenmesi iki bağımsız mimariyle de erişilemez. LigA'yı DeepLocPro da 0.995 güvenle sitoplazmik veriyor → bu PSORTb'ye özgü bir yanlış atama DEĞİL, dizi-temelli lokalizasyon tahmininin genel sınırı.",
+ "consequence": "lokalizasyon katmanını değiştirmek için gerekçe yok; yayımlanmış MCC farkı bizim kayıp sınıfımıza tercüme olmuyor. Araç eklemeden önce ölçmek, gereksiz bir kod değişikliğini ve yeniden koşuyu engelledi.",
+ "antigens": [
+  {
+   "bug": "ssuis",
+   "acc": "A0A0H3MU02",
+   "antigen": "Suilysin SLY (thiol-activated sitolizin)",
+   "gram": "positive",
+   "length": 497,
+   "psortb": "extracellular",
+   "psortb_score": 9.73,
+   "psortb_canonical": "extracellular",
+   "deeplocpro_canonical": "extracellular",
+   "deeplocpro": "Extracellular",
+   "deeplocpro_confidence": 0.9988,
+   "deeplocpro_probs": {
+    "Cell wall & surface": 0.0009,
+    "Extracellular": 0.9988,
+    "Cytoplasmic": 0.0,
+    "Cytoplasmic Membrane": 0.0003,
+    "Outer Membrane": 0.0,
+    "Periplasmic": 0.0
+   },
+   "surface_called_by": [
+    "psortb",
+    "deeplocpro"
+   ]
+  },
+  {
+   "bug": "ssuis",
+   "acc": "A0A0H3N5B2",
+   "antigen": "Enolaz (yüzey adezini/plazminojen bağlayan)",
+   "gram": "positive",
+   "length": 435,
+   "psortb": "cytoplasm",
+   "psortb_score": 9.97,
+   "psortb_canonical": "cytoplasm",
+   "deeplocpro_canonical": "cytoplasm",
+   "deeplocpro": "Cytoplasmic",
+   "deeplocpro_confidence": 0.9879,
+   "deeplocpro_probs": {
+    "Cell wall & surface": 0.0002,
+    "Extracellular": 0.0114,
+    "Cytoplasmic": 0.9879,
+    "Cytoplasmic Membrane": 0.0004,
+    "Outer Membrane": 0.0,
+    "Periplasmic": 0.0
+   },
+   "surface_called_by": []
+  },
+  {
+   "bug": "ssuis",
+   "acc": "A0A0H3MSV3",
+   "antigen": "GAPDH (plr/gapA, yüzey)",
+   "gram": "positive",
+   "length": 336,
+   "psortb": "cytoplasm",
+   "psortb_score": 9.97,
+   "psortb_canonical": "cytoplasm",
+   "deeplocpro_canonical": "cytoplasm",
+   "deeplocpro": "Cytoplasmic",
+   "deeplocpro_confidence": 0.8752,
+   "deeplocpro_probs": {
+    "Cell wall & surface": 0.0,
+    "Extracellular": 0.1244,
+    "Cytoplasmic": 0.8752,
+    "Cytoplasmic Membrane": 0.0003,
+    "Outer Membrane": 0.0,
+    "Periplasmic": 0.0
+   },
+   "surface_called_by": []
+  },
+  {
+   "bug": "ssuis",
+   "acc": "A0A0H3N193",
+   "antigen": "6-fosfoglukonat dehidrogenaz (gnd)",
+   "gram": "positive",
+   "length": 475,
+   "psortb": "cytoplasm",
+   "psortb_score": 7.5,
+   "psortb_canonical": "cytoplasm",
+   "deeplocpro_canonical": "cytoplasm",
+   "deeplocpro": "Cytoplasmic",
+   "deeplocpro_confidence": 0.8451,
+   "deeplocpro_probs": {
+    "Cell wall & surface": 0.001,
+    "Extracellular": 0.1476,
+    "Cytoplasmic": 0.8451,
+    "Cytoplasmic Membrane": 0.0063,
+    "Outer Membrane": 0.0,
+    "Periplasmic": 0.0
+   },
+   "surface_called_by": []
+  },
+  {
+   "bug": "ssuis",
+   "acc": "A0A0H3MXM0",
+   "antigen": "DnaJ (şaperon, immunojenik)",
+   "gram": "positive",
+   "length": 378,
+   "psortb": "cytoplasm",
+   "psortb_score": 9.97,
+   "psortb_canonical": "cytoplasm",
+   "deeplocpro_canonical": "cytoplasm",
+   "deeplocpro": "Cytoplasmic",
+   "deeplocpro_confidence": 0.9868,
+   "deeplocpro_probs": {
+    "Cell wall & surface": 0.0002,
+    "Extracellular": 0.0122,
+    "Cytoplasmic": 0.9868,
+    "Cytoplasmic Membrane": 0.0009,
+    "Outer Membrane": 0.0,
+    "Periplasmic": 0.0
+   },
+   "surface_called_by": []
+  },
+  {
+   "bug": "banthracis",
+   "acc": "P19580",
+   "antigen": "CapB (pXO2, poli-γ-D-glutamat kapsül)",
+   "gram": "positive",
+   "length": 464,
+   "psortb": "membrane",
+   "psortb_score": 10.0,
+   "psortb_canonical": "cytoplasmic_membrane",
+   "deeplocpro_canonical": "cytoplasmic_membrane",
+   "deeplocpro": "Cytoplasmic Membrane",
+   "deeplocpro_confidence": 0.9392,
+   "deeplocpro_probs": {
+    "Cell wall & surface": 0.0001,
+    "Extracellular": 0.0139,
+    "Cytoplasmic": 0.0468,
+    "Cytoplasmic Membrane": 0.9392,
+    "Outer Membrane": 0.0,
+    "Periplasmic": 0.0
+   },
+   "surface_called_by": []
+  },
+  {
+   "bug": "listeria",
+   "acc": "P33379",
+   "antigen": "ActA (actin assembly-inducing protein)",
+   "gram": "positive",
+   "length": 639,
+   "psortb": "membrane",
+   "psortb_score": 10.0,
+   "psortb_canonical": "cytoplasmic_membrane",
+   "deeplocpro_canonical": "cytoplasmic_membrane",
+   "deeplocpro": "Cytoplasmic Membrane",
+   "deeplocpro_confidence": 0.6559,
+   "deeplocpro_probs": {
+    "Cell wall & surface": 0.0326,
+    "Extracellular": 0.2986,
+    "Cytoplasmic": 0.013,
+    "Cytoplasmic Membrane": 0.6559,
+    "Outer Membrane": 0.0,
+    "Periplasmic": 0.0
+   },
+   "surface_called_by": []
+  },
+  {
+   "bug": "leptospira",
+   "acc": "Q8EYU4",
+   "antigen": "LigA (Ig benzeri tekrar A)",
+   "gram": "negative",
+   "length": 681,
+   "psortb": "cytoplasm",
+   "psortb_score": 9.97,
+   "psortb_canonical": "cytoplasm",
+   "deeplocpro_canonical": "cytoplasm",
+   "deeplocpro": "Cytoplasmic",
+   "deeplocpro_confidence": 0.9954,
+   "deeplocpro_probs": {
+    "Cell wall & surface": 0.0001,
+    "Extracellular": 0.0002,
+    "Cytoplasmic": 0.9954,
+    "Cytoplasmic Membrane": 0.001,
+    "Outer Membrane": 0.0032,
+    "Periplasmic": 0.0001
+   },
+   "surface_called_by": []
+  }
+ ]
+}

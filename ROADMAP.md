@@ -312,3 +312,47 @@ tek koruyucu antijen sabit kalırken zenginleşme seyreliyor. Yani pipeline daha
 hale geldi ama bu metrik kötüleşti. ssuis bu etkiyi en ağır gösteren tür, çünkü
 yakalanabilir tek antijeni var; etkinin gerçek boyutu birden fazla antijeni geçen
 türlerde (listeria, saureus, mbovis) ölçülmeli.
+
+## 2026-10-10 (V) — Lokalizasyon: ikinci tahminciyle çapraz denetim
+
+**Soru.** PSORTb 3.0'ın "hücre duvarı ve yüzey" sınıfındaki yayımlanmış zayıflığı
+(Gram(+) MCC 0.28 vs −0.02, Gram(−) 0.80 vs 0.00; Moreno ve ark. 2024,
+doi:10.1093/bioinformatics/btae677) bizim somut kayıplarımıza tercüme oluyor mu?
+
+**Araç seçimi (bir hata yakalandı).** İlk plan "PSORTb + DeepLoc 2.0 oylaması"ydı.
+Yanlış: **DeepLoc ökaryota özgü** — bakteride kullanmak haftalardır düzelttiğimiz hata
+ailesinin aynısı olurdu (yanlış organizma alanı). Prokaryot karşılığı **DeepLocPro 1.0**;
+DTU'nun DeepLoc 2.1 sayfası prokaryot kullanıcılarını oraya yönlendiriyor.
+
+**Kurulum engelleri (kayıt için).** PyPI'da paket yok. BioLib imajı (`KU/DeepLocPro:0.0.26`)
+girdiyi CPU'da bırakıp ESM modelini CUDA'ya koyduğu için çöküyor; `machine="local"` kipi de
+kaldırılmış. `Jaimomar99/DeepLocPro_model` yalnız eğitim kodu taşır. Çalışan yol:
+`Jaimomar99/deeplocpro` → `tools/deeplocpro_src`, `pip install .`, ESM-2 650M indirmesi,
+`-d cpu` varsayılan, `-g positive|negative` bayrağı mevcut. Lisans CC BY-NC-SA 4.0.
+
+**Ölçüm** (`benchmark/measure_localization_agreement.py`, veri:
+`results/localization_agreement.json`). Sekiz antijen, iki tahminci:
+
+| Antijen | Gram | PSORTb | DeepLocPro | güven |
+|---|---|---|---|---|
+| Suilizin *(yakalanan kontrol)* | + | extracellular 9.73 | Extracellular | 0.999 |
+| Enolaz | + | cytoplasm 9.97 | Cytoplasmic | 0.988 |
+| GAPDH | + | cytoplasm 9.97 | Cytoplasmic | 0.875 |
+| gnd | + | cytoplasm 7.50 | Cytoplasmic | 0.845 |
+| DnaJ | + | cytoplasm 9.97 | Cytoplasmic | 0.987 |
+| CapB | + | membrane 10.0 | Cytoplasmic Membrane | 0.939 |
+| ActA | + | membrane 10.0 | Cytoplasmic Membrane | 0.656 |
+| LigA | − | cytoplasm 9.97 | Cytoplasmic | 0.995 |
+
+**Üst karar uyumu 8/8.** (Betiğin ilk hâli 6/8 saydı; PSORTb'nin Gram(+) `membrane`
+etiketi DeepLocPro'nun `Cytoplasmic Membrane`'i ile aynı sınıftır — Gram(+)'da dış membran
+yoktur. Etiket normalizasyonu betiğe eklendi, sayı elle düzeltilmedi.)
+
+**İki sonuç.** (1) LigA'nın atfı değişti: "PSORTb yanlış ataması" değil, **dizi-temelli
+lokalizasyon tahmininin genel sınırı** — MISS_ATTRIBUTION §3 yeniden sınıflandırıldı.
+(2) Moonlighting yorumu tek araçlı kabulden iki araçlı bulguya yükseldi.
+
+**Mühendislik kararı: lokalizasyon katmanı DEĞİŞTİRİLMEDİ.** Yayımlanmış MCC farkı gerçek
+ama bizim kayıp sınıfımıza tercüme olmuyor. Aracı eklemeden önce ölçmek, gereksiz bir kod
+değişikliğini ve 10 türün yeniden koşulmasını engelledi. DeepLocPro hatta gömülü değil,
+ölçüm aracı olarak duruyor.

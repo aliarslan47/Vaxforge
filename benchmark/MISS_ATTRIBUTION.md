@@ -104,10 +104,45 @@ yanlıştı. İzinli liste yalnız Gram-pozitif dalda değişti, dolayısıyla e
 Beklenen etki: CapB ve ActA geri gelirse recall 37/48 → 39/48; Gram(+) türlerde aday sayısı
 artacağı için fold-zenginleşme bir miktar düşecektir (ödünleşmenin ölçülmesi gereken tarafı).
 
-## 3. PSORTb yanlış ataması, 1/11
+## 3. Lokalizasyon tahmininin genel sınırı, 1/11 — **YENİDEN SINIFLANDIRILDI (2026-10-10)**
 
 LigA (*Leptospira*) → PSORTb `cytoplasm` skor 9.97. Literatürde bilinen yüzey lipoproteini.
-VaxForge'un değil, üst-aracın hatası; limitasyon olarak raporlanır.
+İlk hâlinde buna "**PSORTb yanlış ataması**" dendi, yani tek bir üst-aracın kusuru.
+**Bu nitelendirme fazla iyimserdi.**
+
+İkinci, mimari olarak tamamen farklı bir tahminciyle sınandı: DeepLocPro 1.0 (Moreno ve
+ark. 2024, doi:10.1093/bioinformatics/btae677) — ESM-2 dil modeli tabanlı, prokaryotlara
+özgü, PSORTdb 4.0'ın deneysel-doğrulanmış verisiyle eğitilmiş. Yayımlanan kıyasta PSORTb
+3.0'ı tüm gruplarda geçiyor ve "hücre duvarı ve yüzey" sınıfındaki fark uçurum:
+Gram(+) MCC 0.28 vs −0.02, Gram(−) 0.80 vs 0.00 — yani PSORTb o sınıfta pratikte rastgele.
+Bu istatistiğin bizim kayıplarımıza tercüme olup olmadığını ölçtük
+(`benchmark/measure_localization_agreement.py`, veri: `results/localization_agreement.json`):
+
+| Antijen | Gram | PSORTb | DeepLocPro | güven |
+|---|---|---|---|---|
+| Suilizin *(yakalanan kontrol)* | + | extracellular 9.73 | Extracellular | 0.999 |
+| Enolaz | + | cytoplasm 9.97 | Cytoplasmic | 0.988 |
+| GAPDH | + | cytoplasm 9.97 | Cytoplasmic | 0.875 |
+| gnd | + | cytoplasm 7.50 | Cytoplasmic | 0.845 |
+| DnaJ | + | cytoplasm 9.97 | Cytoplasmic | 0.987 |
+| CapB | + | membrane 10.0 | Cytoplasmic Membrane | 0.939 |
+| ActA | + | membrane 10.0 | Cytoplasmic Membrane | 0.656 |
+| **LigA** | − | **cytoplasm 9.97** | **Cytoplasmic** | **0.995** |
+
+**Üst karar uyumu 8/8.** (PSORTb'nin Gram(+) `membrane` etiketi ile DeepLocPro'nun
+`Cytoplasmic Membrane` etiketi aynı sınıftır — Gram(+)'da dış membran yoktur; betik
+etiketleri normalize ederek sayar.)
+
+Sonuç: LigA'yı DeepLocPro da 0.995 güvenle sitoplazmik veriyor. Dolayısıyla bu **tek bir
+aracın yanlış ataması değil, dizi-temelli lokalizasyon tahmininin genel sınırı** — ve bu
+kayıp aracı değiştirerek kapatılamaz. Aynı ölçüm, 1. maddedeki moonlighting sonucunu da
+tek araçlı bir kabulden iki araçlı bir bulguya yükseltiyor.
+
+**Yan sonuç (mühendislik kararı).** Lokalizasyon katmanını DeepLocPro'ya taşımak
+planlanmıştı; bu ölçüm gerekçeyi ortadan kaldırdı. Yayımlanmış MCC farkı gerçek ama bizim
+kayıp sınıfımıza tercüme olmuyor. Aracı eklemeden önce ölçmek, gereksiz bir kod
+değişikliğini ve 10 türün yeniden koşulmasını engelledi. DeepLocPro yine de yerel olarak
+kuruldu (`tools/deeplocpro_src`, CC BY-NC-SA 4.0) ve bu ölçüm yeniden üretilebilir.
 
 ## 4. Epitop/bağlanma aşaması, 2/11 — **YENİDEN SINIFLANDIRILDI (2026-10-10): KALİBRASYON HATASI**
 
@@ -176,7 +211,7 @@ kapısında kayboldu — yani iki kayıp daha aynı adrese taşındı.
 |---|---|---|
 | Konak-homoloji kapısı — yanlış granülarite | 6 | **düzeltildi** — protein düzeyi yumuşak, epitop düzeyi sert; kapının varlığı tasarım tercihi, protein-bütünü eleme mühendislik hatasıydı |
 | Gram(+) `membrane` yapılandırma açığı | 2 | düzeltildi (CapB/ActA huniyi geçiyor) |
-| PSORTb yanlış ataması (LigA) | 1 | üst-araç limiti |
+| Lokalizasyon tahmininin genel sınırı (LigA) | 1 | **yeniden sınıflandırıldı** — PSORTb'ye özgü değil; DeepLocPro 1.0 da %99.5 güvenle sitoplazmik diyor (8/8 uyum) |
 | Toksisite kapısı kalibrasyon hatası | 2 (+ActA, +LLO) | **düzeltildi** — mühendislik hatası |
 
 Yani **üç** özdeş ders: Gram listesi, toksisite eşiği ve konak-homoloji granülaritesi —
