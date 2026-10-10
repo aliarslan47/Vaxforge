@@ -1,0 +1,45 @@
+{
+ "bug": "ssuis",
+ "question": "ssuis'in kaçan 4 antijenini hangi kapı eliyor?",
+ "method": "PSORTb 3.0 (podman, --positive) doğrudan 5 antijen üzerinde",
+ "finding": "dördü de yüksek güvenle sitoplazmik → lokalizasyon kapısı bağlayıcı kısıt. Konak-homoloji kapısı yumuşatıldıktan sonra bile aday üretmiyorlar. Hepsi 'moonlighting' protein: kanonik sitoplazmik (glikolitik enzim/şaperon) ama deneysel olarak klasik-olmayan salgıyla yüzeyde sergilenen. Sinyal peptidi ve salgı motifi yok → dizi-temelli lokalizasyon tahmincisi için erişilemez.",
+ "antigens": [
+  {
+   "acc": "A0A0H3MU02",
+   "antigen": "Suilysin SLY",
+   "psortb": "extracellular",
+   "score": 9.73,
+   "recovered": true
+  },
+  {
+   "acc": "A0A0H3N5B2",
+   "antigen": "Enolaz",
+   "psortb": "cytoplasm",
+   "score": 9.97,
+   "recovered": false
+  },
+  {
+   "acc": "A0A0H3MSV3",
+   "antigen": "GAPDH",
+   "psortb": "cytoplasm",
+   "score": 9.97,
+   "recovered": false
+  },
+  {
+   "acc": "A0A0H3N193",
+   "antigen": "6-fosfoglukonat dehidrogenaz (gnd)",
+   "psortb": "cytoplasm",
+   "score": 7.5,
+   "recovered": false
+  },
+  {
+   "acc": "A0A0H3MXM0",
+   "antigen": "DnaJ",
+   "psortb": "cytoplasm",
+   "score": 9.97,
+   "recovered": false
+  }
+ ],
+ "implication": "Vaxign-ML bu antijenleri lokalizasyon hakkında akıl yürüterek değil, bilinen antijenler üzerinde eğitilmiş olduğu için yakalıyor. Fark mühendislik açığı değil, mimari fark — KISITLAMA olarak raporlanır, araç eklenerek kapatılmaz (dairesellik riski).",
+ "decision": "kayıt altına alındı, kapatıldı (2026-10-10 kullanıcı kararı)"
+}

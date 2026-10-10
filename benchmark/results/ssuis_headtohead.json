@@ -16,20 +16,20 @@
   "tools": [
     {
       "tool": "VaxForge",
-      "n_candidates": 288,
+      "n_candidates": 488,
       "recall": "1/5",
       "ranks": {
-        "GAPDH": null,
-        "Enolaz": null,
         "6-fosfoglukonat": null,
-        "Suilysin": 6,
-        "DnaJ": null
+        "Suilysin": 9,
+        "Enolaz": null,
+        "DnaJ": null,
+        "GAPDH": null
       },
       "recovered": [
         "Suilysin"
       ],
-      "fold_enrichment": 1.34,
-      "fisher_p": 0.5562949186466885,
+      "fold_enrichment": 0.79,
+      "fisher_p": 0.7692145226572586,
       "auc": null,
       "note": "candidacy skoru; funnel soft-VFDB"
     },
@@ -38,11 +38,11 @@
       "n_candidates": 628,
       "recall": "5/5",
       "ranks": {
-        "GAPDH": 220,
-        "Enolaz": 150,
         "6-fosfoglukonat": 68,
         "Suilysin": 52,
-        "DnaJ": 482
+        "Enolaz": 150,
+        "DnaJ": 482,
+        "GAPDH": 220
       },
       "recovered": [
         "6-fosfoglukonat",
@@ -65,11 +65,11 @@
       "n_candidates": 0,
       "recall": "0/5",
       "ranks": {
-        "GAPDH": "DISCARDED",
-        "Enolaz": "DISCARDED",
         "6-fosfoglukonat": "DISCARDED",
         "Suilysin": "DISCARDED",
-        "DnaJ": "DISCARDED"
+        "Enolaz": "DISCARDED",
+        "DnaJ": "DISCARDED",
+        "GAPDH": "DISCARDED"
       },
       "recovered": [],
       "fold_enrichment": null,

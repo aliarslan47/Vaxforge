@@ -272,3 +272,43 @@ garanti değil — lokalizasyon/TM/antijenite kapıları hâlâ önlerinde ve sk
 değil, TCR dejenerasyonu nedeniyle birebir olmayan peptit de çapraz-reaktif
 olabilir (anti-enolaz / anti-GAPDH otoantikorları literatürde gerçek). Bu yüzden
 yakın eşleşme cezası korunuyor ve protein-düzeyi işaret raporda görünür kalıyor.
+
+## 2026-10-10 (IV) — ssuis kalibrasyon-sonrası koşu: bağlayıcı kısıt lokalizasyon
+
+İlk kalibre koşu (`BUG=ssuis`, 9194 s = 2 s 33 dk). Üç düzeltme aktif: Gram-duyarlı
+lokalizasyon izin listesi, ToxinPred3 yumuşak toksisite, otoimmünite granülaritesi.
+
+| | Önce | Sonra |
+|---|---|---|
+| huniden geçen | 474 | 490 |
+| üretilen epitop | 8058 | 8330 |
+| alerjen elenen | — | 326 |
+| toksik işaret / eleme | sert eleme | 82 / 5 |
+| mimikri tam eşleşme elenen | 0 (yumuşaktı) | 16 |
+| nihai aday peptit | 1474 | 4872 |
+| Suilizin protein sırası | #6/422 | #9/488 |
+| **recall** | 1/5 | **1/5** |
+| **fold** | 1.34 | **0.79** |
+
+**Recall neden değişmedi.** Konak-homoloji kapısı o 4 antijenin önündeki tek kapı
+değildi. PSORTb'yi doğrudan koşturduk (`results/moonlighting_localization.json`):
+enolaz 9.97, GAPDH 9.97, gnd 7.5, DnaJ 9.97 — dördü de yüksek güvenle **sitoplazmik**;
+yakalanan suilizin ise extracellular 9.73. Bağlayıcı kısıt lokalizasyon kapısı ve o
+kapı kendi mantığında haklı: sitoplazmik protein antikora erişilebilir değil.
+
+Dördü de **moonlighting protein**: kanonik olarak sitoplazmik glikolitik enzim/şaperon,
+deneysel olarak klasik-olmayan salgıyla yüzeyde sergilenen. Sinyal peptidi ve salgı
+motifi taşımadıkları için dizi-temelli bir lokalizasyon tahmincisinin onları yüzeyde
+bulmasının yolu yok. Vaxign-ML onları lokalizasyon hakkında akıl yürüterek değil,
+bilinen antijenler üzerinde eğitilmiş olduğu için yakalıyor (5/5).
+
+**Karar (kullanıcı, 2026-10-10): kayıt altına al, kapat.** Mimari bir KISITLAMA olarak
+raporlanacak; klasik-olmayan salgı tahmincisi eklenmeyecek, çünkü bilinen antijenleri
+kurtarmak için araç eklemek dairesellik üretir.
+
+**fold düşüşü (1.34 → 0.79) dürüstçe.** Toksisite artık elemediği için çok daha fazla
+arka plan proteini aday üretiyor (422 → 488 aday-protein, 1474 → 4872 aday peptit);
+tek koruyucu antijen sabit kalırken zenginleşme seyreliyor. Yani pipeline daha doğru
+hale geldi ama bu metrik kötüleşti. ssuis bu etkiyi en ağır gösteren tür, çünkü
+yakalanabilir tek antijeni var; etkinin gerçek boyutu birden fazla antijeni geçen
+türlerde (listeria, saureus, mbovis) ölçülmeli.
