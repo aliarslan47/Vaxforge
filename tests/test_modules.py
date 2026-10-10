@@ -302,3 +302,48 @@ def test_homology_granularity_measurement_recorded():
     assert hi, "≥%35 kimlikli antijen yok — ölçüm ilgisiz"
     assert all(r["pct_self_exact"] < 10 for r in hi), \
         "protein kimliği yüksek antijenlerde self k-mer oranı da yüksekse sert eleme haklıydı"
+
+
+def test_prospective_groundtruth_is_independent_of_comparator_training_set():
+    """İleriye dönük set gerçekten bağımsız mı: kesit sonrası + Protegen'e uzak."""
+    import datetime
+    import json
+    import pathlib
+
+    root = pathlib.Path(__file__).resolve().parent.parent
+    f = root / "benchmark" / "results" / "prospective_groundtruth_ssuis.json"
+    assert f.exists(), "ileriye dönük ground-truth ölçümü yok"
+    d = json.loads(f.read_text(encoding="utf-8"))
+
+    cutoff = datetime.date.fromisoformat(d["cutoff"])
+    assert cutoff == datetime.date(2019, 7, 31), "kesit Vaxign-ML'in eğitim tarihi olmalı"
+
+    rows = d["antigens"]
+    assert rows, "antijen yok"
+    # her kayıt DOI taşımalı: uydurma literatür yasak (vaxforge-literature-rule)
+    assert all(r.get("doi") for r in rows), "DOI'siz antijen kaydı var"
+    # kesitten sonra yayımlanmış olmalı
+    assert all(r["year"] >= 2019 for r in rows)
+
+    usable = [r for r in rows if not r["prior_art"]
+              and r["overlap_class"].startswith("bağımsız")]
+    assert usable, "bağımsız (Protegen'e hit vermeyen, prior-art'ı olmayan) antijen yok"
+    assert all(r["protegen_identity"] is None or r["protegen_identity"] < 30
+               for r in usable), "bağımsız sayılan antijen Protegen'e >=%30 kimlikte"
+    # eşleme ada göre değil dizi hizalamasıyla: hedef proteomda yüksek kimlik şartı
+    assert all(r["target_identity"] >= 90 for r in rows if r["in_target_proteome"])
+
+
+def test_prospective_misses_have_measured_cause():
+    """Aday üretmeyen antijenin nedeni ölçülmüş olmalı, varsayılmış değil."""
+    import json
+    import pathlib
+
+    f = (pathlib.Path(__file__).resolve().parent.parent / "benchmark" / "results"
+         / "prospective_groundtruth_ssuis.json")
+    d = json.loads(f.read_text(encoding="utf-8"))
+    missed = [r for r in d["antigens"]
+              if r["in_target_proteome"] and not r["produced_candidate"]]
+    assert missed, "kayıp yok — test ilgisiz"
+    assert all(r.get("psortb_localization") for r in missed), \
+        "kaybın nedeni ölçülmemiş: lokalizasyon kararı kayıtta yok"

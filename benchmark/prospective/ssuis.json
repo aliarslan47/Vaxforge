@@ -1,0 +1,180 @@
+{
+  "bug": "ssuis",
+  "organism": "Streptococcus suis",
+  "target_proteome": "data/validation/ssuis_prepared.faa",
+  "target_strain": "BM407 (UP000009077)",
+  "cutoff": "2019-07-31",
+  "cutoff_rationale": "Vaxign-ML'in dağıtılan modeli Protegen'in 31-07-2019 kesitiyle eğitildi (Ong 2020, doi:10.1093/bioinformatics/btaa119). Bu tarihten SONRA yayımlanmış koruyucu antijenler, o modelin eğitim etiketi olamaz.",
+  "inclusion_criteria": [
+    "kesitten sonra yayımlanmış (yayın tarihi > 2019-07-31)",
+    "deneysel koruma: aktif ya da pasif immünizasyon + canlı challenge",
+    "DOI doğrulanmış, kaynak tam metinden okunmuş",
+    "hedef proteomda (BM407) >=90% kimlikte karşılığı var",
+    "Protegen'e <%30 kimlik (dairesellik taraması, ayrı adımda ölçülür)"
+  ],
+  "source_proteomes": {
+    "SC19": "benchmark/downloads/ssuis_sc19/GCF_002111405.1_ASM211140v1_protein.faa"
+  },
+  "antigens": [
+    {
+      "name": "HIP 8455 (FMN bağlayan protein)",
+      "strain": "SC19",
+      "protein_id": "WP_012027664.1",
+      "locus_tag": "B9H01_RS08455",
+      "doi": "10.3389/fimmu.2024.1392456",
+      "pmid": "38779673",
+      "year": 2024,
+      "evidence": "aktif immünizasyon (30 µg + ISA-201, 2 doz) + ölümcül i.p. challenge, 6x10^8 CFU SC19, BALB/c, n=5/grup",
+      "protection": "100%",
+      "grade": "güçlü",
+      "prior_art": false,
+      "caveat": "pekiştirme dozunda farelerde toksik bulundu (yazarların kendi notu); korumanın kendisi tam"
+    },
+    {
+      "name": "HIP 6155 (SAG1386/EF1546 ailesi yüzey-ilişkili protein)",
+      "strain": "SC19",
+      "protein_id": "WP_012027224.1",
+      "locus_tag": "B9H01_RS06155",
+      "doi": "10.3389/fimmu.2024.1392456",
+      "pmid": "38779673",
+      "year": 2024,
+      "evidence": "aktif immünizasyon + ölümcül i.p. challenge, BALB/c, n=5/grup",
+      "protection": "20-40% (kısmi)",
+      "grade": "zayıf",
+      "prior_art": false,
+      "caveat": "n=5 ile %20-40 koruma istatistiksel olarak zayıf; antijen daha önce aşı adayı olarak denenmemiş"
+    },
+    {
+      "name": "HIP 2085 (MapZ ailesi hücre bölünme yeri belirleyici protein)",
+      "strain": "SC19",
+      "protein_id": "WP_011921984.1",
+      "locus_tag": "B9H01_RS02085",
+      "doi": "10.3389/fimmu.2024.1392456",
+      "pmid": "38779673",
+      "year": 2024,
+      "evidence": "aktif immünizasyon + ölümcül i.p. challenge, BALB/c, n=5/grup",
+      "protection": "20-40% (kısmi)",
+      "grade": "zayıf",
+      "prior_art": false,
+      "caveat": "n=5 ile kısmi koruma; tür-dışı homolojisi düşük (<%62), serolojik hedef olarak da öneriliyor"
+    },
+    {
+      "name": "HIP 575 (30S ribozomal protein S13)",
+      "strain": "SC19",
+      "protein_id": "WP_002936622.1",
+      "locus_tag": "B9H01_RS00575",
+      "doi": "10.3389/fimmu.2024.1392456",
+      "pmid": "38779673",
+      "year": 2024,
+      "evidence": "aktif immünizasyon + ölümcül i.p. challenge, BALB/c, n=5/grup",
+      "protection": "20-40% (kısmi)",
+      "grade": "zayıf",
+      "prior_art": false,
+      "caveat": "kanonik sitoplazmik ribozomal protein; dizi-temelli lokalizasyon kapısı için moonlighting sınıfının aynısı"
+    },
+    {
+      "name": "HIP 3685 (LD-karboksipeptidaz LdcB/DacB)",
+      "strain": "SC19",
+      "protein_id": "WP_012775056.1",
+      "locus_tag": "B9H01_RS03685",
+      "doi": "10.3389/fimmu.2024.1392456",
+      "pmid": "38779673",
+      "year": 2024,
+      "evidence": "aktif immünizasyon + ölümcül i.p. challenge, BALB/c, n=5/grup",
+      "protection": "20-40% (kısmi)",
+      "grade": "zayıf",
+      "prior_art": false,
+      "caveat": "n=5 ile kısmi koruma; hücre duvarı biyogenezi (BacScan'de zenginleşen COG M sınıfı)"
+    },
+    {
+      "name": "HIP 10530 (S1C ailesi serin proteaz)",
+      "strain": "SC19",
+      "protein_id": "WP_012028059.1",
+      "locus_tag": "B9H01_RS10530",
+      "doi": "10.3389/fimmu.2024.1392456",
+      "pmid": "38779673",
+      "year": 2024,
+      "evidence": "aktif immünizasyon + ölümcül i.p. challenge, BALB/c, n=5/grup",
+      "protection": "20-40% (kısmi)",
+      "grade": "zayıf",
+      "prior_art": false,
+      "caveat": "pekiştirme dozunda toksik bulundu; IgG titresi diğerlerinden düşük"
+    },
+    {
+      "name": "Ide-Ssuis (konak-özgül IgM sistein endopeptidaz)",
+      "strain": "SC19",
+      "protein_id": "WP_011922092.1",
+      "locus_tag": "B9H01_RS02750",
+      "doi": "10.1016/j.jvacx.2024.100590",
+      "pmid": "39659664",
+      "year": 2024,
+      "evidence": "rIde ile aktif immünizasyon + intranazal serotip 14 challenge, domuz; CDCD domuzlarda challenge suşunun kan içindeki survival factor'ünde anlamlı düşüş",
+      "protection": "kısmi (bakterisidal bağışıklık); konvansiyonel domuzlarda anlamlı değil",
+      "grade": "zayıf",
+      "prior_art": true,
+      "caveat": "sonlanım noktası sağkalım değil, kandaki çoğalma; konvansiyonel sütten kesilmiş domuzlarda anlamlı fark yok. Ide 2019 öncesinde de aşı adayı olarak çalışılmıştı → prospektif sayımdan düşülür, referans olarak tutulur"
+    },
+    {
+      "name": "HIP 5995 (peptidilprolil izomeraz PrsA)",
+      "strain": "SC19",
+      "protein_id": "WP_002938100.1",
+      "locus_tag": "B9H01_RS05995",
+      "doi": "10.3389/fimmu.2024.1392456",
+      "pmid": "38779673",
+      "year": 2024,
+      "evidence": "aktif immünizasyon + ölümcül i.p. challenge, BALB/c, n=5/grup (çalışmada pozitif kontrol)",
+      "protection": "40%",
+      "grade": "zayıf",
+      "prior_art": true,
+      "caveat": "2019 öncesi çalışmalarda %50-66 koruma bildirilmiş → prospektif sayımdan düşülür"
+    },
+    {
+      "name": "HIP 10025 (Zn/Mn ailesi metal ABC taşıyıcı çözünür-bağlayıcı protein)",
+      "strain": "SC19",
+      "protein_id": "WP_012775387.1",
+      "locus_tag": "B9H01_RS10025",
+      "doi": "10.3389/fimmu.2024.1392456",
+      "pmid": "38779673",
+      "year": 2024,
+      "evidence": "aktif immünizasyon + ölümcül i.p. challenge, BALB/c, n=5/grup",
+      "protection": "20-40% (kısmi)",
+      "grade": "zayıf",
+      "prior_art": true,
+      "caveat": "daha önce 5 başka proteinle birlikte domuzda denenmiş, serotip 14 intranazal challenge'da anlamlı koruma YOK (doi:10.1093/infdis/jiz352 grubu); bu nedenle prospektif sayımdan düşülür"
+    }
+  ],
+  "negative_evidence": [
+    {
+      "name": "Enolaz (SsEno)",
+      "accession_in_current_ground_truth": "A0A0H3N5B2",
+      "doi": "10.1186/s12917-019-2196-y",
+      "pmid": "31823789",
+      "year": 2019,
+      "finding": "CD-1 fare modelinde, dört farklı adjuvanla, iki doz sonrası ölümcül serotip 2 challenge'a karşı KORUMA YOK (antikor üretilmesine rağmen). Yazarlar SsEno ve DPPIV'ün iyi aşı adayı olmadığı sonucuna varıyor.",
+      "consequence": "mevcut ssuis ground-truth'umuzda enolaz koruyucu olarak listeli; bu yayın onu çelişkili kılıyor. Kıyas setinin kendi belirsizliği olarak kaydedilir."
+    }
+  ],
+  "pending_full_text": [
+    {
+      "antigens": ["histidin kinaz (HK)", "glikoziltransferaz ailesi 2 (Gtf-2)", "fosfat bağlayan protein (PsbP)"],
+      "doi": "10.1016/j.micpath.2024.106759",
+      "pmid": "38906494",
+      "year": 2024,
+      "reason": "özette koruma ölümcül challenge ile gösterilmiş ama locus etiketi/aksesyon verilmemiş; proteomda 10 histidin kinaz ve 6 glikoziltransferaz var → ad eşlemesi belirsiz. Tam metin erişimi gerekiyor."
+    },
+    {
+      "antigens": ["SBP2' (srtBCD pilus alt birimi)"],
+      "doi": "10.1016/j.rvsc.2021.05.006",
+      "pmid": "34020335",
+      "year": 2021,
+      "reason": "aktif + pasif immünizasyonla ölümcül challenge koruması var; locus etiketi tam metinde, erişim gerekiyor."
+    },
+    {
+      "antigens": ["V5 karışımındaki beş korunmuş virülans faktörü"],
+      "doi": "10.1093/infdis/jiz352",
+      "pmid": "31287878",
+      "year": 2019,
+      "reason": "kesitten sonra (08-10-2019) yayımlandı; beş antijenin adları tam metinde. Karışım olarak uygulandığı için tek-antijen koruması atfedilemez, yine de kaydedilmeli."
+    }
+  ]
+}

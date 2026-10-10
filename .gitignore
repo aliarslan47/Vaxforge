@@ -50,3 +50,6 @@ merci.txt
 blast_hybrid.csv
 final_output
 RES_*.out
+
+# İndirilen referans veri setleri (Protegen FASTA, NCBI proteomları) — untrusted, yeniden indirilebilir
+benchmark/downloads/

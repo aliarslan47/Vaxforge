@@ -356,3 +356,38 @@ lokalizasyon tahmininin genel sınırı** — MISS_ATTRIBUTION §3 yeniden sın�
 ama bizim kayıp sınıfımıza tercüme olmuyor. Aracı eklemeden önce ölçmek, gereksiz bir kod
 değişikliğini ve 10 türün yeniden koşulmasını engelledi. DeepLocPro hatta gömülü değil,
 ölçüm aracı olarak duruyor.
+
+---
+
+## 2026-10-10 — İleriye dönük ground-truth: S. suis pilotu
+
+Dairesellik bulgusunun (ground-truth'un %59'u Vaxign-ML'in eğitim etiketi) tek gerçek
+çözümü, o modelin 31-07-2019 eğitim kesitinden sonra yayımlanmış antijenlerle bağımsız
+bir set kurmak. Bu pilot yöntemin işlediğini bir türde gösterdi ve **yeni pipeline koşusu
+gerektirmedi**: sıralar diskteki `outputs/validation_ssuis/run.json` aday listesinden
+yeniden hesaplandı.
+
+Dokuz antijen küratörlükten geçti (ana kaynak BacScan genom-ölçeğinde tarama,
+doi:10.3389/fimmu.2024.1392456; ikincisi doi:10.1016/j.jvacx.2024.100590). Eşleme ada
+göre değil dizi hizalamasıyla: dokuzunun dokuzu BM407 proteomunda ≥%93.6 kimlikte.
+Protegen'e göre beşi homolog (%30-48), **dördü bağımsız** (hit yok).
+
+**Bağımsız dörtlükte recall 1/4, nedeni ölçüldü.** Yalnız 2085 aday üretti (sıra 66/488).
+Üç kaybın tamamına PSORTb sitoplazmik diyor: 6155 (7.5), 575 (9.97), 3685 (9.2); aday
+üreten 2085'in kararı `unknown` (2.5), kapı onu yumuşak geçirmiş. Yani **lokalizasyonun
+bağlayıcı kısıt olduğu bulgusu, tasarımımızı etkileyemeyecek kadar sonra yayımlanmış
+bağımsız bir sette kendiliğinden tekrarlıyor** — önceki atıf seçim yanlılığına açıktı, bu
+değil. HIP 6155 ayrıca somut bir hata örneği: RefSeq'te "yüzey-ilişkili protein" olarak
+anote, PSORTb 7.5 ile sitoplazmik diyor.
+
+Yan bulgu, kıyas setimizin kendi belirsizliği: enolaz (ssuis koruyucu listemizde) için
+doi:10.1186/s12917-019-2196-y dört farklı adjuvanla CD-1 farede **koruma yok** bildiriyor.
+Antijen listeden çıkarılmadı, çelişki kayda geçti.
+
+Üç yayının antijenleri (HK/Gtf-2/PsbP, SBP2', V5'in beş faktörü) locus etiketi olmadan
+eşlenemiyor; tam metin erişimi gerekiyor. Ad eşlemesi yapılmıyor — "suis" regex'inin 28
+*Glaesserella parasuis* kaydını yakaladığı hatanın dersi.
+
+Kayıt: `benchmark/PROSPECTIVE_GROUNDTRUTH.md`, betik
+`benchmark/build_prospective_groundtruth.py`, küratörlük `benchmark/prospective/ssuis.json`,
+veri `benchmark/results/prospective_groundtruth_ssuis.json`.
