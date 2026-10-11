@@ -1,0 +1,78 @@
+{
+ "bug": "ssuis",
+ "gram": "positive",
+ "host": "human",
+ "question": "verilen proteinler huninin hangi kapısında düşüyor?",
+ "subset_safety": "funnel'ın sert kapıları protein-başına mutlak eşikler; göreli kapı yok. Kontrol proteini varsayımı sınar.",
+ "allowed_localizations_key": "allowed_gram_positive",
+ "n_input": 2,
+ "n_passed": 1,
+ "funnel_summary_keys": [
+  "antijenite",
+  "antijenite_caprazkontrol",
+  "girdi",
+  "hayatta",
+  "lokalizasyon",
+  "self_homoloji",
+  "sinyal_peptidi",
+  "transmembran"
+ ],
+ "proteins": [
+  {
+   "accession": "A0A0H3MU02",
+   "role": "kontrol",
+   "passed_funnel": true,
+   "blocking_gates": [],
+   "gates": [
+    {
+     "step": "funnel:localization",
+     "ok": true,
+     "reason": "extracellular ∈ izinli"
+    },
+    {
+     "step": "funnel:transmembrane",
+     "ok": true,
+     "reason": "1 TM ≤ 1"
+    },
+    {
+     "step": "funnel:human_homology",
+     "ok": true,
+     "reason": "konak-öz %0.0 < 35.0 (güvenli)"
+    }
+   ],
+   "localization": "extracellular",
+   "self_homology": 0.0,
+   "antigenicity": 0.721,
+   "funnel_score": 0.859
+  },
+  {
+   "accession": "A0A0H3N6J4",
+   "role": "ölçülen",
+   "passed_funnel": false,
+   "blocking_gates": [
+    "funnel:transmembrane"
+   ],
+   "gates": [
+    {
+     "step": "funnel:localization",
+     "ok": true,
+     "reason": "cell_wall ∈ izinli"
+    },
+    {
+     "step": "funnel:transmembrane",
+     "ok": false,
+     "reason": "2 TM > 1"
+    },
+    {
+     "step": "funnel:human_homology",
+     "ok": true,
+     "reason": "konak-öz %0.0 < 35.0 (güvenli)"
+    }
+   ],
+   "localization": "cell_wall",
+   "self_homology": 0.0,
+   "antigenicity": 0.709,
+   "funnel_score": 0.821
+  }
+ ]
+}

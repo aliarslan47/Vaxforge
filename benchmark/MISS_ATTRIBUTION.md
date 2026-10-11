@@ -223,3 +223,37 @@ kalibre edilmeden üretimde kullanılmaz — `benchmark/calibrate_filters.py`.
 
 Yeniden üretim: `results/miss_attribution.json` (her antijen için insan %kimlik + yakalanma durumu
 + atfedilen sebep).
+
+---
+
+## 2026-10-12 — Bağımsız sette dördüncü mekanizma: TM kapısı
+
+Bu belgenin atfı, bizim seçtiğimiz 48 antijen üzerindeydi. İleriye dönük (post-2019-07-31)
+bağımsız set genişletilince (PROSPECTIVE_GROUNDTRUTH.md, 9 → 15 antijen) **bu listede
+olmayan** bir mekanizma ölçüldü.
+
+**SspA (subtilizin-benzeri S8 peptidaz, *S. suis*).** Hedef proteomda %100 kimlikte var.
+PSORTb `cell_wall 9.98` — Gram(+) izinli listesinde geçerli bir yer, yani §2 ve §3'teki
+lokalizasyon mekanizmalarının **ikisi de değil**. Self-homoloji %0.0, konak-homoloji
+kapısı da değil (§1 değil). Toksisite/epitop aşamasına hiç gelmiyor (§4 değil). Huni o
+protein için koşulup trace okundu: kapı **TM sayısı**, `2 TM > 1`.
+
+| mekanizma | bu belgedeki sayım | bağımsız sette |
+|---|---|---|
+| konak-homoloji granülaritesi | 6 | 0 |
+| lokalizasyon (Gram açığı + genel sınır) | 3 | 3 (6155, 575, 3685 — hepsi sitoplazmik) |
+| toksisite kalibrasyonu | 2 | 0 |
+| **TM kapısı** | **0 — bu belgede yok** | **1 (SspA)** |
+
+İki ders. Birincisi doğrulama: lokalizasyonun bağlayıcı kısıt olduğu bulgusu, seçim
+yanlılığına kapalı bir sette (üç kayıptan üçü) kendiliğinden tekrarlıyor. İkincisi yeni:
+**48 antijenlik ilk set, var olan bir mekanizmayı göstermeye yetmemiş.** TM kapısı o sette
+hiç bağlayıcı olmamıştı, çünkü o antijenlerin hiçbiri TM>1 değildi (tm_gate_scope.json'da
+16 antijenin 15'i TM≤1). Bağımsız set, atfın kendi kapsamını da sınıyor.
+
+Kapı **değiştirilmedi**: tek antijen, gösterilmiş bir yanlış kalibrasyon değil. Kapsam
+ölçülüp kalibrasyon kuyruğuna alındı (FILTER_CALIBRATION.md, 2026-10-12), çünkü kural
+aynı kalıyor — ölçmeden kapıya dokunulmaz.
+
+Yeniden üretim: `benchmark/measure_funnel_dropout.py` → `results/funnel_dropout.json`,
+`benchmark/measure_tm_gate.py` → `results/tm_gate_scope.json`.

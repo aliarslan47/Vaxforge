@@ -159,6 +159,9 @@ def main() -> int:
             **{k: a[k] for k in ("name", "strain", "protein_id", "locus_tag", "doi",
                                  "pmid", "year", "evidence", "protection", "grade",
                                  "prior_art", "caveat")},
+            # Karışım olarak uygulanan antijenlerde koruma tek bileşene atfedilemez.
+            "mixture": bool(a.get("mixture")),
+            "identification": a.get("identification"),
             "target_accession": acc,
             "target_identity": round(th[1], 1) if th else None,
             "in_target_proteome": acc is not None,
@@ -170,7 +173,7 @@ def main() -> int:
         })
 
     usable = [r for r in rows
-              if r["in_target_proteome"] and not r["prior_art"]
+              if r["in_target_proteome"] and not r["prior_art"] and not r["mixture"]
               and r["overlap_class"].startswith("bağımsız")]
 
     # Aday üretmeyen antijenlerin nedenini ölç, tahmin etme: lokalizasyon kapısı
@@ -200,6 +203,7 @@ def main() -> int:
         "n_curated": len(rows),
         "n_in_target_proteome": sum(1 for r in rows if r["in_target_proteome"]),
         "n_prospective_usable": len(usable),
+        "n_mixture_excluded": sum(1 for r in rows if r["mixture"]),
         "n_candidate_proteins_in_run": n_cand_proteins,
         "run_json": str(run_json.relative_to(ROOT)) if run_json.exists() else None,
         "thresholds": {"same_protein_identity": SAME_PROTEIN_ID,
@@ -208,6 +212,7 @@ def main() -> int:
         "antigens": rows,
         "negative_evidence": cur.get("negative_evidence", []),
         "pending_full_text": cur.get("pending_full_text", []),
+        "resolved_from_secondary_sources": cur.get("resolved_from_secondary_sources", []),
     }
     out = BENCH / "results" / f"prospective_groundtruth_{args.bug}.json"
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -221,6 +226,7 @@ def main() -> int:
               f"{str(r['target_identity']):6} {str(r['protegen_identity']):9} "
               f"{r['overlap_class'][:22]:22} {tail}")
     print(f"\nküratörlük: {len(rows)} | hedef proteomda: {rep['n_in_target_proteome']} | "
+          f"karışım (sayıma girmez): {rep['n_mixture_excluded']} | "
           f"prospektif kullanılabilir (yeni + bağımsız): {len(usable)}")
     print(f"koşudaki aday protein sayısı: {n_cand_proteins}")
     print(f"yazıldı: {out}")

@@ -1,13 +1,12 @@
 # VaxForge yeni-virüs benchmark — DURUM
 
-- Son güncelleme: **2026-10-10 16:29:48**
+- Son güncelleme: **2026-10-12 00:18:02**
 - Faz: ****
-- Son olay: **ssuis kalibrasyon-sonrası koşu BİTTİ**
-- Detay: 9194s. recall 1/5 (değişmedi), fold 1.34→0.79, huni 474→490, aday 1474→4872, mimikri 16 tam eşleşme eledi. Kaçan 4 antijenin bağlayıcı kısıtı lokalizasyon: PSORTb dördünü de sitoplazmik veriyor (9.97/9.97/7.5/9.97) — moonlighting/klasik-olmayan salgı, dizi-temelli tahminciyle erişilemez. KISITLAMA olarak raporlanacak.
+- Son olay: **askıda 3 yayın kapatıldı + 4. kayıp mekanizması**
+- Detay: V5 (doi:10.1093/infdis/jiz352) ve SBP2' (doi:10.1016/j.rvsc.2021.05.006) açık erişimli ikincil makalelerden ÇÖZÜLDÜ (eLife PMC12185102; AEM PMC13599487) - eşleme ada göre değil ölçümle: V5'te uzunluk-birebir (SrtA 249, SLY 497) + ScpA hizalamasıyla ScpCL/SspA ayrımı; SBP2'=ZY05719_RS11000 dört kontrolle (srtBCD komşuluk + tek YPKN + RrgB N-term %31.1 vs yayın %29 + 33 kDa). HK/Gtf-2/PsbP ÇÖZÜLEMEDİ (paywall; belirsizlik sayıldı: HK 10, Gtf 6 eşleşme). Küratörlük 9->15, recall 1/4 DEĞİŞMEDİ. YENİ: SspA'nın kaybı lokalizasyon değil TM kapısı (2 TM>1, cell_wall 9.98 izinli) = 4. mekanizma; kapsam ölçüldü (antijenlerde 1/16), kapı DEĞİŞTİRİLMEDİ, kalibrasyon kuyruğuna alındı. Atıf düzeltmesi: enolaz makalesi Bichet değil Dumesnil ve ark. Makale EN+TR güncellendi + 4 referans.
 
 ## Son 10 olay
 
-- `2026-10-04 12:57:10` [analysis] analysis — kacan-antijen atfi TAMAM — 48 antijen, 11 kayip tamamen atfedildi: 6 konak-homoloji sert filtresi (insan %37-52; Fisher p=3.8e-05, yakalananlarda 0/37), 2 Gram(+) 'membrane' yapilandirma acigi (CapB/ActA), 1 PSORTb yanlis atama (LigA), 2 epitop-asamasi (ESAT-6/L7-L12; toksisite hipotezi curutuldu). OLCEK-BUG YOK. Belge: MISS_ATTRIBUTION.md, veri: results/miss_attribution.json
 - `2026-10-10 01:49:37` [] makale yeniden tasarımı + Gram(+) fix — MANUSCRIPT EN+TR Nature kalıbına göre baştan yazıldı (Giriş-Sonuçlar-Tartışma-Yöntemler); kaçan-antijen atfı ana sonuç bölümü oldu (Tablo 4); 3 metin hatası düzeltildi (C.burnetii/S.suis kayıpları lokalizasyon degil konak-homoloji, L7/L12 epitop asamasi, ActA Gram+ acigi); yeni nesil konumlandirma eklendi (PLGDL Nat Commun 2025, Vaxign-DL, Podda ESM-2); Gram-duyarli izinli liste kodda uygulandi + test; 15/15 test yesil
 - `2026-10-10 01:52:07` [] Gram(+) re-run başladı — 5 tür sıralı: ssuis listeria saureus mbovis banthracis; allowed_gram_positive aktif
 - `2026-10-10 04:13:07` [] Gram(+) re-run: ssuis bitti — Recall@antijen: 1/5  ·  fold: 0.91  ·  Fisher p: 0.711 (rc=0)
@@ -17,3 +16,4 @@
 - `2026-10-10 13:34:36` [] ssuis kalibrasyon-sonrası koşu başladı — kalibre kapılarla (ToxinPred3 yumuşak + Gram-duyarlı lokalizasyon) tam proteom; eski sonuçlar ssuis_headtohead.pre_calibration.json olarak yedeklendi
 - `2026-10-10 13:51:25` [] ssuis kalibrasyon-sonrası koşu — 3 düzeltme aktif: ToxinPred3 yumuşak toksisite + Gram-duyarlı lokalizasyon + otoimmünite granülaritesi (protein yumuşak/epitop sert). Eski sonuçlar ssuis_headtohead.pre_calibration.json
 - `2026-10-10 16:29:48` [] ssuis kalibrasyon-sonrası koşu BİTTİ — 9194s. recall 1/5 (değişmedi), fold 1.34→0.79, huni 474→490, aday 1474→4872, mimikri 16 tam eşleşme eledi. Kaçan 4 antijenin bağlayıcı kısıtı lokalizasyon: PSORTb dördünü de sitoplazmik veriyor (9.97/9.97/7.5/9.97) — moonlighting/klasik-olmayan salgı, dizi-temelli tahminciyle erişilemez. KISITLAMA olarak raporlanacak.
+- `2026-10-12 00:18:02` [] askıda 3 yayın kapatıldı + 4. kayıp mekanizması — V5 (doi:10.1093/infdis/jiz352) ve SBP2' (doi:10.1016/j.rvsc.2021.05.006) açık erişimli ikincil makalelerden ÇÖZÜLDÜ (eLife PMC12185102; AEM PMC13599487) - eşleme ada göre değil ölçümle: V5'te uzunluk-birebir (SrtA 249, SLY 497) + ScpA hizalamasıyla ScpCL/SspA ayrımı; SBP2'=ZY05719_RS11000 dört kontrolle (srtBCD komşuluk + tek YPKN + RrgB N-term %31.1 vs yayın %29 + 33 kDa). HK/Gtf-2/PsbP ÇÖZÜLEMEDİ (paywall; belirsizlik sayıldı: HK 10, Gtf 6 eşleşme). Küratörlük 9->15, recall 1/4 DEĞİŞMEDİ. YENİ: SspA'nın kaybı lokalizasyon değil TM kapısı (2 TM>1, cell_wall 9.98 izinli) = 4. mekanizma; kapsam ölçüldü (antijenlerde 1/16), kapı DEĞİŞTİRİLMEDİ, kalibrasyon kuyruğuna alındı. Atıf düzeltmesi: enolaz makalesi Bichet değil Dumesnil ve ark. Makale EN+TR güncellendi + 4 referans.

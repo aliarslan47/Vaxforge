@@ -80,3 +80,48 @@ Set boyutları: `self9`=1000, `self15`=1000, `iedb9`=1000, `iedb15`=1000, `tox_p
 
 
 > Kural: bir sert kapı, bu setlerde kalibre edilmeden üretime girmez.
+
+---
+
+## 2026-10-12 — TM kapısı (`max_helices`) kalibrasyon kuyruğuna alındı, DEĞİŞTİRİLMEDİ
+
+Ölçüm: `benchmark/measure_tm_gate.py` → `results/tm_gate_scope.json`; tek-protein teşhisi
+`benchmark/measure_funnel_dropout.py` → `results/funnel_dropout.json`.
+
+**Nasıl gündeme geldi.** İleriye dönük ground-truth'ta SspA (subtilizin-benzeri S8
+peptidaz, *S. suis* A7'den V5 karışımının bileşeni) hedef proteomda %100 kimlikte var,
+PSORTb ona `cell_wall 9.98` diyor — Gram(+) izinli listesinde geçerli bir yer — ama koşuda
+aday üretmedi. Huni o protein için koşuldu: lokalizasyon ve self-homoloji kapılarını
+geçiyor, **TM kapısında düşüyor** (`2 TM > 1`, tmhmm_local). Kontrol proteini (suilizin,
+koşuda sıra 9) aynı alt-kümede geçti, yani ölçüm tam proteomla aynı kararı veriyor.
+Bu, şimdiye kadar atfedilen tüm kayıpların mekanizmasından (lokalizasyon) **farklı**.
+
+**Hipotez (sınandı, varsayılmadı).** Gram(+) hücre-duvarına çapalı yüzey proteinleri
+N-ucunda sinyal peptidi, C-ucunda LPXTG/membran çapası taşır. Hidrofobik sayıcı bu ikisini
+iki ayrı sarmal sayarsa, "çok-TM = zor ifade edilir" gerekçesiyle yazılmış kapı tam olarak
+hedeflediğimiz sınıfı eler. SspA'nın profili (n=1692, sinyal peptidi(+), hücre duvarı,
+TM=2) bu desene uyuyor.
+
+**Kapsam ölçüldü (*S. suis* BM407, 1922 protein, tmhmm_local + SignalP ikisi de GERÇEK):**
+
+| havuz | n | TM > 1 | oran |
+|---|---|---|---|
+| tüm proteom | 1922 | 367 | %19.1 |
+| sinyal-peptidi(+) (yüzeye yönelen sınıf) | 72 | 16 | **%22.2** |
+| deneysel koruyucu/prospektif antijenler | 16 | 1 (SspA) | **%6.2** |
+
+**Karar: kapı değiştirilmedi.** Karar sayısı son satır: deneysel antijenlerin yalnız biri
+düşüyor, yani kapının *gösterilmiş* bir yanlış kalibrasyonu yok — SspA sınıf-dışı tek bir
+vaka olabilir. Buna karşılık kapı, yüzeye yönelen havuzun %22'sini kesiyor; bu, yanlış
+kalibrasyon kanıtı değil ama görmezden gelinecek bir bedel de değil. Bu yüzden kapı
+FILTER_CALIBRATION kuyruğuna alındı: değişiklikten önce koşulması gereken deney, bu
+belgenin üstündeki desenin aynısı — **uzunluk- ve sınıf-eşli kontrol setleri**: pozitif =
+deneysel doğrulanmış Gram(+) hücre-duvarı/yüzey antijenleri, negatif = gerçek çok-geçişli
+integral membran proteinleri (taşıyıcılar, permeazlar). Ölçülecek şey, `max_helices`'in
+2'ye çıkarılmasının (ya da "sinyal peptidi(+) ise ilk sarmalı saymama" kuralının) pozitif
+sette kazandırdığı ile negatif sette kaybettirdiği. Tek bir türün 16 antijeni bu kararı
+vermeye yetmez.
+
+Bu, DeepLocPro çapraz denetiminde verilen kararın aynısı: **ölç, sonra değiştirip
+değiştirmeyeceğine karar ver.** Ölçmeden kapıya dokunmak, 10 türün yeniden koşulmasını
+gerektiren ve gerekçesi olmayan bir değişiklik olurdu.

@@ -1,0 +1,173 @@
+{
+ "bug": "ssuis",
+ "gram": "positive",
+ "question": "TM kapısı (max_helices) ne kadarını eliyor, bedeli ne?",
+ "max_helices": 1,
+ "signalp_min_probability": 0.5,
+ "tm_method": "GERÇEK (tmhmm_local)",
+ "signalp_method": "GERÇEK (SignalP)",
+ "proteome": {
+  "n_proteins": 1922,
+  "tm_distribution": {
+   "0": 1407,
+   "1": 148,
+   "2": 63,
+   "3": 46,
+   "4": 46,
+   "5": 43,
+   "6": 63,
+   "7": 15,
+   "8": 29,
+   "9": 11,
+   "10": 24,
+   "11": 11,
+   "12": 11,
+   "13": 3,
+   "14": 2
+  },
+  "n_over_gate": 367,
+  "pct_over_gate": 19.1
+ },
+ "signal_peptide_pool": {
+  "n_signalp_positive": 72,
+  "n_over_gate": 16,
+  "pct_over_gate": 22.2,
+  "note": "SignalP yoksa bu bölüm boştur; funnel'ın kendi yedeği heuristik olduğu için burada taklit edilmiyor (dürüst boş)"
+ },
+ "experimental_antigens": {
+  "n": 16,
+  "n_dropped_by_tm_gate": 1,
+  "pct_dropped": 6.2,
+  "rows": [
+   {
+    "accession": "A0A0H3MSQ3",
+    "name": "HIP 575 (30S ribozomal protein S13)",
+    "length": 121,
+    "tm_helices": 0,
+    "signalp": 0.018,
+    "dropped_by_tm_gate": false
+   },
+   {
+    "accession": "A0A0H3MSV3",
+    "name": "GAPDH (plr/gapA, yüzey)",
+    "length": 336,
+    "tm_helices": 0,
+    "signalp": 0.005,
+    "dropped_by_tm_gate": false
+   },
+   {
+    "accession": "A0A0H3MTL4",
+    "name": "HIP 2085 (MapZ ailesi hücre bölünme yeri belirleyici protein)",
+    "length": 484,
+    "tm_helices": 1,
+    "signalp": 0.002,
+    "dropped_by_tm_gate": false
+   },
+   {
+    "accession": "A0A0H3MU02",
+    "name": "Suilysin SLY (thiol-activated sitolizin)",
+    "length": 497,
+    "tm_helices": 1,
+    "signalp": 0.993,
+    "dropped_by_tm_gate": false
+   },
+   {
+    "accession": "A0A0H3MVC0",
+    "name": "SrtA (sınıf A sortaz)",
+    "length": 249,
+    "tm_helices": 1,
+    "signalp": 0.022,
+    "dropped_by_tm_gate": false
+   },
+   {
+    "accession": "A0A0H3MW10",
+    "name": "Ide-Ssuis (konak-özgül IgM sistein endopeptidaz)",
+    "length": 1084,
+    "tm_helices": 1,
+    "signalp": 0.949,
+    "dropped_by_tm_gate": false
+   },
+   {
+    "accession": "A0A0H3MXI4",
+    "name": "HIP 8455 (FMN bağlayan protein)",
+    "length": 159,
+    "tm_helices": 0,
+    "signalp": 0.001,
+    "dropped_by_tm_gate": false
+   },
+   {
+    "accession": "A0A0H3MXM0",
+    "name": "DnaJ (şaperon, immunojenik)",
+    "length": 378,
+    "tm_helices": 0,
+    "signalp": 0.022,
+    "dropped_by_tm_gate": false
+   },
+   {
+    "accession": "A0A0H3MYH9",
+    "name": "HIP 10025 (Zn/Mn ailesi metal ABC taşıyıcı çözünür-bağlayıcı protein)",
+    "length": 307,
+    "tm_helices": 0,
+    "signalp": 0.003,
+    "dropped_by_tm_gate": false
+   },
+   {
+    "accession": "A0A0H3MYM3",
+    "name": "HIP 6155 (SAG1386/EF1546 ailesi yüzey-ilişkili protein)",
+    "length": 158,
+    "tm_helices": 1,
+    "signalp": 0.001,
+    "dropped_by_tm_gate": false
+   },
+   {
+    "accession": "A0A0H3MYQ8",
+    "name": "HIP 5995 (peptidilprolil izomeraz PrsA)",
+    "length": 333,
+    "tm_helices": 1,
+    "signalp": 0.034,
+    "dropped_by_tm_gate": false
+   },
+   {
+    "accession": "A0A0H3MYR1",
+    "name": "HIP 10530 (S1C ailesi serin proteaz)",
+    "length": 398,
+    "tm_helices": 1,
+    "signalp": 0.433,
+    "dropped_by_tm_gate": false
+   },
+   {
+    "accession": "A0A0H3N193",
+    "name": "6-fosfoglukonat dehidrogenaz (gnd)",
+    "length": 475,
+    "tm_helices": 0,
+    "signalp": 0.14,
+    "dropped_by_tm_gate": false
+   },
+   {
+    "accession": "A0A0H3N4I8",
+    "name": "HIP 3685 (LD-karboksipeptidaz LdcB/DacB)",
+    "length": 251,
+    "tm_helices": 0,
+    "signalp": 0.001,
+    "dropped_by_tm_gate": false
+   },
+   {
+    "accession": "A0A0H3N5B2",
+    "name": "Enolaz (yüzey adezini/plazminojen bağlayan)",
+    "length": 435,
+    "tm_helices": 0,
+    "signalp": 0.009,
+    "dropped_by_tm_gate": false
+   },
+   {
+    "accession": "A0A0H3N6J4",
+    "name": "SspA (subtilizin-benzeri S8 peptidaz)",
+    "length": 1692,
+    "tm_helices": 2,
+    "signalp": 0.774,
+    "dropped_by_tm_gate": true
+   }
+  ]
+ },
+ "interpretation": "Karar sayısı experimental_antigens.pct_dropped. Tek antijen düşüyorsa kapı yanlış kalibre DEĞİL, o antijen sınıf-dışı bir vaka olabilir; birden fazlası düşüyorsa kapı Gram(+) yüzey sınıfında yeniden kalibre edilmeli. Kalibrasyon yapılmadan kapı DEĞİŞTİRİLMEZ (FILTER_CALIBRATION.md kuralı)."
+}

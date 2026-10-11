@@ -391,3 +391,63 @@ eşlenemiyor; tam metin erişimi gerekiyor. Ad eşlemesi yapılmıyor — "suis"
 Kayıt: `benchmark/PROSPECTIVE_GROUNDTRUTH.md`, betik
 `benchmark/build_prospective_groundtruth.py`, küratörlük `benchmark/prospective/ssuis.json`,
 veri `benchmark/results/prospective_groundtruth_ssuis.json`.
+
+---
+
+## 2026-10-12 — Askıda kalan üç yayın kapatıldı + dördüncü kayıp mekanizması
+
+Dünkü ileriye dönük ground-truth pilotu üç yayını "tam metin erişimi gerekiyor" diye
+askıda bırakmıştı. Üçü de kapatıldı; kapanışların hiçbiri ada göre eşlemeye dayanmıyor.
+
+**Erişim denetimi ilk adım.** Üç PMID'in (38906494 / 34020335 / 31287878) hiçbirinin PMC
+karşılığı yok, Europe PMC üçü için "Subscription required", annotations API yalnız
+başlık+özeti işliyor. Birincil tam metin gerçekten kapalı. Çözüm: aynı grupların **açık
+erişimli ikincil** makalelerinden kimliği doğrulanabilir özelliklerle çıkarmak.
+
+**V5 karışımı → çözüldü.** Grubun açık erişimli eLife makalesi (doi:10.7554/eLife.101760,
+PMC12185102) Yöntemler'de bileşimi veriyor: SrtA (aa 50-249), ScpCL (36-535), MRP
+(283-721), SLY (28-497), SspA (41-852), hepsi A7 genomundan (NC_017622.1). Uzunluk
+kontrollü eşleme: SrtA n=249 ve SLY n=497 **birebir**; MRP'nin gen adı zaten mrp. A7'deki
+iki S8 peptidaz S. pyogenes ScpA'sıyla (P15926) ayrıldı → SSUA7_RS10845 = ScpCL (%38.4,
+hizalama q147-539), kalan SSUA7_RS09010 = SspA (eleme ile). ScpCL A7'de `pseudo=true`.
+
+**SBP2' → çözüldü, dört bağımsız kontrolle.** AEM makalesi (doi:10.1128/aem.01267-26,
+PMC13599487) dört doğrulanabilir özellik veriyor, dördü ölçüldü: srtBCD kümesi ZY05719'da
+**genomik komşuluktan** bulundu (üç yan yana class C sortaz, tam beş pilin); beş pilinden
+yalnız RS11000 YPKN motifi taşıyor; RrgB'nin **N-terminal** bölgesine %31.1 (yayın %29);
+n=286 ~ 33 kDa bandı. Eşi de tuttu: RS10995 → C-terminal %33.1 (yayın %35) = SBP2''.
+→ **SBP2' = ZY05719_RS11000 / WP_012027978.1**
+
+**HK/Gtf-2/PsbP → çözülemedi, kapatıldı.** Özette aksesyon/locus/kaynak-suş yok, tam metin
+kapalı. Belirsizlik hedef proteomda **sayıldı**: histidin kinaz 10, glikoziltransferaz 6
+eşleşme. PsbP'nin adı tek proteine uyuyor (A0A0H3MUT8) ama kaynak suş bilinmediği için
+hizalama ölçütü uygulanamıyor → ada göre kabul edilmedi.
+
+**Küratörlük 9 → 15 antijen.** Beş V5 bileşeni `mixture=true` (koruma tek bileşene
+atfedilemez, tek-antijen sayımına girmez — ölçüt listesine eklendi). Hedefte 12,
+kullanılabilir **4**, **recall 1/4 değişmedi**. Değişen, nedenlerin çözünürlüğü.
+
+**YENİ: dördüncü kayıp mekanizması, ve lokalizasyon değil.** SspA hedefte %100 kimlikte,
+PSORTb `cell_wall 9.98` (Gram(+) izinli listesinde geçerli), self-homoloji %0, ama aday
+üretmiyor. Neden iddia edilmedi, huni o protein için koşulup trace okundu: kapı **TM
+sayısı**, `2 TM > 1`. Kontrol antijeni aynı alt-kümede geçti → ölçüm geçerli. 48 antijenlik
+ilk panel bunu gösteremezdi: bu türde ölçtüğümüz 16 antijenin 15'i TM≤1.
+
+**Kapı DEĞİŞTİRİLMEDİ, kapsamı ölçüldü** (DeepLocPro kararının aynısı): proteomun %19.1'i,
+sinyal-peptidi(+) havuzun %22.2'si, ama deneysel antijenlerin yalnız 1/16'sı (%6.2).
+Tek antijen gösterilmiş yanlış kalibrasyon değil; kapı FILTER_CALIBRATION kuyruğuna alındı,
+gerekli deney (uzunluk+sınıf eşli kontrol setleri) orada tanımlandı.
+
+**Atıf düzeltmesi.** Enolaz koruma-yok makalesinin yazarı kayıtlarımızda yanlıştı: "Bichet"
+değil **Dumesnil ve ark.** (BMC Vet Res 15(1):448, doi:10.1186/s12917-019-2196-y), PubMed
+künyesiyle doğrulanıp düzeltildi.
+
+**Makale güncellendi (EN+TR).** Tartışma'da ileriye dönük set artık "gerekir" değil
+"kuruldu": üç yeni paragraf (setin tavanı = suş mesafesi; lokalizasyon tekrarı + dördüncü
+mekanizma; kendi ground-truth'umuzdaki enolaz çelişkisi). Dört yeni referans alfabetik
+eklendi (Dong 2024, Dumesnil 2019, Guo 2021, Xing 2019).
+
+Yeni dosyalar: `benchmark/resolve_pending_antigens.py`, `benchmark/measure_funnel_dropout.py`,
+`benchmark/measure_tm_gate.py`; veri: `results/pending_antigen_resolution.json`,
+`results/funnel_dropout.json`, `results/tm_gate_scope.json`; kaynak proteomlar:
+`downloads/ssuis_a7/`, `downloads/ssuis_zy05719/`, `downloads/refs/`.

@@ -1,0 +1,320 @@
+{
+ "question": "PROSPECTIVE_GROUNDTRUTH.md'de askıda kalan üç yayının antijenleri ölçülebilir kanıtla eşlenebilir mi?",
+ "access_check": {
+  "pmc_full_text": "yok (38906494 / 34020335 / 31287878 → PMC karşılığı yok)",
+  "europe_pmc": "Subscription required; annotations API yalnız başlık+özet",
+  "consequence": "locus etiketleri birincil tam metinden okunamıyor"
+ },
+ "v5": {
+  "doi": "10.1093/infdis/jiz352",
+  "composition_source": {
+   "doi": "10.7554/eLife.101760",
+   "pmcid": "PMC12185102",
+   "quote": "V5 contains five conserved virulence factors of S. suis. They are SrtA (amino acids 50-249), ScpCL (36-535), MRP (283-721), SLY (28-497), and SspA (41-852) ... cloned from the genome of S. suis strain A7 (NC_017622.1)"
+  },
+  "source_genome": "NC_017622.1 (S. suis A7)",
+  "reported_ranges": {
+   "SrtA": [
+    50,
+    249
+   ],
+   "ScpCL": [
+    36,
+    535
+   ],
+   "MRP": [
+    283,
+    721
+   ],
+   "SLY": [
+    28,
+    497
+   ],
+   "SspA": [
+    41,
+    852
+   ]
+  },
+  "resolved": {
+   "SrtA": {
+    "status": "çözüldü",
+    "key": "WP_012028210.1",
+    "locus_tag": "SSUA7_RS04815",
+    "n": 249,
+    "annotation": "class A sortase",
+    "pseudo": false,
+    "basis": "sınıf A sortaz, n>=249",
+    "exact_length_match": true
+   },
+   "MRP": {
+    "status": "çözüldü",
+    "key": "WP_012775059.1",
+    "locus_tag": "SSUA7_RS03620",
+    "n": 1256,
+    "annotation": "muramidase-released protein MRP",
+    "pseudo": false,
+    "basis": "gen adı mrp, n>=721"
+   },
+   "SLY": {
+    "status": "çözüldü",
+    "key": "WP_012027344.1",
+    "locus_tag": "SSUA7_RS06320",
+    "n": 497,
+    "annotation": "cholesterol-dependent cytolysin suilysin",
+    "pseudo": false,
+    "basis": "gen adı sly, n>=497",
+    "exact_length_match": true
+   },
+   "ScpCL": {
+    "status": "çözüldü",
+    "key": "SSUA7_RS10845",
+    "locus_tag": "SSUA7_RS10845",
+    "n": 1587,
+    "annotation": "S8 family serine peptidase",
+    "pseudo": true,
+    "basis": "iki S8 peptidazdan ScpA'ya (P15926) en yakın olan",
+    "scpa_alignment": {
+     "SSUA7_RS10845": {
+      "query": "SSUA7_RS10845",
+      "subject": "sp|P15926|C5AP_STRPY",
+      "identity": 38.4,
+      "aln_len": 396,
+      "qstart": 147,
+      "qend": 539,
+      "sstart": 104,
+      "send": 483,
+      "bitscore": 228.0
+     },
+     "WP_012775357.1": {
+      "query": "WP_012775357.1",
+      "subject": "sp|P15926|C5AP_STRPY",
+      "identity": 25.9,
+      "aln_len": 924,
+      "qstart": 228,
+      "qend": 1059,
+      "sstart": 97,
+      "send": 952,
+      "bitscore": 169.0
+     }
+    }
+   },
+   "SspA": {
+    "status": "çözüldü (eleme ile)",
+    "key": "WP_012775357.1",
+    "locus_tag": "SSUA7_RS09010",
+    "n": 1692,
+    "annotation": "S8 family serine peptidase",
+    "pseudo": false,
+    "basis": "kalan S8 peptidaz; n=1692 bildirilen 41-852 aralığını karşılıyor",
+    "scpa_alignment": {
+     "SSUA7_RS10845": {
+      "query": "SSUA7_RS10845",
+      "subject": "sp|P15926|C5AP_STRPY",
+      "identity": 38.4,
+      "aln_len": 396,
+      "qstart": 147,
+      "qend": 539,
+      "sstart": 104,
+      "send": 483,
+      "bitscore": 228.0
+     },
+     "WP_012775357.1": {
+      "query": "WP_012775357.1",
+      "subject": "sp|P15926|C5AP_STRPY",
+      "identity": 25.9,
+      "aln_len": 924,
+      "qstart": 228,
+      "qend": 1059,
+      "sstart": 97,
+      "send": 952,
+      "bitscore": 169.0
+     }
+    }
+   }
+  },
+  "caveat": "karışım olarak uygulandı; tek-antijen koruması ATFEDİLEMEZ. Prospektif tek-antijen sayımına girmez, karışım kanıtı olarak tutulur."
+ },
+ "sbp2": {
+  "doi": "10.1016/j.rvsc.2021.05.006",
+  "feature_source": {
+   "doi": "10.1128/aem.01267-26",
+   "pmcid": "PMC13599487",
+   "features": [
+    "srtBCD kümesinde",
+    "YPKN pilin motifi",
+    "~33 kDa",
+    "RrgB N-terminal %29 (SBP2'' C-term %35)"
+   ]
+  },
+  "source_genome": "GCF_000993745.1 (S. suis ZY05719)",
+  "resolved": {
+   "srtBCD_sortases": [
+    "ZY05719_RS09890",
+    "ZY05719_RS09895",
+    "ZY05719_RS09900"
+   ],
+   "n_pilins_in_cluster": 5,
+   "rrgb_reference_length": 644,
+   "checks": [
+    {
+     "locus_tag": "ZY05719_RS09905",
+     "accession": "WP_012027976.1",
+     "n": 284,
+     "annotation": "prealbumin-like fold domain-containing protein",
+     "ypkn_motif": false,
+     "rrgb_identity": 28.0,
+     "rrgb_region": [
+      521,
+      635
+     ],
+     "rrgb_half": "C"
+    },
+    {
+     "locus_tag": "ZY05719_RS10995",
+     "accession": "WP_074390163.1",
+     "n": 369,
+     "annotation": "SpaA isopeptide-forming pilin-related protein",
+     "ypkn_motif": false,
+     "rrgb_identity": 33.1,
+     "rrgb_region": [
+      272,
+      640
+     ],
+     "rrgb_half": "C"
+    },
+    {
+     "locus_tag": "ZY05719_RS11000",
+     "accession": "WP_012027978.1",
+     "n": 286,
+     "annotation": "pilin N-terminal domain-containing protein",
+     "ypkn_motif": true,
+     "rrgb_identity": 31.1,
+     "rrgb_region": [
+      36,
+      243
+     ],
+     "rrgb_half": "N"
+    },
+    {
+     "locus_tag": "ZY05719_RS09920",
+     "accession": "WP_012027979.1",
+     "n": 1364,
+     "annotation": "SpaA isopeptide-forming pilin-related protein",
+     "ypkn_motif": false,
+     "rrgb_identity": 38.5,
+     "rrgb_region": [
+      534,
+      629
+     ],
+     "rrgb_half": "C"
+    },
+    {
+     "locus_tag": "ZY05719_RS09925",
+     "accession": "WP_012027981.1",
+     "n": 999,
+     "annotation": "SpaA isopeptide-forming pilin-related protein",
+     "ypkn_motif": false,
+     "rrgb_identity": null,
+     "rrgb_region": null,
+     "rrgb_half": null
+    }
+   ],
+   "status": "çözüldü",
+   "key": "WP_012027978.1",
+   "locus_tag": "ZY05719_RS11000",
+   "n": 286,
+   "basis": "küme içinde YPKN pilin motifini taşıyan tek pilin; RrgB'nin N-terminal bölgesine %31.1 kimlik (yayın: %29); n=286 ~ bildirilen 33 kDa bandı",
+   "sbp2_second_half": null
+  }
+ },
+ "micpath_hk_gtf_psbp": {
+  "doi": "10.1016/j.micpath.2024.106759",
+  "status": "çözülemedi — erişim yokluğu",
+  "reason": "özette aksesyon/locus etiketi yok, tam metin abonelik arkasında. Ad eşlemesi yapılmıyor: hedef proteomda aynı ada uyan protein sayısı aşağıda ölçüldü, birden fazla.",
+  "ambiguity_in_target_proteome": {
+   "histidin kinaz (HK)": {
+    "n_matches": 10,
+    "matches": [
+     {
+      "accession": "A0A0H3MV99",
+      "name": "histidine kinase"
+     },
+     {
+      "accession": "A0A0H3MVU7",
+      "name": "histidine kinase"
+     },
+     {
+      "accession": "A0A0H3MWN6",
+      "name": "histidine kinase"
+     },
+     {
+      "accession": "A0A0H3MX57",
+      "name": "histidine kinase"
+     },
+     {
+      "accession": "A0A0H3MXY1",
+      "name": "Sensor histidine kinase"
+     },
+     {
+      "accession": "A0A0H3MZ68",
+      "name": "histidine kinase"
+     },
+     {
+      "accession": "A0A0H3N292",
+      "name": "Sensor histidine kinase"
+     },
+     {
+      "accession": "A0A0H3N2V8",
+      "name": "histidine kinase"
+     },
+     {
+      "accession": "A0A0H3N5R1",
+      "name": "histidine kinase"
+     },
+     {
+      "accession": "A0A0H3N727",
+      "name": "Sensor histidine kinase"
+     }
+    ]
+   },
+   "glikoziltransferaz ailesi 2 (Gtf-2)": {
+    "n_matches": 6,
+    "matches": [
+     {
+      "accession": "A0A0H3MTV1",
+      "name": "Probable peptidoglycan glycosyltransferase FtsW"
+     },
+     {
+      "accession": "A0A0H3MUA8",
+      "name": "Glycosyltransferase"
+     },
+     {
+      "accession": "A0A0H3MUG6",
+      "name": "Glycosyltransferase"
+     },
+     {
+      "accession": "A0A0H3MWJ9",
+      "name": "Ptative glycosyltransferase"
+     },
+     {
+      "accession": "A0A0H3MYK4",
+      "name": "Glycosyltransferase"
+     },
+     {
+      "accession": "A0A0H3N2U6",
+      "name": "Glycosyltransferase"
+     }
+    ]
+   },
+   "fosfat bağlayan protein (PsbP)": {
+    "n_matches": 1,
+    "matches": [
+     {
+      "accession": "A0A0H3MUT8",
+      "name": "Phosphate-binding protein"
+     }
+    ]
+   }
+  }
+ }
+}
