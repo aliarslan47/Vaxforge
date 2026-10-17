@@ -252,6 +252,53 @@ def test_allergen_criterion_matches_sequence_length():
     assert out["allergen"] is None
 
 
+def test_tm_gate_is_signal_peptide_aware():
+    """TM kapısı sinyal peptidini membran çapası saymıyor.
+
+    KALİBRASYON (2026-10-18): Gram(+) duvar-çapalı yüzey proteini N-ucunda sinyal
+    peptidi, C-ucunda LPXTG/membran çapası taşır. Sayıcı ikisini iki ayrı sarmal
+    sayınca "çok-TM = zor ifade edilir" gerekçeli kapı tam hedeflenen sınıfı eliyordu
+    (S. suis SspA: TM=2, PSORTb cell_wall 9.98, SignalP 0.77 → aday üretmiyordu).
+
+    Uzunluk- ve sınıf-eşli kontrol setlerinde ölçüldü (pozitif n=25, deneysel
+    doğrulanmış Gram(+) antijenler; negatif n=102, anotasyonla seçilmiş çok-geçişli
+    integral membran proteinleri): sinyal-duyarlı kural duyarlılığı %96→%100'e
+    çıkardı, özgüllüğü DEĞİŞTİRMEDİ (%87.3). Veri:
+    benchmark/results/tm_gate_calibration.json
+
+    Bu test kapının kalibre edilmiş halde kaldığını kilitler.
+    """
+    import inspect
+    import json
+    import pathlib
+
+    from vaxforge import funnel
+    from vaxforge.config_loader import ThresholdConfig
+
+    tm = ThresholdConfig.load().resolve("bacteria")["transmembrane"]
+    # kapı sert kalmalı (gevşetme değil, doğru sayma düzeltmesi)
+    assert tm.hard_filter is True
+    assert int(tm.params["max_helices"].value) == 1, "kalibrasyon eşiği gevşetmedi"
+    assert "signal_peptide_aware" in tm.params
+    assert bool(tm.params["signal_peptide_aware"].value) is True
+
+    # funnel sinyal-duyarlı etkin sayımı gerçekten uyguluyor
+    src = inspect.getsource(funnel)
+    assert "tm_sp_aware" in src and "tm_eff" in src
+    assert "tm_helices_effective" in src, "etkin TM sayısı kayda geçmeli"
+
+    # kalibrasyon kaydı duruyor ve seçilen kuralı doğruluyor
+    rep = pathlib.Path(funnel.__file__).resolve().parent.parent / \
+        "benchmark" / "results" / "tm_gate_calibration.json"
+    if rep.exists():
+        d = json.loads(rep.read_text(encoding="utf-8"))
+        assert d["recommendation"] == "R3_sp_aware_max1"
+        r1, r3 = d["rules"]["R1_current_max1"], d["rules"]["R3_sp_aware_max1"]
+        # seçilen kural duyarlılığı artırdı ve özgüllükten KAYBETMEDİ
+        assert r3["sensitivity_pct"] > r1["sensitivity_pct"]
+        assert r3["specificity_pct"] >= r1["specificity_pct"]
+
+
 def test_autoimmunity_gate_is_at_epitope_granularity():
     """Otoimmünite güvenliği doğru granülaritede: protein düzeyi yumuşak,
     epitop düzeyi sert. Ölçüm: protein-bütünü kimlik epitop-düzeyi self-eşleşme

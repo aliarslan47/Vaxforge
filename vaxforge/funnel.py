@@ -128,6 +128,13 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
             _loc_key = "allowed_gram_positive"
     loc_allowed = set(tools["localization"].params[_loc_key].value)
     max_tm = int(tools["transmembrane"].params["max_helices"].value)
+    # Kalibrasyon 2026-10-18: sinyal peptidi(+) proteinde ilk sarmal salgı sinyalidir,
+    # membran çapası değil. Sayıcı ikisini ayırmadığı için Gram(+) duvar-çapalı yüzey
+    # proteinleri (sinyal peptidi + LPXTG) eleniyordu. Uzunluk/sınıf-eşli setlerde
+    # ölçüldü: duyarlılık %96→%100, özgüllük DEĞİŞMEDİ (%87.3).
+    # Veri: benchmark/results/tm_gate_calibration.json
+    _tmp = tools["transmembrane"].params.get("signal_peptide_aware")
+    tm_sp_aware = bool(_tmp.value) if _tmp is not None else False
     vaxijen_thr = float(tools["antigenicity_vaxijen"].params["threshold"].value)
     sp_min = float(tools["signal_peptide"].params["min_probability"].value)
     hh_id = float(tools["human_homology"].params["min_identity"].value)
@@ -260,8 +267,17 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
             # SignalP(+) ek güç ama TM-çapa tek başına viral zarf imzası için yeterli.
             pr.annotations["surface_glyco"] = 1.0 if tm >= 1 else 0.0
         else:
-            ok_tm = tm <= max_tm
-            pr.mark("funnel:transmembrane", ok_tm, f"{tm} TM ≤ {max_tm}" if ok_tm else f"{tm} TM > {max_tm}", tm=tm)
+            # sinyal-duyarlı sayım: SignalP(+) ise ilk sarmal salgı sinyali sayılır
+            sp_pos = sp >= sp_min
+            tm_eff = max(0, tm - 1) if (tm_sp_aware and sp_pos) else tm
+            pr.annotations["tm_helices_effective"] = tm_eff
+            ok_tm = tm_eff <= max_tm
+            if tm_sp_aware and sp_pos and tm_eff != tm:
+                detail = (f"{tm} TM, sinyal peptidi(+) → etkin {tm_eff} "
+                          f"{'≤' if ok_tm else '>'} {max_tm}")
+            else:
+                detail = f"{tm} TM {'≤' if ok_tm else '>'} {max_tm}"
+            pr.mark("funnel:transmembrane", ok_tm, detail, tm=tm, tm_effective=tm_eff)
         # -- sert: self-homoloji (ZORUNLU otoimmünite güvenliği) — HOST-DRIVEN
         if hh_available:
             hd = hh_data.get(pr.id, {"max_pident": 0.0, "by_host": {}})

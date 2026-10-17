@@ -60,10 +60,27 @@ tools:
   transmembrane:
     step: antigen_funnel
     engine: "DeepTMHMM"
-    description: "Transmembran heliks sayısı; rekombinant üretilebilirlik için düşük tutulur."
+    # KALİBRASYON (2026-10-18): kapı uzunluk- ve sınıf-eşli kontrol setlerinde ölçüldü.
+    # Pozitif = 5 Gram(+) türün deneysel doğrulanmış antijenleri, GERÇEK PSORTb ile
+    # lokalizasyon kapısını geçenler (n=25, karışım bileşenleri dahil — yapısal soru).
+    # Negatif = aynı proteomlardan YALNIZ anotasyonla seçilmiş çok-geçişli integral
+    # membran proteinleri (taşıyıcı/permeaz/PTS/efluks), uzunluk eşli (n=102).
+    # Sonuç: sinyal-duyarlı kural mevcut kuralı KESİN DOMİNE etti —
+    #   TM<=1          : duyarlılık 24/25 (%96.0), özgüllük 89/102 (%87.3)
+    #   sinyal-duyarlı : duyarlılık 25/25 (%100),  özgüllük 89/102 (%87.3)  <- seçilen
+    #   TM<=2          : duyarlılık %100, özgüllük %86.3 (1 puan daha kötü)
+    # Mekanizma öngörülmüştü: Gram(+) duvar-çapalı yüzey proteini N-ucunda sinyal
+    # peptidi, C-ucunda LPXTG/membran çapası taşır; sayıcı ikisini iki sarmal sayınca
+    # tam hedeflenen sınıf eleniyordu (S. suis SspA, TM=2, cell_wall 9.98, SignalP 0.77).
+    # Kazanç tek antijene dayanıyor (n=1) AMA özgüllük kaybı SIFIR → ölçülen hiçbir
+    # eksende bedeli yok. Veri: benchmark/results/tm_gate_calibration.json
+    description: "Transmembran heliks sayısı; rekombinant üretilebilirlik için düşük tutulur. Sinyal peptidi(+) proteinlerde ilk sarmal sayılmaz (salgı sinyali, membran çapası değil) — kalibrasyonla doğrulandı."
     hard_filter: true
     params:
       max_helices: { default: {bacteria: 1, virus: 1, parasite: 1}, range: [0, 5], desc: "İzin verilen maksimum TM heliks sayısı" }
+      signal_peptide_aware:
+        default: {bacteria: true, virus: true, parasite: true}
+        desc: "true ise sinyal peptidi(+) proteinde etkin TM = TM - 1 (ilk sarmal salgı sinyalidir, membran çapası değil). Kalibrasyonla seçildi; false mevcut-öncesi davranışa döner."
 
   human_homology:
     step: antigen_funnel

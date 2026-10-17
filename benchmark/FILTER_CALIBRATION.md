@@ -125,3 +125,65 @@ vermeye yetmez.
 Bu, DeepLocPro çapraz denetiminde verilen kararın aynısı: **ölç, sonra değiştirip
 değiştirmeyeceğine karar ver.** Ölçmeden kapıya dokunmak, 10 türün yeniden koşulmasını
 gerektiren ve gerekçesi olmayan bir değişiklik olurdu.
+
+## 2026-10-18 — TM kapısı kalibre EDİLDİ, sinyal-duyarlı sayıma geçildi
+
+Kuyruktaki deney koşuldu. Kapı eşiği (`max_helices: 1`) **değişmedi**; değişen, neyin
+sarmal sayıldığı: sinyal peptidi(+) proteinde ilk sarmal artık salgı sinyali sayılıyor,
+membran çapası değil.
+
+**Kontrol setleri.** Pozitif = 5 Gram(+) türün (ssuis, listeria, saureus, mbovis,
+banthracis) deneysel doğrulanmış koruyucu antijenleri, GERÇEK PSORTb ile lokalizasyon
+kapısını geçenler (n=25). Negatif = aynı proteomlardan **yalnız anotasyonla** seçilmiş
+çok-geçişli integral membran proteinleri (permeaz, ABC/MFS taşıyıcı, simport/antiport,
+PTS, efluks), uzunluk çeyreklerine eşlenmiş (n=102). Negatifleri TM sayısıyla seçmek
+ölçümü döngüsel yapardı; seçim yapılmadı. Seed 1307, araçların üçü de gerçek
+(tmhmm_local + SignalP + PSORTb Gram+).
+
+**Ön kayıtlı karar ölçütü** (sonuçlara bakılmadan yazıldı): mevcut kural yerine bir
+kural ancak duyarlılığı artırır VE özgüllükten en çok 5 yüzde puanı kaybederse önerilir;
+birden fazlası uyarsa özgüllüğü en yüksek olanı.
+
+| kural | duyarlılık | özgüllük |
+|---|---|---|
+| R1 mevcut, `TM ≤ 1` | 24/25 (%96.0) | 89/102 (%87.3) |
+| **R3 sinyal-duyarlı, `etkin TM ≤ 1`** | **25/25 (%100)** | **89/102 (%87.3)** |
+| R2 `TM ≤ 2` | 25/25 (%100) | 88/102 (%86.3) |
+| R4 sinyal-duyarlı, `etkin TM ≤ 2` | 25/25 (%100) | 88/102 (%86.3) |
+
+**Seçilen: R3.** Mevcut kuralı kesin domine ediyor — kazandığı pozitifi özgüllükten
+hiçbir şey vermeden kazanıyor. Eşiği gevşeten R2/R4 aynı duyarlılığa çıkıyor ama bir
+puan özgüllük veriyor, yani gereksiz.
+
+**Mekanizma öngörülmüştü, ölçüm doğruladı.** Gram(+) duvar-çapalı yüzey proteini
+N-ucunda sinyal peptidi, C-ucunda LPXTG/membran çapası taşır; sayıcı ikisini iki ayrı
+sarmal sayınca "çok-TM = zor ifade edilir" gerekçeli kapı tam hedeflenen sınıfı eliyordu.
+Kapının elediği tek pozitif, hipotezi doğuran proteinin kendisi: *S. suis* **SspA**
+(`A0A0H3N6J4`, TM=2, SignalP 0.77, PSORTb `cell_wall`).
+
+**Dürüst sınır.** Duyarlılık kazancı **tek antijene** dayanıyor (n=1). Buna karşılık
+özgüllük kaybı **sıfır**, yani R3'ün ölçülen hiçbir eksende bedeli yok. Benimseme
+gerekçesi "muhtemelen daha iyi" değil, "hiçbir şey kaybettirmiyor".
+
+**Ölçüt sapması, kayda geçiyor.** Pozitif sete `mixture=true` bileşenleri **dahil
+edildi** — `PROSPECTIVE_GROUNDTRUTH.md`'deki kural ise onları dışlar. O kural *recall
+atfı* içindir: koruma beş bileşenli karışımdan geldiğinde tek proteine atfedilemez.
+Buradaki soru atıf değil **yapı**: sayıcı bu yapısal sınıfı yanlış mı sayıyor?
+Deneysel üretilmiş, PSORTb'nin duvar/yüzey dediği bir karışım bileşeni o sınıfın meşru
+üyesidir. İlk koşum bileşenleri dışlamıştı ve sonuç şuydu: pozitif setteki hiçbir
+proteinin TM'si 1'den büyük değil, dört kural da 23/23 — **ölçüm kendi sorusunu
+göremiyordu**. O koşum silinmedi: `results/tm_gate_calibration.pre_mixture.json`.
+Her iki tabaka raporlanıyor; karışım hariç tabakada R1 ile R3 aynı (%100), yani
+değişiklik o tabakada hiçbir şeyi bozmuyor.
+
+**Güç sınırı.** PSORTb 11 aday pozitifi izinli listenin dışında buldu: 6'sı kanonik
+sitoplazmik (enolaz, GAPDH, DnaJ, gnd, ribozomal S13, LdcB — moonlighting yüzey
+iddiaları dizi-temelli tahminciyle doğrulanamıyor), 5'i `unknown` (Ide-Ssuis,
+HIP 2085/8455/10530, HIP 6155). `unknown` olanlar "sitoplazmik" değil, PSORTb'nin
+**kararsız** kaldığı vakalar; pozitif sete alınmadılar ve bu, ölçümün gücünü düşürüyor.
+Dizi-temelli lokalizasyonun genel sınırı (LigA vakasının aynısı), bu kapıya özgü değil.
+
+Uygulama: `config/thresholds.yaml` → `transmembrane.signal_peptide_aware: true`
+(false mevcut-öncesi davranışa döner), `vaxforge/funnel.py` etkin TM sayımı +
+trace'te `tm_helices_effective`. Regresyon: `test_tm_gate_is_signal_peptide_aware`.
+Koşum: `benchmark/calibrate_tm_gate.py`, veri: `results/tm_gate_calibration.json`.
