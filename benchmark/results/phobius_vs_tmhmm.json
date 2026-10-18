@@ -1,0 +1,2506 @@
+{
+  "question": "Phobius (ortak SP+TM modeli), elle yazılan sinyal-duyarlı yamadan daha iyi mi?",
+  "control_sets": "Faz 1 ile AYNI — results/tm_gate_calibration.json",
+  "tools": {
+    "phobius": "Phobius 1.01 (yerel, decodeanhmm 64-bit), PMID 15111065",
+    "tmhmm": "TMHMM-2.0d (yerel) — DTU tarafından 'outdated' etiketli",
+    "signalp": "SignalP-5.0b (yerel), eşik 0.5"
+  },
+  "decision_criterion": "ön kayıtlı: duyarlılık >= T3 VE özgüllük >= T3 VE en az birinde kesin artış; yoksa DEĞİŞTİRME",
+  "set_sizes": {
+    "positives": 25,
+    "negatives": 102,
+    "skipped": 0
+  },
+  "rules": {
+    "T1_tmhmm_max1": {
+      "positives_kept": 24,
+      "n_positives": 25,
+      "sensitivity_pct": 96.0,
+      "negatives_rejected": 89,
+      "n_negatives": 102,
+      "specificity_pct": 87.3
+    },
+    "T3_tmhmm_sp_aware_max1": {
+      "positives_kept": 25,
+      "n_positives": 25,
+      "sensitivity_pct": 100.0,
+      "negatives_rejected": 89,
+      "n_negatives": 102,
+      "specificity_pct": 87.3
+    },
+    "P1_phobius_max1": {
+      "positives_kept": 25,
+      "n_positives": 25,
+      "sensitivity_pct": 100.0,
+      "negatives_rejected": 89,
+      "n_negatives": 102,
+      "specificity_pct": 87.3
+    },
+    "P2_phobius_max2": {
+      "positives_kept": 25,
+      "n_positives": 25,
+      "sensitivity_pct": 100.0,
+      "negatives_rejected": 88,
+      "n_negatives": 102,
+      "specificity_pct": 86.3
+    },
+    "P3_phobius_sp_aware_max1": {
+      "positives_kept": 25,
+      "n_positives": 25,
+      "sensitivity_pct": 100.0,
+      "negatives_rejected": 89,
+      "n_negatives": 102,
+      "specificity_pct": 87.3
+    }
+  },
+  "agreement": {
+    "signal_peptide_agreement": "113/127",
+    "tm_count_exact_agreement": "85/127",
+    "phobius_lower_tm": 20,
+    "phobius_higher_tm": 22,
+    "sp_pos_and_tmhmm_gt1": [
+      {
+        "acc": "A0A0H3N6J4",
+        "name": "SspA (subtilizin-benzeri S8 peptidaz)",
+        "group": "pos",
+        "tmhmm": 2,
+        "phobius": 1,
+        "phobius_sp": true
+      },
+      {
+        "acc": "A0A0H3MV05",
+        "name": "Glutamine ABC transporter, glutamine-binding protein/permease protein",
+        "group": "neg",
+        "tmhmm": 5,
+        "phobius": 3,
+        "phobius_sp": true
+      },
+      {
+        "acc": "A0A0H3N690",
+        "name": "Glutamine ABC transporter, glutamine-binding protein/permease protein",
+        "group": "neg",
+        "tmhmm": 5,
+        "phobius": 3,
+        "phobius_sp": true
+      }
+    ]
+  },
+  "qualifying_rules": [],
+  "recommendation": "T3_tmhmm_sp_aware_max1 (DEĞİŞTİRME)",
+  "per_protein": [
+    {
+      "group": "pos",
+      "bug": "ssuis",
+      "accession": "A0A0H3MU02",
+      "name": "Suilysin SLY (thiol-activated sitolizin)",
+      "length": 497,
+      "tmhmm_tm": 1,
+      "signalp_prob": 0.993,
+      "signalp_pos": true,
+      "phobius_tm": 0,
+      "phobius_sp": true,
+      "rules": {
+        "T1_tmhmm_max1": true,
+        "T3_tmhmm_sp_aware_max1": true,
+        "P1_phobius_max1": true,
+        "P2_phobius_max2": true,
+        "P3_phobius_sp_aware_max1": true
+      }
+    },
+    {
+      "group": "pos",
+      "bug": "ssuis",
+      "accession": "A0A0H3MVC0",
+      "name": "SrtA (sınıf A sortaz)",
+      "length": 249,
+      "tmhmm_tm": 1,
+      "signalp_prob": 0.022,
+      "signalp_pos": false,
+      "phobius_tm": 0,
+      "phobius_sp": true,
+      "rules": {
+        "T1_tmhmm_max1": true,
+        "T3_tmhmm_sp_aware_max1": true,
+        "P1_phobius_max1": true,
+        "P2_phobius_max2": true,
+        "P3_phobius_sp_aware_max1": true
+      }
+    },
+    {
+      "group": "pos",
+      "bug": "ssuis",
+      "accession": "A0A0H3MYH9",
+      "name": "HIP 10025 (Zn/Mn ailesi metal ABC taşıyıcı çözünür-bağlayıcı protein)",
+      "length": 307,
+      "tmhmm_tm": 0,
+      "signalp_prob": 0.003,
+      "signalp_pos": false,
+      "phobius_tm": 0,
+      "phobius_sp": true,
+      "rules": {
+        "T1_tmhmm_max1": true,
+        "T3_tmhmm_sp_aware_max1": true,
+        "P1_phobius_max1": true,
+        "P2_phobius_max2": true,
+        "P3_phobius_sp_aware_max1": true
+      }
+    },
+    {
+      "group": "pos",
+      "bug": "ssuis",
+      "accession": "A0A0H3MYQ8",
+      "name": "HIP 5995 (peptidilprolil izomeraz PrsA)",
+      "length": 333,
+      "tmhmm_tm": 1,
+      "signalp_prob": 0.034,
+      "signalp_pos": false,
+      "phobius_tm": 0,
+      "phobius_sp": true,
+      "rules": {
+        "T1_tmhmm_max1": true,
+        "T3_tmhmm_sp_aware_max1": true,
+        "P1_phobius_max1": true,
+        "P2_phobius_max2": true,
+        "P3_phobius_sp_aware_max1": true
+      }
+    },
+    {
+      "group": "pos",
+      "bug": "ssuis",
+      "accession": "A0A0H3N6J4",
+      "name": "SspA (subtilizin-benzeri S8 peptidaz)",
+      "length": 1692,
+      "tmhmm_tm": 2,
+      "signalp_prob": 0.774,
+      "signalp_pos": true,
+      "phobius_tm": 1,
+      "phobius_sp": true,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": true,
+        "P1_phobius_max1": true,
+        "P2_phobius_max2": true,
+        "P3_phobius_sp_aware_max1": true
+      }
+    },
+    {
+      "group": "pos",
+      "bug": "listeria",
+      "accession": "P0DJM0",
+      "name": "InlA (internalin A)",
+      "length": 800,
+      "tmhmm_tm": 1,
+      "signalp_prob": 0.764,
+      "signalp_pos": true,
+      "phobius_tm": 1,
+      "phobius_sp": true,
+      "rules": {
+        "T1_tmhmm_max1": true,
+        "T3_tmhmm_sp_aware_max1": true,
+        "P1_phobius_max1": true,
+        "P2_phobius_max2": true,
+        "P3_phobius_sp_aware_max1": true
+      }
+    },
+    {
+      "group": "pos",
+      "bug": "listeria",
+      "accession": "P0DQD2",
+      "name": "InlB (internalin B)",
+      "length": 630,
+      "tmhmm_tm": 1,
+      "signalp_prob": 0.619,
+      "signalp_pos": true,
+      "phobius_tm": 0,
+      "phobius_sp": true,
+      "rules": {
+        "T1_tmhmm_max1": true,
+        "T3_tmhmm_sp_aware_max1": true,
+        "P1_phobius_max1": true,
+        "P2_phobius_max2": true,
+        "P3_phobius_sp_aware_max1": true
+      }
+    },
+    {
+      "group": "pos",
+      "bug": "listeria",
+      "accession": "P13128",
+      "name": "LLO (listeriolysin O, immunodominant)",
+      "length": 529,
+      "tmhmm_tm": 0,
+      "signalp_prob": 0.942,
+      "signalp_pos": true,
+      "phobius_tm": 0,
+      "phobius_sp": true,
+      "rules": {
+        "T1_tmhmm_max1": true,
+        "T3_tmhmm_sp_aware_max1": true,
+        "P1_phobius_max1": true,
+        "P2_phobius_max2": true,
+        "P3_phobius_sp_aware_max1": true
+      }
+    },
+    {
+      "group": "pos",
+      "bug": "listeria",
+      "accession": "P21171",
+      "name": "p60 (invasion-associated endopeptidase, iap)",
+      "length": 484,
+      "tmhmm_tm": 0,
+      "signalp_prob": 0.995,
+      "signalp_pos": true,
+      "phobius_tm": 0,
+      "phobius_sp": true,
+      "rules": {
+        "T1_tmhmm_max1": true,
+        "T3_tmhmm_sp_aware_max1": true,
+        "P1_phobius_max1": true,
+        "P2_phobius_max2": true,
+        "P3_phobius_sp_aware_max1": true
+      }
+    },
+    {
+      "group": "pos",
+      "bug": "listeria",
+      "accession": "P33379",
+      "name": "ActA (actin assembly-inducing protein)",
+      "length": 639,
+      "tmhmm_tm": 1,
+      "signalp_prob": 0.535,
+      "signalp_pos": true,
+      "phobius_tm": 1,
+      "phobius_sp": true,
+      "rules": {
+        "T1_tmhmm_max1": true,
+        "T3_tmhmm_sp_aware_max1": true,
+        "P1_phobius_max1": true,
+        "P2_phobius_max2": true,
+        "P3_phobius_sp_aware_max1": true
+      }
+    },
+    {
+      "group": "pos",
+      "bug": "saureus",
+      "accession": "P02976",
+      "name": "SpA (immunoglobulin G-binding protein A)",
+      "length": 516,
+      "tmhmm_tm": 1,
+      "signalp_prob": 0.935,
+      "signalp_pos": true,
+      "phobius_tm": 1,
+      "phobius_sp": true,
+      "rules": {
+        "T1_tmhmm_max1": true,
+        "T3_tmhmm_sp_aware_max1": true,
+        "P1_phobius_max1": true,
+        "P2_phobius_max2": true,
+        "P3_phobius_sp_aware_max1": true
+      }
+    },
+    {
+      "group": "pos",
+      "bug": "saureus",
+      "accession": "Q2FZE9",
+      "name": "IsdA (iron-regulated surface determinant A)",
+      "length": 350,
+      "tmhmm_tm": 1,
+      "signalp_prob": 0.506,
+      "signalp_pos": true,
+      "phobius_tm": 1,
+      "phobius_sp": true,
+      "rules": {
+        "T1_tmhmm_max1": true,
+        "T3_tmhmm_sp_aware_max1": true,
+        "P1_phobius_max1": true,
+        "P2_phobius_max2": true,
+        "P3_phobius_sp_aware_max1": true
+      }
+    },
+    {
+      "group": "pos",
+      "bug": "saureus",
+      "accession": "Q2FZF0",
+      "name": "IsdB (iron-regulated surface determinant B)",
+      "length": 645,
+      "tmhmm_tm": 1,
+      "signalp_prob": 0.755,
+      "signalp_pos": true,
+      "phobius_tm": 1,
+      "phobius_sp": true,
+      "rules": {
+        "T1_tmhmm_max1": true,
+        "T3_tmhmm_sp_aware_max1": true,
+        "P1_phobius_max1": true,
+        "P2_phobius_max2": true,
+        "P3_phobius_sp_aware_max1": true
+      }
+    },
+    {
+      "group": "pos",
+      "bug": "saureus",
+      "accession": "Q2G015",
+      "name": "ClfA (clumping factor A)",
+      "length": 927,
+      "tmhmm_tm": 1,
+      "signalp_prob": 0.733,
+      "signalp_pos": true,
+      "phobius_tm": 1,
+      "phobius_sp": true,
+      "rules": {
+        "T1_tmhmm_max1": true,
+        "T3_tmhmm_sp_aware_max1": true,
+        "P1_phobius_max1": true,
+        "P2_phobius_max2": true,
+        "P3_phobius_sp_aware_max1": true
+      }
+    },
+    {
+      "group": "pos",
+      "bug": "saureus",
+      "accession": "Q2G1X0",
+      "name": "Hla (alpha-hemolysin)",
+      "length": 319,
+      "tmhmm_tm": 0,
+      "signalp_prob": 0.998,
+      "signalp_pos": true,
+      "phobius_tm": 0,
+      "phobius_sp": true,
+      "rules": {
+        "T1_tmhmm_max1": true,
+        "T3_tmhmm_sp_aware_max1": true,
+        "P1_phobius_max1": true,
+        "P2_phobius_max2": true,
+        "P3_phobius_sp_aware_max1": true
+      }
+    },
+    {
+      "group": "pos",
+      "bug": "mbovis",
+      "accession": "P0A565",
+      "name": "ESAT-6 (EsxA, 6 kDa erken salgı antijeni)",
+      "length": 95,
+      "tmhmm_tm": 0,
+      "signalp_prob": 0.034,
+      "signalp_pos": false,
+      "phobius_tm": 0,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": true,
+        "T3_tmhmm_sp_aware_max1": true,
+        "P1_phobius_max1": true,
+        "P2_phobius_max2": true,
+        "P3_phobius_sp_aware_max1": true
+      }
+    },
+    {
+      "group": "pos",
+      "bug": "mbovis",
+      "accession": "P0A567",
+      "name": "CFP-10 (EsxB)",
+      "length": 100,
+      "tmhmm_tm": 0,
+      "signalp_prob": 0.015,
+      "signalp_pos": false,
+      "phobius_tm": 0,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": true,
+        "T3_tmhmm_sp_aware_max1": true,
+        "P1_phobius_max1": true,
+        "P2_phobius_max2": true,
+        "P3_phobius_sp_aware_max1": true
+      }
+    },
+    {
+      "group": "pos",
+      "bug": "mbovis",
+      "accession": "P0A5B8",
+      "name": "HspX/Acr (alfa-kristalin, 16 kDa)",
+      "length": 144,
+      "tmhmm_tm": 0,
+      "signalp_prob": 0.007,
+      "signalp_pos": false,
+      "phobius_tm": 0,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": true,
+        "T3_tmhmm_sp_aware_max1": true,
+        "P1_phobius_max1": true,
+        "P2_phobius_max2": true,
+        "P3_phobius_sp_aware_max1": true
+      }
+    },
+    {
+      "group": "pos",
+      "bug": "mbovis",
+      "accession": "P0A5Q5",
+      "name": "MPB64 (immunojenik protein, M.bovis MPT64 homoloğu)",
+      "length": 228,
+      "tmhmm_tm": 1,
+      "signalp_prob": 0.92,
+      "signalp_pos": true,
+      "phobius_tm": 0,
+      "phobius_sp": true,
+      "rules": {
+        "T1_tmhmm_max1": true,
+        "T3_tmhmm_sp_aware_max1": true,
+        "P1_phobius_max1": true,
+        "P2_phobius_max2": true,
+        "P3_phobius_sp_aware_max1": true
+      }
+    },
+    {
+      "group": "pos",
+      "bug": "mbovis",
+      "accession": "P0C2T2",
+      "name": "Ag85B (FbpB, mikolil transferaz)",
+      "length": 325,
+      "tmhmm_tm": 1,
+      "signalp_prob": 0.164,
+      "signalp_pos": false,
+      "phobius_tm": 0,
+      "phobius_sp": true,
+      "rules": {
+        "T1_tmhmm_max1": true,
+        "T3_tmhmm_sp_aware_max1": true,
+        "P1_phobius_max1": true,
+        "P2_phobius_max2": true,
+        "P3_phobius_sp_aware_max1": true
+      }
+    },
+    {
+      "group": "pos",
+      "bug": "banthracis",
+      "accession": "P13423",
+      "name": "Protective Antigen PA (pagA, pXO1) — antraks aşısı ana antijeni",
+      "length": 764,
+      "tmhmm_tm": 0,
+      "signalp_prob": 0.532,
+      "signalp_pos": true,
+      "phobius_tm": 0,
+      "phobius_sp": true,
+      "rules": {
+        "T1_tmhmm_max1": true,
+        "T3_tmhmm_sp_aware_max1": true,
+        "P1_phobius_max1": true,
+        "P2_phobius_max2": true,
+        "P3_phobius_sp_aware_max1": true
+      }
+    },
+    {
+      "group": "pos",
+      "bug": "banthracis",
+      "accession": "P15917",
+      "name": "Lethal Factor LF (lef, pXO1)",
+      "length": 809,
+      "tmhmm_tm": 1,
+      "signalp_prob": 0.6,
+      "signalp_pos": true,
+      "phobius_tm": 0,
+      "phobius_sp": true,
+      "rules": {
+        "T1_tmhmm_max1": true,
+        "T3_tmhmm_sp_aware_max1": true,
+        "P1_phobius_max1": true,
+        "P2_phobius_max2": true,
+        "P3_phobius_sp_aware_max1": true
+      }
+    },
+    {
+      "group": "pos",
+      "bug": "banthracis",
+      "accession": "P19580",
+      "name": "CapB (pXO2, poli-γ-D-glutamat kapsül)",
+      "length": 464,
+      "tmhmm_tm": 1,
+      "signalp_prob": 0.003,
+      "signalp_pos": false,
+      "phobius_tm": 1,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": true,
+        "T3_tmhmm_sp_aware_max1": true,
+        "P1_phobius_max1": true,
+        "P2_phobius_max2": true,
+        "P3_phobius_sp_aware_max1": true
+      }
+    },
+    {
+      "group": "pos",
+      "bug": "banthracis",
+      "accession": "P40136",
+      "name": "Edema Factor EF (cya, pXO1, adenilat siklaz)",
+      "length": 800,
+      "tmhmm_tm": 0,
+      "signalp_prob": 0.966,
+      "signalp_pos": true,
+      "phobius_tm": 0,
+      "phobius_sp": true,
+      "rules": {
+        "T1_tmhmm_max1": true,
+        "T3_tmhmm_sp_aware_max1": true,
+        "P1_phobius_max1": true,
+        "P2_phobius_max2": true,
+        "P3_phobius_sp_aware_max1": true
+      }
+    },
+    {
+      "group": "pos",
+      "bug": "banthracis",
+      "accession": "P94217",
+      "name": "S-tabaka proteini EA1 (eag)",
+      "length": 862,
+      "tmhmm_tm": 0,
+      "signalp_prob": 0.98,
+      "signalp_pos": true,
+      "phobius_tm": 0,
+      "phobius_sp": true,
+      "rules": {
+        "T1_tmhmm_max1": true,
+        "T3_tmhmm_sp_aware_max1": true,
+        "P1_phobius_max1": true,
+        "P2_phobius_max2": true,
+        "P3_phobius_sp_aware_max1": true
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "saureus",
+      "accession": "Q2FZI4",
+      "name": "Energy-coupling factor transporter transmembrane protein EcfT",
+      "length": 268,
+      "tmhmm_tm": 6,
+      "signalp_prob": 0.0,
+      "signalp_pos": false,
+      "phobius_tm": 6,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "ssuis",
+      "accession": "A0A0H3N2E9",
+      "name": "Amino acid ABC transporter permease protein",
+      "length": 229,
+      "tmhmm_tm": 3,
+      "signalp_prob": 0.0,
+      "signalp_pos": false,
+      "phobius_tm": 3,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "saureus",
+      "accession": "Q2G2L5",
+      "name": "Integral membrane bound transporter domain-containing protein",
+      "length": 281,
+      "tmhmm_tm": 3,
+      "signalp_prob": 0.038,
+      "signalp_pos": false,
+      "phobius_tm": 3,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "saureus",
+      "accession": "Q2G0D3",
+      "name": "Transporter",
+      "length": 214,
+      "tmhmm_tm": 6,
+      "signalp_prob": 0.0,
+      "signalp_pos": false,
+      "phobius_tm": 7,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "A0A6L8PBL3",
+      "name": "ABC transporter, permease protein",
+      "length": 264,
+      "tmhmm_tm": 6,
+      "signalp_prob": 0.001,
+      "signalp_pos": false,
+      "phobius_tm": 6,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "saureus",
+      "accession": "Q2G1I6",
+      "name": "ABC transporter domain-containing protein",
+      "length": 246,
+      "tmhmm_tm": 0,
+      "signalp_prob": 0.007,
+      "signalp_pos": false,
+      "phobius_tm": 0,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": true,
+        "T3_tmhmm_sp_aware_max1": true,
+        "P1_phobius_max1": true,
+        "P2_phobius_max2": true,
+        "P3_phobius_sp_aware_max1": true
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "ssuis",
+      "accession": "A0A0H3MWI3",
+      "name": "ABC-type quaternary amine transporter",
+      "length": 243,
+      "tmhmm_tm": 0,
+      "signalp_prob": 0.003,
+      "signalp_pos": false,
+      "phobius_tm": 0,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": true,
+        "T3_tmhmm_sp_aware_max1": true,
+        "P1_phobius_max1": true,
+        "P2_phobius_max2": true,
+        "P3_phobius_sp_aware_max1": true
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "A0A6L8PF35",
+      "name": "Transporter, EamA family",
+      "length": 316,
+      "tmhmm_tm": 10,
+      "signalp_prob": 0.006,
+      "signalp_pos": false,
+      "phobius_tm": 10,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "ssuis",
+      "accession": "A0A0H3N0R8",
+      "name": "Branched-chain amino acid transport system permease protein",
+      "length": 295,
+      "tmhmm_tm": 8,
+      "signalp_prob": 0.001,
+      "signalp_pos": false,
+      "phobius_tm": 8,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "A0A6L7H3L3",
+      "name": "Zinc transporter family protein",
+      "length": 245,
+      "tmhmm_tm": 8,
+      "signalp_prob": 0.018,
+      "signalp_pos": false,
+      "phobius_tm": 8,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "A0A6L8NXT7",
+      "name": "Transporter",
+      "length": 196,
+      "tmhmm_tm": 7,
+      "signalp_prob": 0.034,
+      "signalp_pos": false,
+      "phobius_tm": 7,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "A0A4Y1W316",
+      "name": "Permease",
+      "length": 101,
+      "tmhmm_tm": 2,
+      "signalp_prob": 0.009,
+      "signalp_pos": false,
+      "phobius_tm": 2,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": true,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "A0A6L8P1C9",
+      "name": "Amino acid ABC transporter, amino acid-binding protein",
+      "length": 264,
+      "tmhmm_tm": 0,
+      "signalp_prob": 0.004,
+      "signalp_pos": false,
+      "phobius_tm": 0,
+      "phobius_sp": true,
+      "rules": {
+        "T1_tmhmm_max1": true,
+        "T3_tmhmm_sp_aware_max1": true,
+        "P1_phobius_max1": true,
+        "P2_phobius_max2": true,
+        "P3_phobius_sp_aware_max1": true
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "mbovis",
+      "accession": "P64712",
+      "name": "Putative amino-acid transporter Mb0498",
+      "length": 201,
+      "tmhmm_tm": 5,
+      "signalp_prob": 0.018,
+      "signalp_pos": false,
+      "phobius_tm": 5,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "A0A6L8P0L1",
+      "name": "Transporter, EamA family",
+      "length": 301,
+      "tmhmm_tm": 10,
+      "signalp_prob": 0.002,
+      "signalp_pos": false,
+      "phobius_tm": 10,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "saureus",
+      "accession": "Q2FVA1",
+      "name": "ABC transporter domain-containing protein",
+      "length": 211,
+      "tmhmm_tm": 0,
+      "signalp_prob": 0.03,
+      "signalp_pos": false,
+      "phobius_tm": 0,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": true,
+        "T3_tmhmm_sp_aware_max1": true,
+        "P1_phobius_max1": true,
+        "P2_phobius_max2": true,
+        "P3_phobius_sp_aware_max1": true
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "ssuis",
+      "accession": "A0A0H3N3T6",
+      "name": "Phosphate transport system permease protein PstA",
+      "length": 295,
+      "tmhmm_tm": 4,
+      "signalp_prob": 0.0,
+      "signalp_pos": false,
+      "phobius_tm": 5,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "A0A6H3A5D1",
+      "name": "PTS system, cellobiose-specific IIA component",
+      "length": 107,
+      "tmhmm_tm": 0,
+      "signalp_prob": 0.009,
+      "signalp_pos": false,
+      "phobius_tm": 0,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": true,
+        "T3_tmhmm_sp_aware_max1": true,
+        "P1_phobius_max1": true,
+        "P2_phobius_max2": true,
+        "P3_phobius_sp_aware_max1": true
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "A0A6L8PNI6",
+      "name": "Glycine betaine/L-proline ABC transporter, permease protein",
+      "length": 278,
+      "tmhmm_tm": 6,
+      "signalp_prob": 0.001,
+      "signalp_pos": false,
+      "phobius_tm": 5,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "A0A6L8P9U8",
+      "name": "Thiamine transporter",
+      "length": 114,
+      "tmhmm_tm": 0,
+      "signalp_prob": 0.006,
+      "signalp_pos": false,
+      "phobius_tm": 0,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": true,
+        "T3_tmhmm_sp_aware_max1": true,
+        "P1_phobius_max1": true,
+        "P2_phobius_max2": true,
+        "P3_phobius_sp_aware_max1": true
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "ssuis",
+      "accession": "A0A0H3MW06",
+      "name": "Amino acid ABC transporter permease protein",
+      "length": 213,
+      "tmhmm_tm": 4,
+      "signalp_prob": 0.0,
+      "signalp_pos": false,
+      "phobius_tm": 5,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "A0A6L7HP28",
+      "name": "Channel protein, hemolysin III family",
+      "length": 215,
+      "tmhmm_tm": 7,
+      "signalp_prob": 0.001,
+      "signalp_pos": false,
+      "phobius_tm": 7,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "mbovis",
+      "accession": "A0A1R3Y2N5",
+      "name": "Daunorubicin-dim-transport integral membrane protein abc transporter d",
+      "length": 289,
+      "tmhmm_tm": 6,
+      "signalp_prob": 0.004,
+      "signalp_pos": false,
+      "phobius_tm": 6,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "A0A6L8PRT3",
+      "name": "Probable membrane transporter protein",
+      "length": 255,
+      "tmhmm_tm": 7,
+      "signalp_prob": 0.043,
+      "signalp_pos": false,
+      "phobius_tm": 8,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "A0A6L8NVD1",
+      "name": "Glycine betaine/L-proline ABC transporter, glycine betaine/L-proline-b",
+      "length": 285,
+      "tmhmm_tm": 1,
+      "signalp_prob": 0.007,
+      "signalp_pos": false,
+      "phobius_tm": 0,
+      "phobius_sp": true,
+      "rules": {
+        "T1_tmhmm_max1": true,
+        "T3_tmhmm_sp_aware_max1": true,
+        "P1_phobius_max1": true,
+        "P2_phobius_max2": true,
+        "P3_phobius_sp_aware_max1": true
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "ssuis",
+      "accession": "A0A0H3MSR7",
+      "name": "ABC transporter permease protein",
+      "length": 270,
+      "tmhmm_tm": 7,
+      "signalp_prob": 0.001,
+      "signalp_pos": false,
+      "phobius_tm": 7,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "ssuis",
+      "accession": "A0A0H3N3B4",
+      "name": "Transport system permease protein",
+      "length": 297,
+      "tmhmm_tm": 8,
+      "signalp_prob": 0.003,
+      "signalp_pos": false,
+      "phobius_tm": 8,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "listeria",
+      "accession": "Q8Y5W0",
+      "name": "Riboflavin transporter RibU",
+      "length": 203,
+      "tmhmm_tm": 4,
+      "signalp_prob": 0.004,
+      "signalp_pos": false,
+      "phobius_tm": 5,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "A0A6L7H451",
+      "name": "Permease",
+      "length": 408,
+      "tmhmm_tm": 12,
+      "signalp_prob": 0.003,
+      "signalp_pos": false,
+      "phobius_tm": 12,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "A0A6L7HQK6",
+      "name": "Transporter",
+      "length": 415,
+      "tmhmm_tm": 10,
+      "signalp_prob": 0.002,
+      "signalp_pos": false,
+      "phobius_tm": 12,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "ssuis",
+      "accession": "A0A0H3N1B9",
+      "name": "MATE family efflux protein",
+      "length": 445,
+      "tmhmm_tm": 12,
+      "signalp_prob": 0.007,
+      "signalp_pos": false,
+      "phobius_tm": 12,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "saureus",
+      "accession": "Q2G0Y8",
+      "name": "Xanthine permease, putative",
+      "length": 422,
+      "tmhmm_tm": 13,
+      "signalp_prob": 0.044,
+      "signalp_pos": false,
+      "phobius_tm": 13,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "A0A6H3A752",
+      "name": "Permease IIC component",
+      "length": 436,
+      "tmhmm_tm": 10,
+      "signalp_prob": 0.002,
+      "signalp_pos": false,
+      "phobius_tm": 11,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "A0A6L7HFP7",
+      "name": "Iron compound ABC transporter, permease protein",
+      "length": 340,
+      "tmhmm_tm": 8,
+      "signalp_prob": 0.044,
+      "signalp_pos": false,
+      "phobius_tm": 9,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "A0A6L7H4A6",
+      "name": "Sodium/solute symporter family protein",
+      "length": 476,
+      "tmhmm_tm": 12,
+      "signalp_prob": 0.004,
+      "signalp_pos": false,
+      "phobius_tm": 14,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "listeria",
+      "accession": "Q8Y3X1",
+      "name": "Permease IIC component",
+      "length": 454,
+      "tmhmm_tm": 10,
+      "signalp_prob": 0.005,
+      "signalp_pos": false,
+      "phobius_tm": 10,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "saureus",
+      "accession": "Q2FVV1",
+      "name": "Amino acid permease/ SLC12A domain-containing protein",
+      "length": 459,
+      "tmhmm_tm": 11,
+      "signalp_prob": 0.001,
+      "signalp_pos": false,
+      "phobius_tm": 12,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "A0A4Y1W1A1",
+      "name": "Sodium-dependent transporter",
+      "length": 451,
+      "tmhmm_tm": 11,
+      "signalp_prob": 0.001,
+      "signalp_pos": false,
+      "phobius_tm": 11,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "saureus",
+      "accession": "Q2FUX9",
+      "name": "Arginine-ornithine antiporter",
+      "length": 476,
+      "tmhmm_tm": 14,
+      "signalp_prob": 0.003,
+      "signalp_pos": false,
+      "phobius_tm": 14,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "listeria",
+      "accession": "Q8Y8B8",
+      "name": "Multidrug export protein MepA",
+      "length": 453,
+      "tmhmm_tm": 12,
+      "signalp_prob": 0.002,
+      "signalp_pos": false,
+      "phobius_tm": 12,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "Q81XB2",
+      "name": "Petrobactin import system permease protein FatC",
+      "length": 354,
+      "tmhmm_tm": 9,
+      "signalp_prob": 0.006,
+      "signalp_pos": false,
+      "phobius_tm": 9,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "A0A6L8P1J2",
+      "name": "Citrate cation symporter family",
+      "length": 448,
+      "tmhmm_tm": 12,
+      "signalp_prob": 0.002,
+      "signalp_pos": false,
+      "phobius_tm": 12,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "ssuis",
+      "accession": "A0A0H3MWD7",
+      "name": "Voltage gated chloride channel protein",
+      "length": 404,
+      "tmhmm_tm": 10,
+      "signalp_prob": 0.012,
+      "signalp_pos": false,
+      "phobius_tm": 10,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "Q81LA1",
+      "name": "Xanthine/uracil permease family protein",
+      "length": 434,
+      "tmhmm_tm": 10,
+      "signalp_prob": 0.004,
+      "signalp_pos": false,
+      "phobius_tm": 13,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "mbovis",
+      "accession": "Q7VEQ4",
+      "name": "L-asparagine permease 1",
+      "length": 489,
+      "tmhmm_tm": 12,
+      "signalp_prob": 0.009,
+      "signalp_pos": false,
+      "phobius_tm": 12,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "mbovis",
+      "accession": "A0A1R3Y4B6",
+      "name": "Alpha-ketoglutarate permease",
+      "length": 449,
+      "tmhmm_tm": 10,
+      "signalp_prob": 0.038,
+      "signalp_pos": false,
+      "phobius_tm": 11,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "A0A6H3A979",
+      "name": "Sodium/solute symporter family protein",
+      "length": 490,
+      "tmhmm_tm": 13,
+      "signalp_prob": 0.122,
+      "signalp_pos": false,
+      "phobius_tm": 11,
+      "phobius_sp": true,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "A0A2B6CCI2",
+      "name": "Iron compound ABC transporter, permease protein",
+      "length": 335,
+      "tmhmm_tm": 9,
+      "signalp_prob": 0.007,
+      "signalp_pos": false,
+      "phobius_tm": 9,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "A0A6L7HP41",
+      "name": "Proton/glutamate symporter family protein",
+      "length": 405,
+      "tmhmm_tm": 8,
+      "signalp_prob": 0.007,
+      "signalp_pos": false,
+      "phobius_tm": 8,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "A0A6L7HHE5",
+      "name": "Amino acid permease family protein",
+      "length": 471,
+      "tmhmm_tm": 13,
+      "signalp_prob": 0.004,
+      "signalp_pos": false,
+      "phobius_tm": 12,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "ssuis",
+      "accession": "A0A0H3MWW6",
+      "name": "PTS system mannose-specific EIIAB component",
+      "length": 330,
+      "tmhmm_tm": 0,
+      "signalp_prob": 0.033,
+      "signalp_pos": false,
+      "phobius_tm": 0,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": true,
+        "T3_tmhmm_sp_aware_max1": true,
+        "P1_phobius_max1": true,
+        "P2_phobius_max2": true,
+        "P3_phobius_sp_aware_max1": true
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "A0A6L7H4D3",
+      "name": "Major facilitator family transporter",
+      "length": 381,
+      "tmhmm_tm": 12,
+      "signalp_prob": 0.001,
+      "signalp_pos": false,
+      "phobius_tm": 12,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "A0A6L7HRC3",
+      "name": "Nucleoside permease",
+      "length": 403,
+      "tmhmm_tm": 8,
+      "signalp_prob": 0.004,
+      "signalp_pos": false,
+      "phobius_tm": 8,
+      "phobius_sp": true,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "A0A6L8P3X7",
+      "name": "ABC transporter, permease protein EscB",
+      "length": 403,
+      "tmhmm_tm": 9,
+      "signalp_prob": 0.001,
+      "signalp_pos": false,
+      "phobius_tm": 10,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "saureus",
+      "accession": "Q2FW04",
+      "name": "NCS2 family permease",
+      "length": 392,
+      "tmhmm_tm": 12,
+      "signalp_prob": 0.001,
+      "signalp_pos": false,
+      "phobius_tm": 12,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "saureus",
+      "accession": "Q2FWA9",
+      "name": "Cation efflux family protein, putative",
+      "length": 326,
+      "tmhmm_tm": 6,
+      "signalp_prob": 0.001,
+      "signalp_pos": false,
+      "phobius_tm": 6,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "mbovis",
+      "accession": "P63398",
+      "name": "Drug eflux ATP-binding/permease protein BQ2027_MB1303C",
+      "length": 631,
+      "tmhmm_tm": 3,
+      "signalp_prob": 0.013,
+      "signalp_pos": false,
+      "phobius_tm": 3,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "A0A6L7HFN5",
+      "name": "Drug resistance transporter, EmrB/QacA family",
+      "length": 513,
+      "tmhmm_tm": 14,
+      "signalp_prob": 0.097,
+      "signalp_pos": false,
+      "phobius_tm": 14,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "A0A6L7HNT9",
+      "name": "Na/Pi-cotransporter family protein",
+      "length": 551,
+      "tmhmm_tm": 8,
+      "signalp_prob": 0.003,
+      "signalp_pos": false,
+      "phobius_tm": 9,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "mbovis",
+      "accession": "P65713",
+      "name": "Putative phosphate permease Mb2302",
+      "length": 552,
+      "tmhmm_tm": 12,
+      "signalp_prob": 0.002,
+      "signalp_pos": false,
+      "phobius_tm": 13,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "A0A6L8PC16",
+      "name": "Drug resistance transporter, EmrB/QacA family",
+      "length": 511,
+      "tmhmm_tm": 14,
+      "signalp_prob": 0.184,
+      "signalp_pos": false,
+      "phobius_tm": 13,
+      "phobius_sp": true,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "saureus",
+      "accession": "Q2FWY7",
+      "name": "Sodium/proline symporter",
+      "length": 512,
+      "tmhmm_tm": 13,
+      "signalp_prob": 0.009,
+      "signalp_pos": false,
+      "phobius_tm": 13,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "listeria",
+      "accession": "Q7AP57",
+      "name": "Glycine betaine transporter BetL",
+      "length": 507,
+      "tmhmm_tm": 12,
+      "signalp_prob": 0.006,
+      "signalp_pos": false,
+      "phobius_tm": 12,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "saureus",
+      "accession": "Q2G2H7",
+      "name": "Na(+)/H(+) antiporter subunit D1",
+      "length": 498,
+      "tmhmm_tm": 14,
+      "signalp_prob": 0.001,
+      "signalp_pos": false,
+      "phobius_tm": 14,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "ssuis",
+      "accession": "A0A0H3N3X1",
+      "name": "ABC transporter ATP-binding membrane protein",
+      "length": 580,
+      "tmhmm_tm": 5,
+      "signalp_prob": 0.002,
+      "signalp_pos": false,
+      "phobius_tm": 5,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "ssuis",
+      "accession": "A0A0H3MXN2",
+      "name": "ABC transporter ATP-binding membrane protein",
+      "length": 568,
+      "tmhmm_tm": 6,
+      "signalp_prob": 0.014,
+      "signalp_pos": false,
+      "phobius_tm": 6,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "ssuis",
+      "accession": "A0A0H3N1Z2",
+      "name": "ABC transporter, ATP-binding/permease protein",
+      "length": 582,
+      "tmhmm_tm": 5,
+      "signalp_prob": 0.003,
+      "signalp_pos": false,
+      "phobius_tm": 6,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "saureus",
+      "accession": "Q2G1N9",
+      "name": "L-lactate permease",
+      "length": 530,
+      "tmhmm_tm": 13,
+      "signalp_prob": 0.001,
+      "signalp_pos": false,
+      "phobius_tm": 15,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "ssuis",
+      "accession": "A0A0H3MZL5",
+      "name": "Transporter permease protein",
+      "length": 656,
+      "tmhmm_tm": 10,
+      "signalp_prob": 0.001,
+      "signalp_pos": false,
+      "phobius_tm": 10,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "ssuis",
+      "accession": "A0A0H3MV05",
+      "name": "Glutamine ABC transporter, glutamine-binding protein/permease protein",
+      "length": 732,
+      "tmhmm_tm": 5,
+      "signalp_prob": 0.983,
+      "signalp_pos": true,
+      "phobius_tm": 3,
+      "phobius_sp": true,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "mbovis",
+      "accession": "A0A1R3XZW7",
+      "name": "PROBABLE D-SERINE/ALANINE/GLYCINE TRANSPORTER PROTEIN CYCA",
+      "length": 556,
+      "tmhmm_tm": 12,
+      "signalp_prob": 0.019,
+      "signalp_pos": false,
+      "phobius_tm": 12,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "A0A6L8P9I9",
+      "name": "Glycine betaine transporter",
+      "length": 505,
+      "tmhmm_tm": 12,
+      "signalp_prob": 0.061,
+      "signalp_pos": false,
+      "phobius_tm": 11,
+      "phobius_sp": true,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "ssuis",
+      "accession": "A0A0H3MVF2",
+      "name": "ABC transporter, ATP-binding/permease protein",
+      "length": 589,
+      "tmhmm_tm": 3,
+      "signalp_prob": 0.16,
+      "signalp_pos": false,
+      "phobius_tm": 4,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "listeria",
+      "accession": "Q8Y775",
+      "name": "Probable ergothioneine transporter EgtUBC",
+      "length": 504,
+      "tmhmm_tm": 6,
+      "signalp_prob": 0.0,
+      "signalp_pos": false,
+      "phobius_tm": 6,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "saureus",
+      "accession": "Q2G239",
+      "name": "Fructose specific permease, putative",
+      "length": 652,
+      "tmhmm_tm": 9,
+      "signalp_prob": 0.011,
+      "signalp_pos": false,
+      "phobius_tm": 9,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "saureus",
+      "accession": "Q2G0D7",
+      "name": "ABC transporter permease, putative",
+      "length": 629,
+      "tmhmm_tm": 10,
+      "signalp_prob": 0.0,
+      "signalp_pos": false,
+      "phobius_tm": 11,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "saureus",
+      "accession": "Q2FVU4",
+      "name": "PTS system component, putative",
+      "length": 534,
+      "tmhmm_tm": 10,
+      "signalp_prob": 0.008,
+      "signalp_pos": false,
+      "phobius_tm": 10,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "ssuis",
+      "accession": "A0A0H3MW96",
+      "name": "PTS system sucrose-specific EIIBCA component",
+      "length": 613,
+      "tmhmm_tm": 10,
+      "signalp_prob": 0.28,
+      "signalp_pos": false,
+      "phobius_tm": 10,
+      "phobius_sp": true,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "saureus",
+      "accession": "Q2G0B2",
+      "name": "Amino acid ABC transporter ATP-binding/permease protein",
+      "length": 557,
+      "tmhmm_tm": 5,
+      "signalp_prob": 0.001,
+      "signalp_pos": false,
+      "phobius_tm": 6,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "saureus",
+      "accession": "Q2G212",
+      "name": "Putative antiporter subunit mnhD2",
+      "length": 498,
+      "tmhmm_tm": 14,
+      "signalp_prob": 0.001,
+      "signalp_pos": false,
+      "phobius_tm": 14,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "A0A6L7HT64",
+      "name": "Glycine betaine transporter",
+      "length": 516,
+      "tmhmm_tm": 12,
+      "signalp_prob": 0.003,
+      "signalp_pos": false,
+      "phobius_tm": 12,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "ssuis",
+      "accession": "A0A0H3N690",
+      "name": "Glutamine ABC transporter, glutamine-binding protein/permease protein",
+      "length": 521,
+      "tmhmm_tm": 5,
+      "signalp_prob": 0.996,
+      "signalp_pos": true,
+      "phobius_tm": 3,
+      "phobius_sp": true,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "A0A6L8PUX4",
+      "name": "Oligopeptide ABC transporter, oligopeptide-binding protein",
+      "length": 536,
+      "tmhmm_tm": 0,
+      "signalp_prob": 0.004,
+      "signalp_pos": false,
+      "phobius_tm": 0,
+      "phobius_sp": true,
+      "rules": {
+        "T1_tmhmm_max1": true,
+        "T3_tmhmm_sp_aware_max1": true,
+        "P1_phobius_max1": true,
+        "P2_phobius_max2": true,
+        "P3_phobius_sp_aware_max1": true
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "A0A6L7H8V8",
+      "name": "L-lactate permease",
+      "length": 552,
+      "tmhmm_tm": 14,
+      "signalp_prob": 0.0,
+      "signalp_pos": false,
+      "phobius_tm": 13,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "Q81NL0",
+      "name": "Probable inorganic carbon transporter subunit DabA",
+      "length": 874,
+      "tmhmm_tm": 0,
+      "signalp_prob": 0.003,
+      "signalp_pos": false,
+      "phobius_tm": 0,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": true,
+        "T3_tmhmm_sp_aware_max1": true,
+        "P1_phobius_max1": true,
+        "P2_phobius_max2": true,
+        "P3_phobius_sp_aware_max1": true
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "Q81YB5",
+      "name": "Phosphonate ABC transporter permease",
+      "length": 1156,
+      "tmhmm_tm": 1,
+      "signalp_prob": 0.007,
+      "signalp_pos": false,
+      "phobius_tm": 1,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": true,
+        "T3_tmhmm_sp_aware_max1": true,
+        "P1_phobius_max1": true,
+        "P2_phobius_max2": true,
+        "P3_phobius_sp_aware_max1": true
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "mbovis",
+      "accession": "P63392",
+      "name": "Mycobactin import ATP-binding/permease protein IrtA",
+      "length": 859,
+      "tmhmm_tm": 6,
+      "signalp_prob": 0.007,
+      "signalp_pos": false,
+      "phobius_tm": 6,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "A0A6L7HMR2",
+      "name": "ABC-2 type transporter transmembrane domain-containing protein",
+      "length": 869,
+      "tmhmm_tm": 6,
+      "signalp_prob": 0.002,
+      "signalp_pos": false,
+      "phobius_tm": 6,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "A0A6L7HFC5",
+      "name": "P-type Ca(2+) transporter",
+      "length": 906,
+      "tmhmm_tm": 10,
+      "signalp_prob": 0.006,
+      "signalp_pos": false,
+      "phobius_tm": 10,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "ssuis",
+      "accession": "A0A0H3N2T6",
+      "name": "ABC transporter permease protein",
+      "length": 1121,
+      "tmhmm_tm": 8,
+      "signalp_prob": 0.218,
+      "signalp_pos": false,
+      "phobius_tm": 8,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "listeria",
+      "accession": "Q8Y8S6",
+      "name": "P-type Ca(2+) transporter",
+      "length": 876,
+      "tmhmm_tm": 10,
+      "signalp_prob": 0.007,
+      "signalp_pos": false,
+      "phobius_tm": 10,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "mbovis",
+      "accession": "A0A679LB72",
+      "name": "Probable transmembrane multidrug efflux pump",
+      "length": 1194,
+      "tmhmm_tm": 9,
+      "signalp_prob": 0.014,
+      "signalp_pos": false,
+      "phobius_tm": 10,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "A0A6L7HBL2",
+      "name": "Transporter, AcrB/AcrD/AcrF family",
+      "length": 1014,
+      "tmhmm_tm": 12,
+      "signalp_prob": 0.19,
+      "signalp_pos": false,
+      "phobius_tm": 12,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "saureus",
+      "accession": "Q2G0W1",
+      "name": "Probable inorganic carbon transporter subunit DabA",
+      "length": 901,
+      "tmhmm_tm": 0,
+      "signalp_prob": 0.011,
+      "signalp_pos": false,
+      "phobius_tm": 0,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": true,
+        "T3_tmhmm_sp_aware_max1": true,
+        "P1_phobius_max1": true,
+        "P2_phobius_max2": true,
+        "P3_phobius_sp_aware_max1": true
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "ssuis",
+      "accession": "A0A0H3MUB5",
+      "name": "P-type Ca(2+) transporter",
+      "length": 895,
+      "tmhmm_tm": 10,
+      "signalp_prob": 0.004,
+      "signalp_pos": false,
+      "phobius_tm": 10,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "A0A6H3AAB9",
+      "name": "Transporter, AcrB/AcrD/AcrF family",
+      "length": 1038,
+      "tmhmm_tm": 12,
+      "signalp_prob": 0.133,
+      "signalp_pos": false,
+      "phobius_tm": 11,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "saureus",
+      "accession": "Q2FZV1",
+      "name": "Na(+)/H(+) antiporter subunit A1",
+      "length": 801,
+      "tmhmm_tm": 21,
+      "signalp_prob": 0.001,
+      "signalp_pos": false,
+      "phobius_tm": 21,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "A0A6H3A920",
+      "name": "P-type Ca(2+) transporter",
+      "length": 888,
+      "tmhmm_tm": 8,
+      "signalp_prob": 0.004,
+      "signalp_pos": false,
+      "phobius_tm": 10,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "saureus",
+      "accession": "Q2FVZ5",
+      "name": "Efflux RND transporter permease subunit",
+      "length": 1055,
+      "tmhmm_tm": 12,
+      "signalp_prob": 0.488,
+      "signalp_pos": false,
+      "phobius_tm": 11,
+      "phobius_sp": true,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "banthracis",
+      "accession": "A0A6L7H4P4",
+      "name": "ABC transporter, permease protein",
+      "length": 779,
+      "tmhmm_tm": 8,
+      "signalp_prob": 0.496,
+      "signalp_pos": false,
+      "phobius_tm": 7,
+      "phobius_sp": true,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "mbovis",
+      "accession": "A0A1R3Y6Y7",
+      "name": "Outer membrane channel protein CpnT (Channel protein with necrosis-ind",
+      "length": 846,
+      "tmhmm_tm": 0,
+      "signalp_prob": 0.181,
+      "signalp_pos": false,
+      "phobius_tm": 0,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": true,
+        "T3_tmhmm_sp_aware_max1": true,
+        "P1_phobius_max1": true,
+        "P2_phobius_max2": true,
+        "P3_phobius_sp_aware_max1": true
+      }
+    },
+    {
+      "group": "neg",
+      "bug": "saureus",
+      "accession": "Q2G2U8",
+      "name": "Putative antiporter subunit mnhA2",
+      "length": 800,
+      "tmhmm_tm": 21,
+      "signalp_prob": 0.007,
+      "signalp_pos": false,
+      "phobius_tm": 21,
+      "phobius_sp": false,
+      "rules": {
+        "T1_tmhmm_max1": false,
+        "T3_tmhmm_sp_aware_max1": false,
+        "P1_phobius_max1": false,
+        "P2_phobius_max2": false,
+        "P3_phobius_sp_aware_max1": false
+      }
+    }
+  ]
+}

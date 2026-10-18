@@ -187,3 +187,68 @@ Uygulama: `config/thresholds.yaml` → `transmembrane.signal_peptide_aware: true
 (false mevcut-öncesi davranışa döner), `vaxforge/funnel.py` etkin TM sayımı +
 trace'te `tm_helices_effective`. Regresyon: `test_tm_gate_is_signal_peptide_aware`.
 Koşum: `benchmark/calibrate_tm_gate.py`, veri: `results/tm_gate_calibration.json`.
+
+## 2026-10-18 — Phobius ile bağımsız çapraz-doğrulama: yama DEĞİŞMEDİ
+
+**Soru.** Yukarıdaki düzeltme elle yazılmış bir yamadır: "sinyal peptidi(+) ise ilk
+sarmalı düş". Phobius ise aynı problemi **modelleyerek** çözer — sinyal peptidini ve
+TM topolojisini tek HMM'de ortak çözümler, yani bir N-ucu bölgesinin salgı sinyali mi
+membran çapası mı olduğuna kendisi karar verir (Käll, Krogh & Sonnhammer,
+*J Mol Biol* 338:1027-1036, 2004; PMID 15111065). Phobius bizim yamadan daha iyi mi?
+
+**Kurulum.** Phobius 1.01 yerel kuruldu (`tools/phobius-1.01/`, 0.6 MB, Perl,
+`decodeanhmm` 64-bit derlemesi; akademik kullanım lisansı). Kontrol setleri
+**yeniden seçilmedi** — Faz 1'in tam aynı 25 pozitif / 102 negatifi
+(`results/tm_gate_calibration.json`). Araç değişirken setin de değişmesi
+karşılaştırmayı yorumlanamaz hale getirirdi.
+
+**ÖN KAYITLI ölçüt** (sonuçlara bakılmadan yazıldı): Phobius üretimdeki kuralın
+(T3) yerine ancak duyarlılığı ve özgüllüğü **ikisi de düşmeden, en az birinde kesin
+artışla** geçerse önerilir. Eşitlik çıkarsa öneri **DEĞİŞTİRME**: aynı sonucu veren
+yeni bir dış bağımlılık kurulum, bakım ve atıf yükü getirir, karşılığını vermez.
+
+| kural | duyarlılık | özgüllük |
+|---|---|---|
+| T1 TMHMM `tm ≤ 1` (kalibrasyon öncesi) | 24/25 %96.0 | 89/102 %87.3 |
+| **T3 TMHMM sinyal-duyarlı `≤ 1` (ÜRETİMDEKİ)** | **25/25 %100** | **89/102 %87.3** |
+| P1 Phobius `tm ≤ 1` (doğal) | 25/25 %100 | 89/102 %87.3 |
+| P2 Phobius `tm ≤ 2` | 25/25 %100 | 88/102 %86.3 |
+| P3 Phobius + aynı yama | 25/25 %100 | 89/102 %87.3 |
+
+**Sonuç: DEĞİŞTİRME.** Phobius doğal haliyle (P1) üretimdeki kuralın sonucunu
+birebir veriyor — yalnız toplamlar değil, **127 proteinin her birinde kapı kararı
+aynı** (T3 ≠ P1 olan protein sayısı: 0). Ön kayıtlı ölçüt "kesin artış" istiyor,
+artış yok → Phobius üretime alınmadı. Pipeline değişmedi.
+
+**Ama ölçüm boşa gitmedi: mekanizma bağımsız araçla doğrulandı.** Faz 1'in dayandığı
+iddia şuydu — "TMHMM, Gram(+) yüzey proteininin N-ucundaki salgı sinyalini sarmal
+sayıyor". Kritik vaka SspA (`A0A0H3N6J4`): TMHMM 2 sarmal diyor, **Phobius aynı
+proteinde 1 sarmal + sinyal peptidi(+)** diyor. Yani ortak modelli bağımsız bir
+tahminci, bizim elle düştüğümüz sarmalın gerçekten salgı sinyali olduğunu söylüyor.
+Aynı desen iki negatif kontrolde de görülüyor (glutamin ABC taşıyıcı,
+`A0A0H3MV05`/`A0A0H3N690`: TMHMM 5 → Phobius 3 + sinyal(+)) — ikisi de her iki kuralda
+doğru şekilde elenmeye devam ediyor.
+
+**Yan gözlemler (kayda geçiyor, karar değiştirmiyor).**
+- TM sayısı birebir uyum yalnız 85/127; Phobius 20 proteinde daha az, 22'sinde daha
+  çok sarmal sayıyor. Buna rağmen **kapı kararları birebir aynı** — eşik 1'de olduğu
+  için sayımdaki orta-aralık farkları karara yansımıyor. Eşik gevşetilirse (P2)
+  bu farklar görünür hale geliyor ve özgüllük 1 puan düşüyor.
+- Sinyal peptidi kararında 14/127 fark var, **hepsi aynı yönde**: Phobius SP(+)
+  diyor, SignalP-5.0 demiyor (pozitif sette 21/25 vs 17/25). Phobius sinyal
+  çağrısında daha liberal. Bu, kapıyı etkilemedi ama SignalP'in ayrı bir kullanımı
+  (kesim yeri) varsa akılda tutulmalı.
+- Hız: Phobius tam ssuis proteomunu (1922 protein) tek çekirdekte 529 s / 11 MB RSS'te
+  bitirdi. Yani hız gerekçesiyle de geçiş gerekmiyor; funnel adımı zaten koşumun
+  yalnız %8.5'i (darboğaz MHC paneli, %86.6).
+
+**Phobius kurulu kalıyor** (3.1 MB) — kaldırmak için sebep yok ve bir sonraki TM
+sorusunda hazır ikinci görüş. Pipeline onu **çağırmıyor**.
+Koşum: `benchmark/compare_phobius_tm.py`, veri: `results/phobius_vs_tmhmm.json`.
+
+**Not — ölçüm hatası ve düzeltmesi.** İlk koşumda `phobius.pl -short` çıktısının SP
+kolonu sayı sanılmış (`int()`), oysa `Y`/`0` yazıyor; sonuç olarak **sinyal peptidi(+)
+proteinlerin hepsi sessizce düşmüştü** (127 → 94, pozitifler 25 → 4) ve ölçüm yine
+tam da sormak istediği sınıfı kaybetmişti. Faz 1'deki `mixture` hatasının aynı
+ailesinden: "setin kendi sorusunu içerdiğini doğrula". Parser artık beklenmedik
+kolon değerinde sessizce atlamıyor, hata veriyor.
