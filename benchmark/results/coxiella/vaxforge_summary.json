@@ -6,38 +6,40 @@
   "taxon": "NCBITaxon:777",
   "gram": "negative",
   "full_proteome": true,
-  "runtime_s": 14557.6,
+  "runtime_s": 6536.9,
   "n_testset": 1811,
   "n_protective": 4,
   "n_background": 1807,
   "n_input_proteins": 1811,
   "n_discovery": 1811,
-  "n_funnel": 566,
-  "n_candidate_proteins": 524,
-  "recall_at_antigen": "2/4",
+  "n_funnel": 581,
+  "n_candidate_proteins": 575,
+  "recall_at_antigen": "3/4",
   "protective_producing_candidates": [
     "H7C7D7",
+    "P51752",
     "Q83DT1"
   ],
-  "background_producing_candidates": 522,
-  "fold_enrichment": 1.73,
-  "fisher_p": 0.32948989819116725,
+  "background_producing_candidates": 572,
+  "fold_enrichment": 2.37,
+  "fisher_p": 0.09730263434017376,
   "permutation_rank": {
     "test": "permutation_rank_test",
-    "statistic": 42.0,
-    "p_value": 0.1546845315468453,
+    "statistic": 22.0,
+    "p_value": 0.11288871112888711,
     "ci95": null,
-    "n": 2,
+    "n": 3,
     "detail": {
       "statistic_type": "best_rank",
-      "N_total": 524,
-      "null_mean": 173.9613,
+      "N_total": 575,
+      "null_mean": 143.0686,
       "positive_ranks": [
-        42.0,
-        177.0
+        22.0,
+        445.0,
+        458.0
       ]
     },
-    "caveat": "küçük-n (n_pos=2, N=524) → test hesaplandı ama güç düşük; sonuç betimsel yorumlanmalı"
+    "caveat": null
   },
   "protective_detail": [
     {
@@ -46,9 +48,9 @@
       "in_testset": true,
       "vfdb_hit": false,
       "produced_candidate": true,
-      "best_candidacy": 0.8004,
-      "protein_rank": 42,
-      "n_candidate_proteins": 524,
+      "best_candidacy": 0.8256,
+      "protein_rank": 22,
+      "n_candidate_proteins": 575,
       "interpretation": "VFDB-negatif ama aday üretti → soft-filter"
     },
     {
@@ -56,11 +58,11 @@
       "antigen": "Mip (peptidyl-prolyl cis-trans isomerase)",
       "in_testset": true,
       "vfdb_hit": true,
-      "produced_candidate": false,
-      "best_candidacy": null,
-      "protein_rank": null,
-      "n_candidate_proteins": 524,
-      "interpretation": "aday peptit üretmedi (funnel ya da funnel-sonrası epitop/alerjen/toksisite elemesi)"
+      "produced_candidate": true,
+      "best_candidacy": 0.6198,
+      "protein_rank": 445,
+      "n_candidate_proteins": 575,
+      "interpretation": "VFDB-pozitif, aday üretti"
     },
     {
       "accession": "Q83DT1",
@@ -68,9 +70,9 @@
       "in_testset": true,
       "vfdb_hit": false,
       "produced_candidate": true,
-      "best_candidacy": 0.7376,
-      "protein_rank": 177,
-      "n_candidate_proteins": 524,
+      "best_candidacy": 0.599,
+      "protein_rank": 458,
+      "n_candidate_proteins": 575,
       "interpretation": "VFDB-negatif ama aday üretti → soft-filter"
     },
     {
@@ -81,18 +83,18 @@
       "produced_candidate": false,
       "best_candidacy": null,
       "protein_rank": null,
-      "n_candidate_proteins": 524,
+      "n_candidate_proteins": 575,
       "interpretation": "aday peptit üretmedi (funnel ya da funnel-sonrası epitop/alerjen/toksisite elemesi)"
     }
   ],
   "iedb_source": "IEDB kaynak-organizma seti (NCBITaxon:777)",
-  "iedb_matched_candidates": 27,
+  "iedb_matched_candidates": 21,
   "report_paths": {
-    "csv": "/home/msi-nb/vaxforge/outputs/run_2026-10-01T08-36-06/candidates.csv",
-    "fasta": "/home/msi-nb/vaxforge/outputs/run_2026-10-01T08-36-06/top_peptides.fasta",
-    "xlsx": "/home/msi-nb/vaxforge/outputs/run_2026-10-01T08-36-06/candidates_full.xlsx",
-    "json": "/home/msi-nb/vaxforge/outputs/run_2026-10-01T08-36-06/run.json",
-    "html": "/home/msi-nb/vaxforge/outputs/run_2026-10-01T08-36-06/report.html",
-    "pdf": "/home/msi-nb/vaxforge/outputs/run_2026-10-01T08-36-06/report.pdf"
+    "csv": "/home/msi-nb/vaxforge/outputs/run_2026-10-18T00-15-20/candidates.csv",
+    "fasta": "/home/msi-nb/vaxforge/outputs/run_2026-10-18T00-15-20/top_peptides.fasta",
+    "xlsx": "/home/msi-nb/vaxforge/outputs/run_2026-10-18T00-15-20/candidates_full.xlsx",
+    "json": "/home/msi-nb/vaxforge/outputs/run_2026-10-18T00-15-20/run.json",
+    "html": "/home/msi-nb/vaxforge/outputs/run_2026-10-18T00-15-20/report.html",
+    "pdf": "/home/msi-nb/vaxforge/outputs/run_2026-10-18T00-15-20/report.pdf"
   }
 }

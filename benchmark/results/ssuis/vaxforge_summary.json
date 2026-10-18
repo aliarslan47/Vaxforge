@@ -6,36 +6,36 @@
   "taxon": "NCBITaxon:1307",
   "gram": "positive",
   "full_proteome": true,
-  "runtime_s": 9193.7,
+  "runtime_s": 8644.2,
   "n_testset": 1922,
   "n_protective": 5,
   "n_background": 1917,
   "n_input_proteins": 1922,
   "n_discovery": 1922,
-  "n_funnel": 490,
-  "n_candidate_proteins": 488,
+  "n_funnel": 500,
+  "n_candidate_proteins": 498,
   "recall_at_antigen": "1/5",
   "protective_producing_candidates": [
     "A0A0H3MU02"
   ],
-  "background_producing_candidates": 487,
-  "fold_enrichment": 0.79,
-  "fisher_p": 0.7692145226572586,
+  "background_producing_candidates": 497,
+  "fold_enrichment": 0.77,
+  "fisher_p": 0.7771609216252962,
   "permutation_rank": {
     "test": "permutation_rank_test",
-    "statistic": 9.0,
-    "p_value": 0.017698230176982303,
+    "statistic": 13.0,
+    "p_value": 0.025097490250974904,
     "ci95": null,
     "n": 1,
     "detail": {
       "statistic_type": "best_rank",
-      "N_total": 488,
-      "null_mean": 242.7334,
+      "N_total": 498,
+      "null_mean": 247.6937,
       "positive_ranks": [
-        9.0
+        13.0
       ]
     },
-    "caveat": "küçük-n (n_pos=1, N=488) → test hesaplandı ama güç düşük; sonuç betimsel yorumlanmalı"
+    "caveat": "küçük-n (n_pos=1, N=498) → test hesaplandı ama güç düşük; sonuç betimsel yorumlanmalı"
   },
   "protective_detail": [
     {
@@ -44,9 +44,9 @@
       "in_testset": true,
       "vfdb_hit": true,
       "produced_candidate": true,
-      "best_candidacy": 0.8237,
-      "protein_rank": 9,
-      "n_candidate_proteins": 488,
+      "best_candidacy": 0.8489,
+      "protein_rank": 13,
+      "n_candidate_proteins": 498,
       "interpretation": "VFDB-pozitif, aday üretti"
     },
     {
@@ -57,7 +57,7 @@
       "produced_candidate": false,
       "best_candidacy": null,
       "protein_rank": null,
-      "n_candidate_proteins": 488,
+      "n_candidate_proteins": 498,
       "interpretation": "aday peptit üretmedi (funnel ya da funnel-sonrası epitop/alerjen/toksisite elemesi)"
     },
     {
@@ -68,7 +68,7 @@
       "produced_candidate": false,
       "best_candidacy": null,
       "protein_rank": null,
-      "n_candidate_proteins": 488,
+      "n_candidate_proteins": 498,
       "interpretation": "aday peptit üretmedi (funnel ya da funnel-sonrası epitop/alerjen/toksisite elemesi)"
     },
     {
@@ -79,7 +79,7 @@
       "produced_candidate": false,
       "best_candidacy": null,
       "protein_rank": null,
-      "n_candidate_proteins": 488,
+      "n_candidate_proteins": 498,
       "interpretation": "aday peptit üretmedi (funnel ya da funnel-sonrası epitop/alerjen/toksisite elemesi)"
     },
     {
@@ -90,18 +90,18 @@
       "produced_candidate": false,
       "best_candidacy": null,
       "protein_rank": null,
-      "n_candidate_proteins": 488,
+      "n_candidate_proteins": 498,
       "interpretation": "aday peptit üretmedi (funnel ya da funnel-sonrası epitop/alerjen/toksisite elemesi)"
     }
   ],
   "iedb_source": "IEDB kaynak-organizma seti (NCBITaxon:1307)",
   "iedb_matched_candidates": 0,
   "report_paths": {
-    "csv": "/home/msi-nb/vaxforge/outputs/run_2026-10-10T13-51-27/candidates.csv",
-    "fasta": "/home/msi-nb/vaxforge/outputs/run_2026-10-10T13-51-27/top_peptides.fasta",
-    "xlsx": "/home/msi-nb/vaxforge/outputs/run_2026-10-10T13-51-27/candidates_full.xlsx",
-    "json": "/home/msi-nb/vaxforge/outputs/run_2026-10-10T13-51-27/run.json",
-    "html": "/home/msi-nb/vaxforge/outputs/run_2026-10-10T13-51-27/report.html",
-    "pdf": "/home/msi-nb/vaxforge/outputs/run_2026-10-10T13-51-27/report.pdf"
+    "csv": "/home/msi-nb/vaxforge/outputs/run_2026-10-18T02-04-31/candidates.csv",
+    "fasta": "/home/msi-nb/vaxforge/outputs/run_2026-10-18T02-04-31/top_peptides.fasta",
+    "xlsx": "/home/msi-nb/vaxforge/outputs/run_2026-10-18T02-04-31/candidates_full.xlsx",
+    "json": "/home/msi-nb/vaxforge/outputs/run_2026-10-18T02-04-31/run.json",
+    "html": "/home/msi-nb/vaxforge/outputs/run_2026-10-18T02-04-31/report.html",
+    "pdf": "/home/msi-nb/vaxforge/outputs/run_2026-10-18T02-04-31/report.pdf"
   }
 }

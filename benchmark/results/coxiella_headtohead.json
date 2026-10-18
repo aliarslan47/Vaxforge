@@ -15,20 +15,21 @@
   "tools": [
     {
       "tool": "VaxForge",
-      "n_candidates": 524,
-      "recall": "2/4",
+      "n_candidates": 575,
+      "recall": "3/4",
       "ranks": {
-        "Mip": null,
-        "Com1": 42,
         "GroEL": null,
-        "OmpH": 177
+        "Com1": 22,
+        "OmpH": 458,
+        "Mip": 445
       },
       "recovered": [
         "Com1",
+        "Mip",
         "OmpH"
       ],
-      "fold_enrichment": 1.73,
-      "fisher_p": 0.32920971535582366,
+      "fold_enrichment": 2.37,
+      "fisher_p": 0.09715824276161786,
       "auc": null,
       "note": "candidacy skoru; funnel soft-VFDB"
     },
@@ -37,10 +38,10 @@
       "n_candidates": 477,
       "recall": "4/4",
       "ranks": {
-        "Mip": 28,
-        "Com1": 64,
         "GroEL": 8,
-        "OmpH": 713
+        "Com1": 64,
+        "OmpH": 713,
+        "Mip": 28
       },
       "recovered": [
         "Com1",
@@ -62,10 +63,10 @@
       "n_candidates": 9,
       "recall": "0/4",
       "ranks": {
-        "Mip": "DISCARDED",
-        "Com1": "DISCARDED",
         "GroEL": "DISCARDED",
-        "OmpH": "DISCARDED"
+        "Com1": "DISCARDED",
+        "OmpH": "DISCARDED",
+        "Mip": "DISCARDED"
       },
       "recovered": [],
       "fold_enrichment": 0.0,
