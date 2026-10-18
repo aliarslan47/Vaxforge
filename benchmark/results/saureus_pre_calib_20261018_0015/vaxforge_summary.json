@@ -1,0 +1,115 @@
+{
+  "bug": "saureus",
+  "organism": "Staphylococcus aureus",
+  "strain": "NCTC 8325 / PS 47",
+  "input": "saureus_prepared.faa (Staphylococcus aureus NCTC 8325 / PS 47, 2889 protein TAM PROTEOM)",
+  "taxon": "NCBITaxon:1280",
+  "gram": "positive",
+  "full_proteome": true,
+  "runtime_s": 14673.1,
+  "n_testset": 2889,
+  "n_protective": 5,
+  "n_background": 2884,
+  "n_input_proteins": 2889,
+  "n_discovery": 2889,
+  "n_funnel": 753,
+  "n_candidate_proteins": 729,
+  "recall_at_antigen": "5/5",
+  "protective_producing_candidates": [
+    "P02976",
+    "Q2FZE9",
+    "Q2FZF0",
+    "Q2G015",
+    "Q2G1X0"
+  ],
+  "background_producing_candidates": 724,
+  "fold_enrichment": 3.98,
+  "fisher_p": 0.0010125915219699917,
+  "permutation_rank": {
+    "test": "permutation_rank_test",
+    "statistic": 4.0,
+    "p_value": 0.0273972602739726,
+    "ci95": null,
+    "n": 5,
+    "detail": {
+      "statistic_type": "best_rank",
+      "N_total": 729,
+      "null_mean": 121.6195,
+      "positive_ranks": [
+        4.0,
+        8.0,
+        9.0,
+        10.0,
+        23.0
+      ]
+    },
+    "caveat": null
+  },
+  "protective_detail": [
+    {
+      "accession": "Q2FZF0",
+      "antigen": "IsdB (iron-regulated surface determinant B)",
+      "in_testset": true,
+      "vfdb_hit": true,
+      "produced_candidate": true,
+      "best_candidacy": 0.907,
+      "protein_rank": 4,
+      "n_candidate_proteins": 729,
+      "interpretation": "VFDB-pozitif, aday üretti"
+    },
+    {
+      "accession": "Q2G015",
+      "antigen": "ClfA (clumping factor A)",
+      "in_testset": true,
+      "vfdb_hit": true,
+      "produced_candidate": true,
+      "best_candidacy": 0.8553,
+      "protein_rank": 23,
+      "n_candidate_proteins": 729,
+      "interpretation": "VFDB-pozitif, aday üretti"
+    },
+    {
+      "accession": "Q2G1X0",
+      "antigen": "Hla (alpha-hemolysin)",
+      "in_testset": true,
+      "vfdb_hit": true,
+      "produced_candidate": true,
+      "best_candidacy": 0.8955,
+      "protein_rank": 9,
+      "n_candidate_proteins": 729,
+      "interpretation": "VFDB-pozitif, aday üretti"
+    },
+    {
+      "accession": "Q2FZE9",
+      "antigen": "IsdA (iron-regulated surface determinant A)",
+      "in_testset": true,
+      "vfdb_hit": true,
+      "produced_candidate": true,
+      "best_candidacy": 0.892,
+      "protein_rank": 10,
+      "n_candidate_proteins": 729,
+      "interpretation": "VFDB-pozitif, aday üretti"
+    },
+    {
+      "accession": "P02976",
+      "antigen": "SpA (immunoglobulin G-binding protein A)",
+      "in_testset": true,
+      "vfdb_hit": true,
+      "produced_candidate": true,
+      "best_candidacy": 0.898,
+      "protein_rank": 8,
+      "n_candidate_proteins": 729,
+      "interpretation": "VFDB-pozitif, aday üretti"
+    }
+  ],
+  "iedb_source": "IEDB kaynak-organizma seti (NCBITaxon:1280)",
+  "iedb_matched_candidates": 24,
+  "report_paths": {
+    "csv": "/home/msi-nb/vaxforge/outputs/run_2026-08-26T08-51-17/candidates.csv",
+    "fasta": "/home/msi-nb/vaxforge/outputs/run_2026-08-26T08-51-17/top_peptides.fasta",
+    "xlsx": "/home/msi-nb/vaxforge/outputs/run_2026-08-26T08-51-17/candidates_full.xlsx",
+    "json": "/home/msi-nb/vaxforge/outputs/run_2026-08-26T08-51-17/run.json",
+    "html": "/home/msi-nb/vaxforge/outputs/run_2026-08-26T08-51-17/report.html",
+    "pdf": "/home/msi-nb/vaxforge/outputs/run_2026-08-26T08-51-17/report.pdf"
+  }
+}

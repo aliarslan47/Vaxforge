@@ -1,0 +1,113 @@
+{
+  "bug": "banthracis",
+  "organism": "Bacillus anthracis",
+  "strain": "Ames Ancestor",
+  "input": "banthracis_prepared.faa (Bacillus anthracis Ames Ancestor, 5493 protein TAM PROTEOM)",
+  "taxon": "NCBITaxon:1392",
+  "gram": "positive",
+  "full_proteome": true,
+  "runtime_s": 14392.1,
+  "n_testset": 5493,
+  "n_protective": 5,
+  "n_background": 5488,
+  "n_input_proteins": 5493,
+  "n_discovery": 5493,
+  "n_funnel": 1274,
+  "n_candidate_proteins": 1163,
+  "recall_at_antigen": "4/5",
+  "protective_producing_candidates": [
+    "P13423",
+    "P15917",
+    "P40136",
+    "P94217"
+  ],
+  "background_producing_candidates": 1159,
+  "fold_enrichment": 3.79,
+  "fisher_p": 0.008316204310404559,
+  "permutation_rank": {
+    "test": "permutation_rank_test",
+    "statistic": 2.0,
+    "p_value": 0.0071992800719928,
+    "ci95": null,
+    "n": 4,
+    "detail": {
+      "statistic_type": "best_rank",
+      "N_total": 1163,
+      "null_mean": 229.8899,
+      "positive_ranks": [
+        2.0,
+        6.0,
+        9.0,
+        65.0
+      ]
+    },
+    "caveat": null
+  },
+  "protective_detail": [
+    {
+      "accession": "P13423",
+      "antigen": "Protective Antigen PA (pagA, pXO1) — antraks aşısı ana antijeni",
+      "in_testset": true,
+      "vfdb_hit": true,
+      "produced_candidate": true,
+      "best_candidacy": 0.8955,
+      "protein_rank": 2,
+      "n_candidate_proteins": 1163,
+      "interpretation": "VFDB-pozitif, aday üretti"
+    },
+    {
+      "accession": "P15917",
+      "antigen": "Lethal Factor LF (lef, pXO1)",
+      "in_testset": true,
+      "vfdb_hit": true,
+      "produced_candidate": true,
+      "best_candidacy": 0.8478,
+      "protein_rank": 9,
+      "n_candidate_proteins": 1163,
+      "interpretation": "VFDB-pozitif, aday üretti"
+    },
+    {
+      "accession": "P40136",
+      "antigen": "Edema Factor EF (cya, pXO1, adenilat siklaz)",
+      "in_testset": true,
+      "vfdb_hit": true,
+      "produced_candidate": true,
+      "best_candidacy": 0.876,
+      "protein_rank": 6,
+      "n_candidate_proteins": 1163,
+      "interpretation": "VFDB-pozitif, aday üretti"
+    },
+    {
+      "accession": "P19580",
+      "antigen": "CapB (pXO2, poli-γ-D-glutamat kapsül)",
+      "in_testset": true,
+      "vfdb_hit": true,
+      "produced_candidate": false,
+      "best_candidacy": null,
+      "protein_rank": null,
+      "n_candidate_proteins": 1163,
+      "interpretation": "aday peptit üretmedi (funnel ya da funnel-sonrası epitop/alerjen/toksisite elemesi)"
+    },
+    {
+      "accession": "P94217",
+      "antigen": "S-tabaka proteini EA1 (eag)",
+      "in_testset": true,
+      "vfdb_hit": false,
+      "produced_candidate": true,
+      "best_candidacy": 0.752,
+      "protein_rank": 65,
+      "n_candidate_proteins": 1163,
+      "interpretation": "VFDB-negatif ama aday üretti → soft-filter"
+    }
+  ],
+  "iedb_source": "IEDB kaynak-organizma seti (NCBITaxon:1392)",
+  "iedb_matched_candidates": 4,
+  "report_paths": {
+    "csv": "/home/msi-nb/vaxforge/outputs/run_2026-10-02T06-46-01/candidates.csv",
+    "fasta": "/home/msi-nb/vaxforge/outputs/run_2026-10-02T06-46-01/top_peptides.fasta",
+    "xlsx": "/home/msi-nb/vaxforge/outputs/run_2026-10-02T06-46-01/candidates_full.xlsx",
+    "json": "/home/msi-nb/vaxforge/outputs/run_2026-10-02T06-46-01/run.json",
+    "html": "/home/msi-nb/vaxforge/outputs/run_2026-10-02T06-46-01/report.html",
+    "pdf": "/home/msi-nb/vaxforge/outputs/run_2026-10-02T06-46-01/report.pdf"
+  }
+}

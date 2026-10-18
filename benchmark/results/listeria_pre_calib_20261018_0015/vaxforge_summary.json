@@ -1,0 +1,113 @@
+{
+  "bug": "listeria",
+  "organism": "Listeria monocytogenes",
+  "strain": "EGD-e (serovar 1/2a, ATCC BAA-679)",
+  "input": "listeria_prepared.faa (Listeria monocytogenes EGD-e (serovar 1/2a, ATCC BAA-679), 2844 protein TAM PROTEOM)",
+  "taxon": "NCBITaxon:1639",
+  "gram": "positive",
+  "full_proteome": true,
+  "runtime_s": 11914.5,
+  "n_testset": 2844,
+  "n_protective": 5,
+  "n_background": 2839,
+  "n_input_proteins": 2844,
+  "n_discovery": 2844,
+  "n_funnel": 487,
+  "n_candidate_proteins": 478,
+  "recall_at_antigen": "4/5",
+  "protective_producing_candidates": [
+    "P0DJM0",
+    "P0DQD2",
+    "P13128",
+    "P21171"
+  ],
+  "background_producing_candidates": 474,
+  "fold_enrichment": 4.79,
+  "fisher_p": 0.003421157445354784,
+  "permutation_rank": {
+    "test": "permutation_rank_test",
+    "statistic": 1.0,
+    "p_value": 0.007699230076992301,
+    "ci95": null,
+    "n": 4,
+    "detail": {
+      "statistic_type": "best_rank",
+      "N_total": 478,
+      "null_mean": 94.6041,
+      "positive_ranks": [
+        1.0,
+        2.0,
+        7.0,
+        15.0
+      ]
+    },
+    "caveat": null
+  },
+  "protective_detail": [
+    {
+      "accession": "P13128",
+      "antigen": "LLO (listeriolysin O, immunodominant)",
+      "in_testset": true,
+      "vfdb_hit": true,
+      "produced_candidate": true,
+      "best_candidacy": 0.8955,
+      "protein_rank": 7,
+      "n_candidate_proteins": 478,
+      "interpretation": "VFDB-pozitif, aday üretti"
+    },
+    {
+      "accession": "P21171",
+      "antigen": "p60 (invasion-associated endopeptidase, iap)",
+      "in_testset": true,
+      "vfdb_hit": true,
+      "produced_candidate": true,
+      "best_candidacy": 0.9553,
+      "protein_rank": 1,
+      "n_candidate_proteins": 478,
+      "interpretation": "VFDB-pozitif, aday üretti"
+    },
+    {
+      "accession": "P0DJM0",
+      "antigen": "InlA (internalin A)",
+      "in_testset": true,
+      "vfdb_hit": true,
+      "produced_candidate": true,
+      "best_candidacy": 0.942,
+      "protein_rank": 2,
+      "n_candidate_proteins": 478,
+      "interpretation": "VFDB-pozitif, aday üretti"
+    },
+    {
+      "accession": "P0DQD2",
+      "antigen": "InlB (internalin B)",
+      "in_testset": true,
+      "vfdb_hit": true,
+      "produced_candidate": true,
+      "best_candidacy": 0.8624,
+      "protein_rank": 15,
+      "n_candidate_proteins": 478,
+      "interpretation": "VFDB-pozitif, aday üretti"
+    },
+    {
+      "accession": "P33379",
+      "antigen": "ActA (actin assembly-inducing protein)",
+      "in_testset": true,
+      "vfdb_hit": true,
+      "produced_candidate": false,
+      "best_candidacy": null,
+      "protein_rank": null,
+      "n_candidate_proteins": 478,
+      "interpretation": "aday peptit üretmedi (funnel ya da funnel-sonrası epitop/alerjen/toksisite elemesi)"
+    }
+  ],
+  "iedb_source": "IEDB kaynak-organizma seti (NCBITaxon:1639)",
+  "iedb_matched_candidates": 22,
+  "report_paths": {
+    "csv": "/home/msi-nb/vaxforge/outputs/run_2026-08-26T12-56-02/candidates.csv",
+    "fasta": "/home/msi-nb/vaxforge/outputs/run_2026-08-26T12-56-02/top_peptides.fasta",
+    "xlsx": "/home/msi-nb/vaxforge/outputs/run_2026-08-26T12-56-02/candidates_full.xlsx",
+    "json": "/home/msi-nb/vaxforge/outputs/run_2026-08-26T12-56-02/run.json",
+    "html": "/home/msi-nb/vaxforge/outputs/run_2026-08-26T12-56-02/report.html",
+    "pdf": "/home/msi-nb/vaxforge/outputs/run_2026-08-26T12-56-02/report.pdf"
+  }
+}

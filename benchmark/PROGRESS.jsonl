@@ -139,3 +139,4 @@
 {"ts": "2026-10-18 02:04:29", "event": "Faz 2: coxiella bitti", "detail": "Recall@antijen: 3/4  ·  fold: 2.37  ·  Fisher p: 0.0973 (rc=0)", "phase": "", "pid": 32506}
 {"ts": "2026-10-18 04:28:52", "event": "Faz 2: ssuis bitti", "detail": "Recall@antijen: 1/5  ·  fold: 0.77  ·  Fisher p: 0.777 (rc=0)", "phase": "", "pid": 8151}
 {"ts": "2026-10-18 07:54:35", "event": "Faz 2: saureus bitti", "detail": "Recall@antijen: 5/5  ·  fold: 2.81  ·  Fisher p: 0.00578 (rc=0)", "phase": "", "pid": 30785}
+{"ts": "2026-10-18 11:17:19", "event": "Faz 2: listeria bitti", "detail": "Recall@antijen: 5/5  ·  fold: 3.83  ·  Fisher p: 0.00123 (rc=0)", "phase": "", "pid": 15542}

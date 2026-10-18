@@ -1,13 +1,12 @@
 # VaxForge yeni-virüs benchmark — DURUM
 
-- Son güncelleme: **2026-10-18 07:54:35**
+- Son güncelleme: **2026-10-18 11:17:19**
 - Faz: ****
-- Son olay: **Faz 2: saureus bitti**
-- Detay: Recall@antijen: 5/5  ·  fold: 2.81  ·  Fisher p: 0.00578 (rc=0)
+- Son olay: **Faz 2: listeria bitti**
+- Detay: Recall@antijen: 5/5  ·  fold: 3.83  ·  Fisher p: 0.00123 (rc=0)
 
 ## Son 10 olay
 
-- `2026-10-10 10:51:47` [] Filtre kalibrasyonu — Toksisite kapısı yanlış uzunluk sınıfında: ToxinPred2 t=0.6 insan self 9-mer %75.2, doğrulanmış IEDB epitop %63.1 yanlış-pozitif (GILGFVFTL dahil); tam proteinde %94.3/%4.7 saglam. Duzeltme: epitopta ToxinPred3 YUMUSAK + MEV'de ToxinPred2 sert; alerjenite konstruktta FAO/WHO 80aa/%35. Kalici kalibrasyon duzenegi + 2 regresyon testi; 15/15 yesil. Gram(+) yeniden kosumu durduruldu.
 - `2026-10-10 12:53:09` [] örnek veri demosu — demo proteom (26 nihai aday): ESKİ ToxinPred2 hibrit t=0.6 sert kapı adayların %61.5'ini (16/26) elerdi; YENİ ToxinPred3 ET yumuşak kapı 0 işaret / 0 eleme. benchmark/results/demo_toxicity_gate.json
 - `2026-10-10 13:34:36` [] ssuis kalibrasyon-sonrası koşu başladı — kalibre kapılarla (ToxinPred3 yumuşak + Gram-duyarlı lokalizasyon) tam proteom; eski sonuçlar ssuis_headtohead.pre_calibration.json olarak yedeklendi
 - `2026-10-10 13:51:25` [] ssuis kalibrasyon-sonrası koşu — 3 düzeltme aktif: ToxinPred3 yumuşak toksisite + Gram-duyarlı lokalizasyon + otoimmünite granülaritesi (protein yumuşak/epitop sert). Eski sonuçlar ssuis_headtohead.pre_calibration.json
@@ -17,3 +16,4 @@
 - `2026-10-18 02:04:29` [] Faz 2: coxiella bitti — Recall@antijen: 3/4  ·  fold: 2.37  ·  Fisher p: 0.0973 (rc=0)
 - `2026-10-18 04:28:52` [] Faz 2: ssuis bitti — Recall@antijen: 1/5  ·  fold: 0.77  ·  Fisher p: 0.777 (rc=0)
 - `2026-10-18 07:54:35` [] Faz 2: saureus bitti — Recall@antijen: 5/5  ·  fold: 2.81  ·  Fisher p: 0.00578 (rc=0)
+- `2026-10-18 11:17:19` [] Faz 2: listeria bitti — Recall@antijen: 5/5  ·  fold: 3.83  ·  Fisher p: 0.00123 (rc=0)

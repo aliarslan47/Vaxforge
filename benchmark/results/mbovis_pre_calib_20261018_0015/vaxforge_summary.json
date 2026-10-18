@@ -1,0 +1,113 @@
+{
+  "bug": "mbovis",
+  "organism": "Mycobacterium bovis",
+  "strain": "AF2122/97 (ATCC BAA-935)",
+  "input": "mbovis_prepared.faa (Mycobacterium bovis AF2122/97 (ATCC BAA-935), 4088 protein TAM PROTEOM)",
+  "taxon": "NCBITaxon:1765",
+  "gram": "positive",
+  "full_proteome": true,
+  "runtime_s": 14652.9,
+  "n_testset": 4088,
+  "n_protective": 5,
+  "n_background": 4083,
+  "n_input_proteins": 4088,
+  "n_discovery": 4088,
+  "n_funnel": 888,
+  "n_candidate_proteins": 535,
+  "recall_at_antigen": "4/5",
+  "protective_producing_candidates": [
+    "P0A567",
+    "P0A5B8",
+    "P0A5Q5",
+    "P0C2T2"
+  ],
+  "background_producing_candidates": 531,
+  "fold_enrichment": 6.15,
+  "fisher_p": 0.0013013626875302445,
+  "permutation_rank": {
+    "test": "permutation_rank_test",
+    "statistic": 1.0,
+    "p_value": 0.0071992800719928,
+    "ci95": null,
+    "n": 4,
+    "detail": {
+      "statistic_type": "best_rank",
+      "N_total": 535,
+      "null_mean": 105.8574,
+      "positive_ranks": [
+        1.0,
+        27.0,
+        114.0,
+        202.0
+      ]
+    },
+    "caveat": null
+  },
+  "protective_detail": [
+    {
+      "accession": "P0A565",
+      "antigen": "ESAT-6 (EsxA, 6 kDa erken salgı antijeni)",
+      "in_testset": true,
+      "vfdb_hit": true,
+      "produced_candidate": false,
+      "best_candidacy": null,
+      "protein_rank": null,
+      "n_candidate_proteins": 535,
+      "interpretation": "aday peptit üretmedi (funnel ya da funnel-sonrası epitop/alerjen/toksisite elemesi)"
+    },
+    {
+      "accession": "P0A567",
+      "antigen": "CFP-10 (EsxB)",
+      "in_testset": true,
+      "vfdb_hit": true,
+      "produced_candidate": true,
+      "best_candidacy": 0.8195,
+      "protein_rank": 27,
+      "n_candidate_proteins": 535,
+      "interpretation": "VFDB-pozitif, aday üretti"
+    },
+    {
+      "accession": "P0C2T2",
+      "antigen": "Ag85B (FbpB, mikolil transferaz)",
+      "in_testset": true,
+      "vfdb_hit": true,
+      "produced_candidate": true,
+      "best_candidacy": 0.9483,
+      "protein_rank": 1,
+      "n_candidate_proteins": 535,
+      "interpretation": "VFDB-pozitif, aday üretti"
+    },
+    {
+      "accession": "P0A5Q5",
+      "antigen": "MPB64 (immunojenik protein, M.bovis MPT64 homoloğu)",
+      "in_testset": true,
+      "vfdb_hit": false,
+      "produced_candidate": true,
+      "best_candidacy": 0.712,
+      "protein_rank": 202,
+      "n_candidate_proteins": 535,
+      "interpretation": "VFDB-negatif ama aday üretti → soft-filter"
+    },
+    {
+      "accession": "P0A5B8",
+      "antigen": "HspX/Acr (alfa-kristalin, 16 kDa)",
+      "in_testset": true,
+      "vfdb_hit": true,
+      "produced_candidate": true,
+      "best_candidacy": 0.7535,
+      "protein_rank": 114,
+      "n_candidate_proteins": 535,
+      "interpretation": "VFDB-pozitif, aday üretti"
+    }
+  ],
+  "iedb_source": "IEDB kaynak-organizma seti (NCBITaxon:1765)",
+  "iedb_matched_candidates": 13,
+  "report_paths": {
+    "csv": "/home/msi-nb/vaxforge/outputs/run_2026-10-01T21-25-38/candidates.csv",
+    "fasta": "/home/msi-nb/vaxforge/outputs/run_2026-10-01T21-25-38/top_peptides.fasta",
+    "xlsx": "/home/msi-nb/vaxforge/outputs/run_2026-10-01T21-25-38/candidates_full.xlsx",
+    "json": "/home/msi-nb/vaxforge/outputs/run_2026-10-01T21-25-38/run.json",
+    "html": "/home/msi-nb/vaxforge/outputs/run_2026-10-01T21-25-38/report.html",
+    "pdf": "/home/msi-nb/vaxforge/outputs/run_2026-10-01T21-25-38/report.pdf"
+  }
+}

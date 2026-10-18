@@ -1,0 +1,115 @@
+{
+  "bug": "salmonella",
+  "organism": "Salmonella enterica serovar Typhimurium",
+  "strain": "LT2 / SGSC1412 / ATCC 700720",
+  "input": "salmonella_prepared.faa (Salmonella enterica serovar Typhimurium LT2 / SGSC1412 / ATCC 700720, 4533 protein TAM PROTEOM)",
+  "taxon": "NCBITaxon:90371",
+  "gram": "negative",
+  "full_proteome": true,
+  "runtime_s": 32056.4,
+  "n_testset": 4528,
+  "n_protective": 5,
+  "n_background": 4523,
+  "n_input_proteins": 4528,
+  "n_discovery": 4528,
+  "n_funnel": 1409,
+  "n_candidate_proteins": 1368,
+  "recall_at_antigen": "5/5",
+  "protective_producing_candidates": [
+    "P02936",
+    "P06179",
+    "P0A263",
+    "P37592",
+    "Q7BVH7"
+  ],
+  "background_producing_candidates": 1363,
+  "fold_enrichment": 3.32,
+  "fisher_p": 0.0025042615813054177,
+  "permutation_rank": {
+    "test": "permutation_rank_test",
+    "statistic": 8.0,
+    "p_value": 0.029697030296970302,
+    "ci95": null,
+    "n": 5,
+    "detail": {
+      "statistic_type": "best_rank",
+      "N_total": 1368,
+      "null_mean": 228.0798,
+      "positive_ranks": [
+        8.0,
+        12.0,
+        20.0,
+        51.0,
+        63.0
+      ]
+    },
+    "caveat": null
+  },
+  "protective_detail": [
+    {
+      "accession": "P37592",
+      "antigen": "OmpD (outer membrane porin D)",
+      "in_testset": true,
+      "vfdb_hit": false,
+      "produced_candidate": true,
+      "best_candidacy": 0.8387,
+      "protein_rank": 63,
+      "n_candidate_proteins": 1368,
+      "interpretation": "VFDB-negatif ama aday üretti → soft-filter"
+    },
+    {
+      "accession": "P0A263",
+      "antigen": "OmpC (outer membrane porin C)",
+      "in_testset": true,
+      "vfdb_hit": false,
+      "produced_candidate": true,
+      "best_candidacy": 0.8472,
+      "protein_rank": 51,
+      "n_candidate_proteins": 1368,
+      "interpretation": "VFDB-negatif ama aday üretti → soft-filter"
+    },
+    {
+      "accession": "P06179",
+      "antigen": "FliC (phase-1 flagellin)",
+      "in_testset": true,
+      "vfdb_hit": true,
+      "produced_candidate": true,
+      "best_candidacy": 0.8993,
+      "protein_rank": 8,
+      "n_candidate_proteins": 1368,
+      "interpretation": "VFDB-pozitif, aday üretti"
+    },
+    {
+      "accession": "Q7BVH7",
+      "antigen": "SseB (SPI-2 secreted effector/translocon)",
+      "in_testset": true,
+      "vfdb_hit": true,
+      "produced_candidate": true,
+      "best_candidacy": 0.8923,
+      "protein_rank": 12,
+      "n_candidate_proteins": 1368,
+      "interpretation": "VFDB-pozitif, aday üretti"
+    },
+    {
+      "accession": "P02936",
+      "antigen": "OmpA (outer membrane protein A)",
+      "in_testset": true,
+      "vfdb_hit": true,
+      "produced_candidate": true,
+      "best_candidacy": 0.8782,
+      "protein_rank": 20,
+      "n_candidate_proteins": 1368,
+      "interpretation": "VFDB-pozitif, aday üretti"
+    }
+  ],
+  "iedb_source": "IEDB kaynak-organizma seti (NCBITaxon:90371)",
+  "iedb_matched_candidates": 10,
+  "report_paths": {
+    "csv": "/home/msi-nb/vaxforge/outputs/run_2026-08-26T16-14-47/candidates.csv",
+    "fasta": "/home/msi-nb/vaxforge/outputs/run_2026-08-26T16-14-47/top_peptides.fasta",
+    "xlsx": "/home/msi-nb/vaxforge/outputs/run_2026-08-26T16-14-47/candidates_full.xlsx",
+    "json": "/home/msi-nb/vaxforge/outputs/run_2026-08-26T16-14-47/run.json",
+    "html": "/home/msi-nb/vaxforge/outputs/run_2026-08-26T16-14-47/report.html",
+    "pdf": "/home/msi-nb/vaxforge/outputs/run_2026-08-26T16-14-47/report.pdf"
+  }
+}
