@@ -90,10 +90,17 @@ def entrypoint_available() -> tuple[bool, str]:
     ARAÇ_YOK yerine BEKLENMEYEN bir istisna — projenin "araç yoksa dürüstçe
     söyle" ilkesine aykırı.
 
-    ImmForge deposunda bu alt paket yok (köprü `immforge/bridge.py` olarak
-    duruyor ama `evaluate_candidate` sağlamıyor), yani entegrasyon ImmForge
-    tarafında henüz yazılmamış. Bu kontrol onu bir çökme değil, etiketli bir
-    yokluk hâline getirir.
+    DÜZELTME (2026-11-13): Bu alt paket ImmForge'da YAZILMIŞ ve eksiksiz —
+    `immforge/integrations/vaxforge.py`, `origin/phase-4.13b-anchors` dalında
+    (commit d916af8 + 3 takip commit'i); `evaluate_candidate` ve
+    `bepipred_residues_to_bepitopes` imzaları buradaki çağrılarla birebir uyuyor.
+    Bu makinede görünmemesinin sebebi kod eksiği DEĞİL: PC formatı sonrası
+    ImmForge shallow (tek commit) ve yalnız `main` klonlandı, o dal hiç inmedi.
+    Çözüm kod yazmak değil, dalı getirmek:
+        git -C <ImmForge> fetch --unshallow origin '+refs/heads/*:refs/remotes/origin/*'
+        git -C <ImmForge> worktree add ../ImmForge-phase4 origin/phase-4.13b-anchors
+        IMMFORGE_PATH=<...>/ImmForge-phase4
+    Bu kontrol yine de gerekli: dal yoksa çökme yerine etiketli bir yokluk verir.
     """
     if not Path(IMMFORGE_PATH).is_dir():
         return False, f"ImmForge dizini yok: {IMMFORGE_PATH}"
