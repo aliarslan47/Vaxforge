@@ -65,3 +65,19 @@ def predict(proteins: list[tuple[str, str]]) -> dict[str, dict]:
                             "antigenic": raw > 0.3}
         p.unlink(missing_ok=True)
     return out
+
+
+def verify() -> bool:
+    """GERÇEK yürütme denemesi (import zinciri eksik bağımlılıkla çökebilir).
+
+    `imblearn`/`seaborn` kurulu değilken script ModuleNotFoundError ile düşüyor,
+    CSV üretilmiyor ve `predict()` boş dönüyordu — ama `available()` True
+    diyordu, huni de "GERÇEK (IApred)" yazıyordu; antijenite her proteinde 0.0
+    kalıyordu.
+    """
+    if not available():
+        return False
+    try:
+        return bool(predict([("vfprobe", "MKLVGGSAAYDEKLVGGSAAYDEKMNLLRKIVKNRRQSEFREAILLGKAYTIFNKTLMEADAHYKSGTFT")]))
+    except Exception:
+        return False

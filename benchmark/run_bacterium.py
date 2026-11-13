@@ -170,6 +170,14 @@ def main() -> int:
         "protective_detail": prot_rows,
         "iedb_source": im.get("source"),
         "iedb_matched_candidates": im.get("n_matched"),
+        # HANGİ ARAÇLAR GERÇEKTEN KOŞTU (bkz. run_rabies.py aynı not):
+        # 10-bakteri benchmark'ının kayıtları bu alanı içermiyor, bu yüzden
+        # TMHMM/IApred/ToxinPred2'nin o koşularda çalışıp çalışmadığı dosyadan
+        # ANLAŞILAMIYOR (DURUM.md bulgu 20-22). Bundan sonra yazılır.
+        "funnel_methods": meta.get("funnel_methods"),
+        "tool_status": meta.get("tool_status"),
+        "tool_status_summary": meta.get("tool_status_summary"),
+        "diagnostics_summary": meta.get("diagnostics_summary"),
         "report_paths": {k: str(v) for k, v in result["paths"].items()},
     }
     OUTDIR.mkdir(parents=True, exist_ok=True)

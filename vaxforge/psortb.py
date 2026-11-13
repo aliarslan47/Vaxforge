@@ -23,13 +23,17 @@ from pathlib import Path
 IMAGE = "docker.io/brinkmanlab/psortb_commandline:1.0.2"
 
 # PSORTb 'Final_Localization' -> config bakteri lokalizasyon sözlüğü.
-# config allowed(bacteria) = [extracellular, outer_membrane, cell_wall, periplasm]
+# config izinli liste GRAM'a göre seçilir (thresholds.yaml → localization.allowed):
+#   Gram-negatif: [extracellular, outer_membrane, cell_wall, periplasm]
+#   Gram-pozitif: [extracellular, cell_wall, membrane]
 _LOC_MAP = {
     "extracellular": "extracellular",
     "outermembrane": "outer_membrane",
     "cellwall": "cell_wall",
     "periplasmic": "periplasm",
-    "cytoplasmicmembrane": "membrane",   # iç membran — bakteri allowed'da yok → elenir
+    # Gram-negatifte İÇ zar (dış zarla perdeli, yüzeye açık değil) → izinli değil.
+    # Gram-pozitifte sitoplazmik zar hücrenin DIŞ sınırıdır → izinli (yüzey antijeni).
+    "cytoplasmicmembrane": "membrane",
     "cytoplasmic": "cytoplasm",          # elenir
     "unknown": "unknown",                # PSORTb belirsiz → funnel gate'i 'atlar' (elemez)
 }
@@ -130,3 +134,23 @@ def _predict_one(seq_pairs: list[tuple[str, str]], gram: str) -> dict[str, dict]
     parsed = _parse_terse(r.stdout)
     # sentetik ID'leri gerçek ID'ye çevir
     return {id_map[sid]: d for sid, d in parsed.items() if sid in id_map}
+
+
+def verify() -> bool:
+    """GERÇEK konteyner çağrısı: image var ama KOŞMUYOR olabilir.
+
+    `available()` yalnız `podman image exists` kontrol ediyor. Image yerelde
+    dururken de çalışmayabilir (kullanıcı ad-alanı UID aralığı, bozuk katman,
+    chown hataları). Bu projede TMHMM/IApred/ToxinPred2 tam bu şekilde "hazır"
+    görünüp hiç çalışmıyordu (DURUM.md bulgu 20-22), bu yüzden burada da
+    gerçek bir çağrı yapılır (~3 s).
+    """
+    if not available():
+        return False
+    try:
+        r = predict([("vfprobe", "MKKRLLSVLALSALVVSSLFSGCAHAQDNTVNAAQNKQLSQEAI"
+                                 "AKQFLAAHPEAKVTVQKDGNKYVVQGQTADGKQVTLDVNQ")],
+                    gram="negative")
+        return bool(r) and "localization" in next(iter(r.values()), {})
+    except Exception:
+        return False

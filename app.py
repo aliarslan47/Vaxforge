@@ -273,7 +273,9 @@ _sec("4", f"{t(lang,'sec_thresholds')}: {profile}")
 st.caption("Tüm eşikler config'ten gelir; organizmaya göre değişir ve burada düzenlenebilir. "
            "Koşulan değerler rapora yazılır (tekrarlanabilirlik).")
 
-resolved = CFG.resolve(profile)
+# gram ARAYÜZDE de eşik çözümüne girer: aksi hâlde kullanıcı Gram-pozitif seçtiğinde
+# panelde Gram-negatif izinli listesi görünür, koşu ise başka listeyle çalışırdı.
+resolved = CFG.resolve(profile, gram=gram)
 by_step: dict[str, list] = {}
 for rtool in resolved.values():
     by_step.setdefault(rtool.step, []).append(rtool)

@@ -16,7 +16,13 @@ from __future__ import annotations
 import re
 
 # N-bağlı sequon: N, ardından Pro olmayan herhangi bir kalıntı, ardından S veya T.
-_N_SEQUON = re.compile(r"N[^P][ST]")
+#
+# ÖRTÜŞME: düz `N[^P][ST]` deseni `finditer` ile ÖRTÜŞMEYEN eşleşme döndürür, yani
+# komşu sequon'ları kaçırır — "NNSS" dizisinde hem 1 (NNS) hem 2 (NSS) sequon'dur
+# ama yalnız biri bulunurdu. Bitişik sequon gerçek glikoproteinlerde yaygındır ve
+# eksik sayım glikan-maskeli B-epitoplarını OLDUĞUNDAN AZ gösterir (yumuşak uyarı
+# kaçar). İleri-bakış (lookahead) sarmalayıcı her konumdan eşleşmeyi bulur.
+_N_SEQUON = re.compile(r"(?=(N[^P][ST]))")
 # O-glikozilasyon HEURİSTİĞİ: 5-pencerede ≥3 Ser/Thr → yoğun hotspot (kesin değil).
 _OT_WINDOW = 5
 _OT_MIN = 3
@@ -34,7 +40,8 @@ def scan_sequons(seq: str) -> dict:
     (pos 1-tabanlı, motifin N'sinin konumu.)
     """
     s = (seq or "").upper()
-    n_sites = [(m.start() + 1, m.group()) for m in _N_SEQUON.finditer(s)]
+    # group(1) = ileri-bakış içindeki gerçek motif (m.group() boş string olur).
+    n_sites = [(m.start() + 1, m.group(1)) for m in _N_SEQUON.finditer(s)]
     o_sites = []
     for i in range(len(s) - _OT_WINDOW + 1):
         win = s[i:i + _OT_WINDOW]

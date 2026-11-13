@@ -33,6 +33,34 @@ _JUNK = ["seq.aac", "seq.pred", "seq.out", "merci.txt", "merci_output.csv",
          "Sequence_1"]
 
 
+# ToxinPred2'nin GEÇERLİ UZUNLUK ALANI (kanıt: kendi eğitim/test setleri).
+#
+# tools/toxinpred2/datasets/ altındaki ALTI referans setinin TAMAMINDA en kısa
+# dizi 35 aa (Positive/Negative × main/alternate/realistic; medyan 98-353 aa).
+# Yani araç 35 aa'dan kısa peptit üzerinde hiç eğitilmemiş/doğrulanmamıştır.
+#
+# VaxForge ise huniye 8-15 aa'lık MHC epitopları besliyor — alan DIŞI. Bu
+# ortamda ölçüldü (eşik 0.6, Model 1, referans setlerden rastgele 9-mer
+# parçalar, n=100+100):
+#
+#   tam dizi (>=35 aa, eğitim verisi)   AUC 1.00
+#   9-mer parçalar                      AUC 0.69
+#   eşik 0.6'da TOKSİK denen, toksik-OLMAYAN proteinden gelen 9-mer: 66/100
+#
+# Yani araç 9-mer'de ayırt edemiyor ve varsayılan eşikte güvenli epitopların
+# üçte ikisini toksik ilan ediyor. Hiçbir eşik iyi bir denge vermiyor
+# (0.7 → seçicilik 0.77 ama duyarlılık 0.49; 0.9 → duyarlılık 0.13).
+#
+# BU YÜZDEN: skor yine hesaplanır ve raporlanır, ama bu uzunluğun ALTINDA
+# SERT FİLTRE OLARAK KULLANILMAZ (survival.py). Uydurma yok, sessiz eleme yok.
+MIN_VALIDATED_LENGTH = 35
+
+
+def in_validated_domain(peptide: str) -> bool:
+    """Peptit, ToxinPred2'nin doğrulanmış uzunluk alanında mı?"""
+    return len(peptide or "") >= MIN_VALIDATED_LENGTH
+
+
 @functools.lru_cache(maxsize=1)
 def available() -> bool:
     return _SCRIPT.exists() and _MODEL.exists()
@@ -110,3 +138,20 @@ def predict(peptides: list[str], threshold: float = 0.6) -> dict[str, dict]:
         Path(fout).unlink(missing_ok=True)
         _cleanup()
     return out
+
+
+def verify() -> bool:
+    """GERÇEK yürütme denemesi (model/pandas/envfile uyumsuzluğu sessizdi).
+
+    Üç ayrı nedenle hiç çalışmıyordu (eski sklearn pickle, geliştirici makine
+    yolları, pandas 1.x API) ve `predict()` boş dönüyordu; huni bunu "hiçbir
+    peptit toksik değil" diye okuyordu. İKİ peptitle denenir, çünkü satıcı
+    script'i tek-dizi girdide ayrıca düşüyordu.
+    """
+    if not available():
+        return False
+    try:
+        r = predict(["SEFREAILLSEFRE", "GKAYTIFNKTLMEAD"])
+        return len(r) == 2
+    except Exception:
+        return False

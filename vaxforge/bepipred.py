@@ -11,6 +11,7 @@ Varsayılan epitop eşiği 0.35 (BepiPred-1.0 standardı).
 from __future__ import annotations
 
 import functools
+import re
 import shutil
 import subprocess
 import tempfile
@@ -21,8 +22,35 @@ DEFAULT_THRESHOLD = 0.35
 
 
 @functools.lru_cache(maxsize=1)
+def _configured() -> bool:
+    """Sarmalayıcıdaki `setenv BP <yol>` GERÇEK bir dizini mi gösteriyor?
+
+    NEDEN GEREKLİ: DTU paketleri kurulumda elle düzenlenmek üzere satıcı YER
+    TUTUCU yoluyla gelir (`setenv BP /usr/cbs/packages/bepipred/1.0/...`).
+    Düzenlenmezse sarmalayıcı dosyası VARDIR, tcsh de VARDIR, yani eski
+    `available()` True döndürüyordu — ama araç `cannot find BP in ...` diyip
+    çıkıyor, `predict_residues` BOŞ LİSTE dönüyor ve çağıran bunu "B-hücre
+    epitopu bulunamadı" sanıyordu. Yani araç yokluğu, negatif BULGU gibi
+    görünüyordu: projenin dürüstlük ilkesinin tam tersi.
+
+    Aynı kusur netMHCpan/netMHCIIpan/netCTL sarmalayıcılarında da vardı
+    (bkz. netmhc_local._wrapper_home_ok).
+    """
+    if not _WRAPPER.exists():
+        return False
+    try:
+        txt = _WRAPPER.read_text(errors="ignore")
+    except Exception:
+        return False
+    m = re.search(r"^\s*setenv\s+BP\s+(\S+)", txt, re.M)
+    if not m:
+        return True          # desen yoksa karar verme (ileride paket değişirse)
+    return Path(m.group(1)).is_dir()
+
+
+@functools.lru_cache(maxsize=1)
 def available() -> bool:
-    return _WRAPPER.exists() and shutil.which("tcsh") is not None
+    return _configured() and shutil.which("tcsh") is not None
 
 
 def predict_residues(protein: str) -> list[float]:

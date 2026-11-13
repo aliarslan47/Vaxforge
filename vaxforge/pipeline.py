@@ -15,8 +15,9 @@ from __future__ import annotations
 from datetime import datetime
 from pathlib import Path
 
-from . import (citations, conservation, discovery, epitope, funnel, iedb_match,
-               ingest, mev, mimicry, population, report, scoring, survival)
+from . import (citations, conservation, diagnostics, discovery, epitope, funnel,
+               iedb_match, ingest, mev, mimicry, population, report, scoring,
+               survival, tool_status)
 from .config_loader import ThresholdConfig, flatten_for_report
 from .detect import Detection
 from .hosts import HostRegistry
@@ -34,7 +35,14 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
         organism_taxon: str | None = None, gram: str | None = None,
         lang: str = "tr", adjuvant: str = "beta_defensin",
         strain_paths: list[str] | None = None):
-    resolved = cfg.resolve(profile, overrides)
+    diagnostics.setup()
+    # Koşunun EN BAŞINDA her dış aracın gerçek durumu ölçülür. Atıf tablosu
+    # bununla işaretlenir; aksi hâlde kurulu olmayan/çöken araç da "kullanıldı"
+    # gibi raporlanıyordu (bkz. tool_status modül başlığı).
+    tstatus = tool_status.collect()
+    # gram → eşik çözümüne girer: Gram-pozitif/negatif zarf farklı olduğu için
+    # izinli lokalizasyon listesi Gram'a göre seçilir (thresholds.yaml notu).
+    resolved = cfg.resolve(profile, overrides, gram=gram)
     steps = build_plan(det, has_gpu=has_gpu)
     reg = host_registry or HostRegistry.load()
     host_names = host_names or reg.default_hosts
@@ -47,7 +55,9 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
                    "predictors": h.predictors} for h in hosts],
         "thresholds": flatten_for_report(resolved),
         "plan": plan_table(steps),
-        "citations": citations.for_report(),
+        "citations": citations.for_report(tstatus),
+        "tool_status": tstatus,
+        "tool_status_summary": tool_status.summarize(tstatus),
         "n_raw": det.num_seqs,          # dosyadaki ham dizi/CDS sayısı
         "molecule": det.molecule,
         "gram": gram if profile == "bacteria" else None,
@@ -111,6 +121,7 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
                 else:
                     meta["conservation_auto_strains"] = {"accessions": [], "note": fetched.get("note")}
         except Exception as e:
+            diagnostics.record(meta, "conservation_auto_strains", e)
             meta["conservation_auto_strains"] = {"accessions": [], "note": f"otomatik çekme atlandı ({type(e).__name__})"}
     if conservation.available(strain_paths):
         yield _ev("conservation", "running",
@@ -205,6 +216,7 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
                   f"Glikozilasyon: {gsum['n_bcell_masked']}/{gsum['n_bcell']} B-epitobu "
                   f"glikan-maskeli sequon içeriyor (yumuşak uyarı)", gsum)
     except Exception as e:  # opsiyonel: pipeline'ı düşürmesin
+        diagnostics.record(meta, "glycosylation", e)
         meta["glycosylation"] = None
         yield _ev("glycosylation", "done", f"Glikozilasyon atlandı ({type(e).__name__})", {})
 
@@ -255,6 +267,7 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
                   f"MW {mp['mw_kda']} kDa · antijenite {mp['antigenicity']['score']}",
                   {"length": len(mev_out["sequence"]), "adjuvant": mev_out["adjuvant"]})
     except Exception as e:  # MEV opsiyonel: hata pipeline'ı düşürmesin
+        diagnostics.record(meta, "mev", e)
         meta["mev"] = None
         yield _ev("mev", "done", f"MEV atlandı ({type(e).__name__})", {})
 
@@ -300,6 +313,7 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
                 yield _ev("structure", "done", f"Yapısal doğrulama atlandı — {note}",
                           {"available": False})
         except Exception as e:  # opsiyonel: pipeline'ı düşürmesin
+            diagnostics.record(meta, "structure", e)
             meta["structure"] = None
             yield _ev("structure", "done", f"Yapısal doğrulama atlandı ({type(e).__name__})", {})
 
@@ -320,6 +334,7 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
             else:
                 yield _ev("cloning", "done", "Klonlama atlandı (dizi yok)", {})
         except Exception as e:  # opsiyonel: pipeline'ı düşürmesin
+            diagnostics.record(meta, "cloning", e)
             meta["cloning"] = None
             yield _ev("cloning", "done", f"Klonlama atlandı ({type(e).__name__})", {})
 
@@ -338,11 +353,15 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
             yield _ev("immunization", "done",
                       f"İmmünizasyon kararı: {hl.get('verdict', '—')}{sc}", verdict)
         except Exception as e:  # opsiyonel: pipeline'ı düşürmesin
+            diagnostics.record(meta, "immunization", e)
             meta["immunogenicity"] = None
             yield _ev("immunization", "done",
                       f"İmmünizasyon testi atlandı ({type(e).__name__})", {})
 
     # 7) Rapor
+    # Tanılama özeti rapordan ÖNCE yazılır ki run.json'a girsin: kaç aşama
+    # beklenmeyen istisnayla düştü (0 ise tüm düşüşler dürüst ARAÇ_YOK'tur).
+    meta["diagnostics_summary"] = diagnostics.summarize(meta)
     yield _ev("report", "running", "Rapor ve veri paketi üretiliyor…")
     run_dir = Path(outdir) / f"run_{meta['timestamp'].replace(':', '-')}"
     paths = report.write_package(run_dir, peptides, meta)

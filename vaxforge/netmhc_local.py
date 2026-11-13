@@ -17,6 +17,7 @@ import concurrent.futures
 import functools
 import os
 import platform
+import re
 import subprocess
 import tempfile
 from pathlib import Path
@@ -60,6 +61,27 @@ def _compiled_binary(mhc_class: str) -> Path | None:
     return None
 
 
+def _wrapper_home_ok(wrapper: str | None) -> bool:
+    """Sarmalayıcıdaki NMHOME/CTLHOME satırı GERÇEK bir dizini mi gösteriyor?
+
+    DTU paketleri kurulum sırasında elle düzenlenmek üzere satıcı YER TUTUCU
+    yoluyla gelir (ör. `setenv NMHOME /tools/src/netMHCpan-4.2`). Düzenlenmezse
+    araç hiç çalışmaz ama sessizce başarısız olur. Burada yol bir dizin değilse
+    aracı yok sayarız; böylece pipeline dürüst 'vekil' etiketiyle devam eder,
+    'GERÇEK araç koştu' yanılgısı oluşmaz.
+    """
+    if not wrapper:
+        return False
+    try:
+        txt = Path(wrapper).read_text(errors="ignore")
+    except Exception:
+        return False
+    m = re.search(r"^\s*setenv\s+(?:NMHOME|CTLHOME)\s+(\S+)", txt, re.M)
+    if not m:
+        return True          # bu desen yoksa karar verme (TMHMM/SignalP gibi)
+    return Path(m.group(1)).is_dir()
+
+
 @functools.lru_cache(maxsize=2)
 def runnable(mhc_class: str) -> bool:
     """Yerel binary bu MAKİNEDE çalışır mı? Derlenmiş ELF mimarisini kontrol eder.
@@ -75,11 +97,18 @@ def runnable(mhc_class: str) -> bool:
     if arch is None or machine not in _ARCH_ALIASES.get(arch, {arch}):
         return False   # mimari uyuşmazlığı -> çalışmaz
     w = _wrapper(mhc_class)
+    if not _wrapper_home_ok(w):
+        return False
     try:
         r = subprocess.run([w, "-h"], capture_output=True, timeout=30, text=True)
         out = (r.stdout + r.stderr).lower()
-        if "format error" in out:
-            return False
+        # DTU sarmalayıcısı yapılandırılmamışsa "no binaries found for <platform> <yol>"
+        # yazar ve hiçbir şey hesaplamaz. Bu metin eskiden kontrol EDİLMİYORDU, bu
+        # yüzden runnable() True dönüyor, predict() ise sessizce heuristik vekile
+        # düşüyordu: koşu "GERÇEK araç" sanılıp vekil sayılarla tamamlanıyordu.
+        for bad in ("format error", "no binaries found", "cannot find", "command not found"):
+            if bad in out:
+                return False
         return True
     except Exception:
         return False
@@ -99,6 +128,14 @@ def _supported(mhc_class: str) -> frozenset:
     w = _wrapper(mhc_class)
     if not w:
         return frozenset()
+    # ONCE ARACIN KENDI VERI DOSYASI: '-listMHC' cikti es-anlamli adlari da basar
+    # (SLA-10101 gibi) ama '-a' bayragi YALNIZ data/allelenames (MHC-I) ya da
+    # data/allelelist.txt (MHC-II) icerigini kabul eder. Dogrulamayi genis listeye
+    # yaparsak gecersiz allel suzgecten gecer, arac hata verir, konak sessizce
+    # 0 baglanan alir. Bu yuzden zorlayici liste once okunur.
+    names = _enforced_allele_names(w, mhc_class)
+    if names:
+        return names
     flag = "-listMHC" if mhc_class == "mhc_i" else "-list"
     try:
         r = subprocess.run([w, flag], capture_output=True, timeout=60, text=True)
@@ -110,6 +147,48 @@ def _supported(mhc_class: str) -> frozenset:
         if t and not t.startswith("#"):
             names.add(t.split()[0])
     return frozenset(names)
+
+
+def _tool_home(wrapper: str | None) -> Path | None:
+    """Sarmalayicidaki NMHOME satirindan aracin kurulum dizinini okur."""
+    if not wrapper:
+        return None
+    try:
+        txt = Path(wrapper).read_text(errors="ignore")
+    except Exception:
+        return None
+    m = re.search(r"^\s*setenv\s+(?:NMHOME|CTLHOME)\s+(\S+)", txt, re.M)
+    if not m:
+        return None
+    h = Path(m.group(1))
+    return h if h.is_dir() else None
+
+
+@functools.lru_cache(maxsize=2)
+def _enforced_allele_names(wrapper: str, mhc_class: str) -> frozenset:
+    """'-a' bayraginin GERCEKTEN kabul ettigi allel adlari (zorlayici liste).
+
+    netMHCpan '-a' dogrulamasini data/allelenames, netMHCIIpan ise
+    data/allelelist.txt dosyasina karsi yapar. '-listMHC'/'-list' ciktisi bunun
+    UST KUMESIDIR (es-anlamli yazimlari da basar), bu yuzden dogrulama icin
+    guvenilmez. Dosya bulunamazsa bos kume -> cagiran CLI listesine duser.
+    """
+    home = _tool_home(wrapper)
+    if home is None:
+        return frozenset()
+    fname = "allelenames" if mhc_class == "mhc_i" else "allelelist.txt"
+    for cand in (home / "Linux_x86_64" / "data" / fname, home / "data" / fname):
+        if cand.is_file():
+            names = set()
+            try:
+                for line in cand.read_text(errors="ignore").splitlines():
+                    t = line.strip()
+                    if t and not t.startswith("#"):
+                        names.add(t.split()[0])
+            except Exception:
+                return frozenset()
+            return frozenset(names)
+    return frozenset()
 
 
 def _fasta(peptides: list[str]) -> str:
@@ -131,6 +210,16 @@ def _norm_allele(a: str, mhc_class: str) -> str:
     MHC-II (netMHCIIpan):  HLA-DRB1*01:01 -> DRB1_0101 ('HLA-' at, '*'->'_', ':' sil)
     """
     if mhc_class == "mhc_i":
+        # HLA tipi adlarda '*' ardindan ZATEN kolon var (HLA-A*02:01) -> '*' atilir
+        # ve 'HLA-A02:01' dogru bicimi cikar. Ama SLA/BoLA tipi adlarda kolon YOK
+        # (SLA-1*0101); '*' atilinca haneler kaynasir -> 'SLA-10101'. Bu ad araçın
+        # '-listMHC' listesinde (es-anlamli olarak) GORUNUR ama gercek kapi olan
+        # data/allelenames dosyasinda YOKTUR -> '-a' cagrisi komple duser ve konak
+        # SESSIZCE 0 baglanan alir (kuduz kosusunda domuz: 19 -> 0).
+        # Dogru bicim 'SLA-1:0101'. Bu yuzden kolon yoksa '*' -> ':' cevrilir.
+        star = a.find("*")
+        if star >= 0 and ":" not in a[star:]:
+            return a.replace("*", ":", 1)
         return a.replace("*", "")
     x = a
     if x.upper().startswith("HLA-DR"):

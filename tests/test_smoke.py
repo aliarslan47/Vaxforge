@@ -14,6 +14,10 @@ from pathlib import Path
 
 import pytest
 
+# Bu dosya UÇTAN UCA koşar (yerel araçlar + ~4 dk) → CI'da `-m "not smoke"` ile
+# hariç tutulur; yerelde `pytest tests/ -m smoke` ile koşulur.
+pytestmark = pytest.mark.smoke
+
 REPO = Path(__file__).resolve().parents[1]
 DEMO = REPO / "data" / "samples" / "proteome_demo.faa"
 

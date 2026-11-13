@@ -23,6 +23,7 @@ from pathlib import Path
 _TOOLS = Path(__file__).resolve().parent.parent / "tools"
 
 METHOD = "GERÇEK (IEDB Population Coverage, Bui 2006)"
+METHOD_UNAVAILABLE = "ARAÇ_YOK (IEDB Population Coverage kurulu değil)"
 
 # Rapor edilecek temsili coğrafi bölgeler (aracın KENDİ bölge adları — gerçek
 # allelefrequencies.net verisi; uydurma değil). World + kıtasal kırılım.
@@ -106,8 +107,13 @@ def for_candidates(peptides, hosts, areas: list[str] | None = None) -> dict:
     işaretlenir.
     """
     areas = areas or AREAS
-    result = {"method": METHOD, "areas": areas, "available": available(), "hosts": {}}
-    if not available():
+    # DÜRÜSTLÜK: araç yoksa yöntem etiketi 'GERÇEK (...)' DEMEMELİ. Eskiden
+    # METHOD koşulsuz yazılıyordu; `available: false` yanındaki 'GERÇEK' etiketi
+    # yöntem tablosunu tarayan okuyucuyu aracın koştuğuna inandırıyordu.
+    _ok = available()
+    result = {"method": METHOD if _ok else METHOD_UNAVAILABLE,
+              "areas": areas, "available": _ok, "hosts": {}}
+    if not _ok:
         result["note"] = "IEDB Population Coverage aracı kurulu değil (tools/)."
         return result
 

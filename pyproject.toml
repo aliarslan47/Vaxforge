@@ -1,0 +1,64 @@
+# VaxForge — proje metadatası + araç yapılandırması.
+#
+# NOT: kurulum yolu halen `pip install -r requirements.txt` (README). Buradaki
+# [project.dependencies] aynı listenin makine-okur hâlidir; SÜRÜM SABİTLEME
+# (lock) bilinçli olarak BOŞ bırakıldı — uydurma pin yazmak yerine gerçek
+# ortamdan üretilmelidir:
+#     . .venv/bin/activate && pip freeze > requirements.lock.txt
+# Yayın/tekrarlanabilirlik için bu dosya makaleyle birlikte dondurulmalı.
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vaxforge"
+version = "1.0.0"
+description = "In silico reverse-vaccinology pipeline (Forge family)"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "streamlit>=1.58",
+    "biopython>=1.83",
+    "pandas>=2.1",
+    "pyyaml>=6.0",
+    "torch>=2.0",
+    "fair-esm>=2.0",
+    "plotly>=5.8",
+    "tenacity>=8.0",
+    "importlib-resources>=5.8",
+    "python-docx",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "ruff>=0.6"]
+
+[tool.setuptools]
+packages = ["vaxforge"]
+
+[tool.setuptools.package-data]
+vaxforge = ["refdata/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "smoke: uçtan uca pipeline koşusu (yerel araçlar + ~4 dk; CI'da koşmaz)",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["web/frontend", "benchmark/results"]
+
+[tool.ruff.lint]
+# Kademeli benimseme: önce gerçek hata sınıfları (E9/F = sözdizimi, tanımsız ad,
+# kullanılmayan import), stil kuralları sonra açılır. Böylece lint ilk günden
+# yeşil kalır ve gerçek bir hatayı gizlemez.
+select = ["E4", "E7", "E9", "F", "I", "B", "UP"]
+ignore = [
+    "E741",   # ambiguous variable name (biyoinformatikte l/I/O yaygın)
+    "B008",   # FastAPI Query/File varsayılanları bu deseni gerektirir
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["F401"]

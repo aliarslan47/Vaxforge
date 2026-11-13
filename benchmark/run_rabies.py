@@ -133,6 +133,15 @@ def main() -> int:
             "jaccard_overlap_G": jacc_G,
         },
         "population_coverage": popcov,
+        # HANGİ ARAÇLAR GERÇEKTEN KOŞTU: benchmark özeti bunu kaydetmiyordu, bu
+        # yüzden eski sonuçlara dönüp "TMHMM/IApred o koşuda çalışıyor muydu?"
+        # sorusunu yanıtlamak İMKANSIZ. 2026-11-13'te bulundu ki bu üç araç
+        # "hazır" görünüp hiç çalışmıyordu (DURUM.md bulgu 20-22), dolayısıyla
+        # bu alan artık her benchmark çıktısına yazılır.
+        "funnel_methods": meta.get("funnel_methods"),
+        "tool_status": meta.get("tool_status"),
+        "tool_status_summary": meta.get("tool_status_summary"),
+        "diagnostics_summary": meta.get("diagnostics_summary"),
         "report_paths": {k: str(v) for k, v in result["paths"].items()},
         "note": ("Virüs kolu = çok-konak MHC yetenek gösterimi (recall değil). "
                  "Tek antijen (G) → rank istatistiği betimsel. Host seçimi VaxForge'a özgü; "
@@ -146,6 +155,18 @@ def main() -> int:
             shutil.copy(v, OUTDIR / Path(v).name)
         except Exception:
             pass
+    # HATA DOSYALARINI DA KOPYALA: report.py bir çıktı üretilemediğinde nedenini
+    # <ad>_error.txt'ye yazıyor (ör. "PDF üretilemedi: No module named
+    # 'reportlab'"). Eskiden bunlar kopyalanmadığı için korunan benchmark
+    # dizininde çıktının NEDEN eksik olduğu görünmüyordu — eksiklik sessiz
+    # kalıyordu. Kaynak dizini result["paths"]'ten türet.
+    _src = next((Path(v).parent for v in result["paths"].values()), None)
+    if _src is not None:
+        for err in sorted(_src.glob("*_error.txt")):
+            try:
+                shutil.copy(err, OUTDIR / err.name)
+            except Exception:
+                pass
 
     print("\n" + "=" * 70)
     print(f"VİRÜS KOLU ÖZETİ — {VIRUS_NAME} × 4 konak")

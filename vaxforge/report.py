@@ -11,7 +11,6 @@ PDF sonraki sürümde (reportlab/weasyprint).
 from __future__ import annotations
 
 import json
-from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
@@ -56,7 +55,15 @@ def _candidates_df(peptides: list[Peptide], lang: str = "tr") -> pd.DataFrame:
             "iedb_assay": _iedb_cell(p, "assay"),
             "iedb_id": _iedb_cell(p, "iedb_id"),
             "iedb_pmids": _iedb_cell(p, "pmids"),
-            "method": method_label(p.methods.get("mhc_score"), lang),
+            # YÖNTEM SÜTUNU: eskiden YALNIZ `mhc_score` okunuyordu, bu yüzden
+            # B-hücre epitoplarında boş (NaN) kalıyordu — yani run.json/CSV
+            # okuyan biri B skorunun GERÇEK BepiPred'den mi yoksa klasik
+            # Kolaskar-Tongaonkar+Parker yedeğinden mi geldiğini GÖREMİYORDU.
+            # BepiPred sarmalayıcısı yer tutucu yolda kalıp sessizce yedeğe
+            # düşerken bu boşluk tam olarak bunu gizledi (DURUM.md bulgu 24).
+            # Tipine uygun yöntem anahtarı seçilir, yoksa diğeri denenir.
+            "method": method_label(
+                p.methods.get("mhc_score") or p.methods.get("bcell_score"), lang),
             "passed": p.passed,
         })
     return pd.DataFrame(rows)
@@ -514,6 +521,82 @@ def _mimicry_section(meta: dict) -> str:
     )
 
 
+def _diagnostics_section(meta: dict) -> str:
+    """Tanılama — yakalanan istisnaların görünür kaydı (iki dilli).
+
+    Pipeline aşamaları try/except ile sarılı olduğu için bir araç çöktüğünde koşu
+    devam eder. Bu bölüm olmadan "araç kurulu değil" ile "araç çöktü" raporda
+    AYNI görünür. Beklenmeyen hata varsa uyarı, yoksa dürüst temiz notu basar.
+    """
+    items = meta.get("diagnostics") or []
+    summ = meta.get("diagnostics_summary") or {}
+    if not items and not summ:
+        return ""
+    lang = "en" if meta.get("lang", "tr") == "en" else "tr"
+    n_unexpected = int(summ.get("unexpected") or 0)
+    ttl = t(lang, "diagnostics")
+
+    if not n_unexpected:
+        body = ("<p style='font-size:.8rem;background:#eef9f0;border:1px solid #8fc9a0;"
+                f"padding:.45rem;border-radius:6px'>✓ {t(lang, 'diag_clean')}</p>")
+    else:
+        stages = ", ".join(summ.get("stages") or [])
+        rows = "".join(
+            f"<tr><td>{d.get('stage','—')}</td><td>{d.get('error','—')}</td>"
+            f"<td>{(d.get('message') or '—')[:160]}</td><td>{d.get('where') or '—'}</td></tr>"
+            for d in items if not d.get("expected"))
+        hdr = (("Stage", "Error", "Message", "Where") if lang == "en"
+               else ("Aşama", "Hata", "Mesaj", "Yer"))
+        body = (
+            "<p style='font-size:.8rem;background:#fff6e5;border:1px solid #e0b25c;"
+            f"padding:.45rem;border-radius:6px'>⚠ {t(lang, 'diag_unexpected')}: "
+            f"{n_unexpected} ({stages})</p>"
+            f"<table><tr><th>{hdr[0]}</th><th>{hdr[1]}</th><th>{hdr[2]}</th>"
+            f"<th>{hdr[3]}</th></tr>{rows}</table>")
+    return f"<h2>🩺 {ttl}</h2>{body}"
+
+
+def _tool_status_section(meta: dict) -> str:
+    """Araç durumu — hangi dış araç bu koşuda GERÇEKTEN hazırdı (iki dilli).
+
+    NEDEN: Referanslar/Yöntemler tablosu `citations.py`'den koşulsuz besleniyordu.
+    Kuduz koşusunda NetCTL binary'si segfault verdi; 85 adayın tamamında
+    `processing_norm` None kaldı, ama rapor NetCTL'i Larsen 2005 atfıyla yöntem
+    olarak gösterdi. Bu bölüm eksik aracı açıkça adlandırır ve eksik metriğin
+    olumsuz bir bulgu OLMADIĞINI söyler.
+    """
+    status = meta.get("tool_status") or {}
+    summ = meta.get("tool_status_summary") or {}
+    if not status:
+        return ""
+    lang = "en" if meta.get("lang", "tr") == "en" else "tr"
+    ttl = t(lang, "tool_status")
+    miss = ((summ.get("missing_labels_en") or summ.get("missing_labels") or [])
+            if lang == "en" else (summ.get("missing_labels") or []))
+    count = (f"{summ.get('available', 0)} / {summ.get('total', 0)} "
+             f"({t(lang, 'tool_status_count')})")
+    if not miss:
+        body = ("<p style='font-size:.8rem;background:#eef9f0;border:1px solid #8fc9a0;"
+                f"padding:.45rem;border-radius:6px'>✓ {t(lang, 'tool_status_ok')} "
+                f"[{count}]</p>")
+    else:
+        rows = "".join(
+            f"<tr><td>{lbl}</td><td><b>{t(lang, 'tool_status_absent')}</b></td></tr>"
+            for lbl in miss)
+        body = (
+            "<p style='font-size:.8rem;background:#fff6e5;border:1px solid #e0b25c;"
+            f"padding:.45rem;border-radius:6px'>⚠ {t(lang, 'tool_status_warn')} "
+            f"[{count}]</p>"
+            f"<table><tr><th>{t(lang, 'tool_status_tool')}</th>"
+            f"<th>{t(lang, 'tool_status_state')}</th></tr>{rows}</table>")
+    # Kontrol DERİNLİĞİ de raporlanır: "dosya var" bir garanti değil.
+    nv, ns = int(summ.get("verified") or 0), int(summ.get("shallow") or 0)
+    if nv or ns:
+        body += ("<p style='font-size:.75rem;color:#555;margin-top:.3rem'>"
+                 + t(lang, "tool_check_note").format(v=nv, s=ns) + "</p>")
+    return f"<h2>🧰 {ttl}</h2>{body}"
+
+
 def _cloning_section(meta: dict) -> str:
     """In silico klonlama — kodon optimizasyonu + CAI + restriksiyon + vektör (Faz 5)."""
     cl = meta.get("cloning")
@@ -527,23 +610,36 @@ def _cloning_section(meta: dict) -> str:
             "garantisi değil. İç restriksiyon bölgeleri klasik klonlamayı bozar.")
     sites = cl.get("restriction_sites") or {}
     sites_str = ", ".join(f"{e}×{len(p)}" for e, p in sites.items()) or ("none" if is_en else "yok")
+    lang = "en" if is_en else "tr"
     rows = [
         (("Host" if is_en else "Konak"), cl.get("host", "—")),
         (("Protein length (aa)" if is_en else "Protein (aa)"), cl.get("protein_len", "—")),
         (("DNA length (bp)" if is_en else "DNA (bp)"), cl.get("dna_len_bp", "—")),
-        ("CAI", cl.get("cai", "—")),
+        (t(lang, "cai_optimized"), cl.get("cai", "—")),
+        (t(lang, "cai_baseline"), cl.get("cai_baseline", "—")),
         ("GC %", f"{cl.get('gc_percent', '—')}%"),
         (("Internal restriction sites" if is_en else "İç restriksiyon bölgeleri"), sites_str),
         (("Suggested vector" if is_en else "Önerilen vektör"), cl.get("suggested_vector", "—")),
         (("Tag / strategy" if is_en else "Etiket / strateji"), cl.get("tag", "—")),
     ]
+    n_skip = cl.get("n_skipped_residues") or 0
+    if n_skip:
+        rows.append((t(lang, "cai_skipped"), n_skip))
     trs = "".join(f"<tr><td>{k}</td><td>{v}</td></tr>" for k, v in rows)
+    # CAI totoloji uyarısı HER ZAMAN gösterilir (iki dilli); atlanan kalıntı varsa ek uyarı.
+    warns = [t(lang, "cai_tautology_warn")]
+    if n_skip:
+        warns.append(t(lang, "cai_skipped_warn"))
+    warn_html = "".join(
+        "<p style='font-size:.78rem;background:#fff6e5;border:1px solid #e0b25c;"
+        f"padding:.45rem;border-radius:6px;margin:.3rem 0'>⚠ {w}</p>" for w in warns)
     dna = cl.get("dna", "")
     dna_prev = (dna[:120] + "…") if len(dna) > 120 else dna
     return (
         f"<h2>🧫 {ttl}</h2>"
         f"<p style='font-size:.8rem;background:#eef6ff;border:1px solid #9cc3e6;padding:.5rem;border-radius:6px'>ℹ {disc}</p>"
         f"<table>{trs}</table>"
+        f"{warn_html}"
         f"<p class='mono' style='margin-top:.4rem'>5'-{dna_prev}-3'</p>"
     )
 
@@ -573,10 +669,17 @@ def _methods_section(meta: dict) -> str:
     )
     if not trs:
         return ""
+    # Bakteri koşusunda izinli lokalizasyon listesi Gram'a göre seçilir; hangi
+    # mantığın uygulandığı rapora yazılır (tekrarlanabilirlik + iki dilli).
+    gram_note = ""
+    if meta.get("profile") == "bacteria" and meta.get("gram") in ("positive", "negative"):
+        gram_note = ("<p style='font-size:.78rem;background:#eef6ff;border:1px solid #9cc3e6;"
+                     f"padding:.45rem;border-radius:6px;margin-top:.3rem'>ℹ {t(lang, 'gram_allowed_note')}</p>")
     return (
         f"<h2>🧪 {t(lang, 'rep_methods')}</h2>"
         f"<p style='font-size:.85rem'>{t(lang, 'rep_methods_sub')}</p>"
         f"<table><tr><th>{t(lang, 'meth_step')}</th><th>{t(lang, 'meth_method')}</th></tr>{trs}</table>"
+        f"{gram_note}"
     )
 
 
@@ -591,8 +694,15 @@ def _html(df: pd.DataFrame, meta: dict, peptides=None) -> str:
         f"<tr><td>{s['#']}</td><td>{s['adım']}</td><td>{s['durum']}</td><td>{s['not']}</td></tr>"
         for s in meta.get("plan", [])
     )
+    # Atıf satırı aracın bu koşuda hazır OLMADIĞINI biliyorsa açıkça işaretlenir
+    # (used is False). used None = eşlenmemiş/saf-Python yöntem → iddia yok.
+    _lang_ref = "en" if meta.get("lang", "tr") == "en" else "tr"
+    _absent = t(_lang_ref, "tool_status_absent")
     ref_items = "".join(
-        f'<li><b>{r["tool"]}</b> ({r["step"]}): {r["citation"]} '
+        f'<li><b>{r["tool"]}</b> ({r["step"]})'
+        + ('' if r.get("used") is not False
+           else f' <span style="color:#a8601a"><b>[{_absent}]</b></span>')
+        + f': {r["citation"]} '
         f'<a href="{r["doi"] if r["doi"].startswith("http") else "https://doi.org/"+r["doi"]}">'
         f'{r["doi"]}</a></li>'
         for r in meta.get("citations", [])
@@ -605,6 +715,8 @@ def _html(df: pd.DataFrame, meta: dict, peptides=None) -> str:
     conservation_html = _conservation_section(meta)
     mimicry_html = _mimicry_section(meta)
     cloning_html = _cloning_section(meta)
+    diagnostics_html = _diagnostics_section(meta)
+    tool_status_html = _tool_status_section(meta)
     methods_html = _methods_section(meta)
     popcov = meta.get("population_coverage") or {}
     pop_html = ""
@@ -669,6 +781,8 @@ summary{{cursor:pointer;font-size:.95rem}}</style></head><body>
 {mev_html}
 {structure_html}
 {cloning_html}
+{tool_status_html}
+{diagnostics_html}
 {conservation_html}
 {glyco_html}
 {mimicry_html}

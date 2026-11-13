@@ -33,15 +33,33 @@ tools:
   localization:
     step: antigen_funnel
     engine: "PSORTb / DeepLoc"
-    description: "Hücre-altı lokalizasyon; erişilebilir (yüzey/salgı) proteinler tercih. Sitoplazmik elenir."
+    description: "Hücre-altı lokalizasyon; erişilebilir (yüzey/salgı) proteinler tercih. Sitoplazmik elenir. Bakteride izinli liste GRAM TİPİNE göre seçilir (aşağıdaki not)."
     hard_filter: true
     params:
       allowed:
+        # GRAM-DUYARLI İZİNLİ LİSTE
+        # -------------------------------------------------------------------
+        # Gram-negatif zarfta dış zar en dış sınırdır; PSORTb'nin "Cytoplasmic
+        # Membrane" etiketi İÇ zardır ve dış zarla perdelenir → yüzeye açık
+        # DEĞİL, izinli listede yok.
+        #
+        # Gram-pozitif bakteride dış zar YOKTUR: sitoplazmik zar hücrenin dış
+        # sınırıdır ve yüzeye çıkan/zar-çapalı proteinler PSORTb'de `membrane`
+        # etiketi alır. Tek bir "bacteria" listesi Gram-negatif mantığıyla
+        # yazıldığı için Gram-pozitifte MEŞRU yüzey antijenlerini kesiyordu
+        # (benchmark'ta CapB ve ActA bu yüzden elendi; bkz.
+        # benchmark/MISS_ATTRIBUTION.md §2 — tasarım tercihi değil tutarsızlık).
+        # Ayrıca Gram-pozitifte periplazma (klasik anlamda) ve dış zar yoktur,
+        # PSORTb Gram-pozitif modeli bu etiketleri hiç üretmez.
+        #
+        # `bacteria` anahtarı Gram BİLİNMEDİĞİNDE kullanılan ihtiyatlı yedektir.
         default:
-          bacteria: [extracellular, outer_membrane, cell_wall, periplasm]
+          bacteria:                [extracellular, outer_membrane, cell_wall, periplasm]
+          bacteria_gram_negative:  [extracellular, outer_membrane, cell_wall, periplasm]
+          bacteria_gram_positive:  [extracellular, cell_wall, membrane]
           virus:    [surface, envelope, membrane]
           parasite: [extracellular, plasma_membrane, secreted, gpi_anchored]
-        desc: "Kabul edilen lokalizasyonlar (dışındakiler elenir)"
+        desc: "Kabul edilen lokalizasyonlar (dışındakiler elenir); bakteride Gram tipine göre seçilir"
 
   signal_peptide:
     step: antigen_funnel

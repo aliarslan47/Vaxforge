@@ -82,14 +82,22 @@ class ThresholdConfig:
         return problems
 
     # -- çözme ---------------------------------------------------------------
-    def resolve(self, profile: str, overrides: dict | None = None) -> dict[str, ResolvedTool]:
+    def resolve(self, profile: str, overrides: dict | None = None,
+                gram: str | None = None) -> dict[str, ResolvedTool]:
         """Verilen organizma profili için tüm araçların etkin eşiklerini çözer.
 
         overrides: {"tool.param": deger} biçiminde arayüz düzenlemeleri.
+        gram: "positive"/"negative" verilirse, bir parametrenin varsayılanlarında
+            `<profil>_gram_<gram>` anahtarı VARSA o kullanılır; yoksa düz `<profil>`
+            anahtarına düşülür. Gerekçe: Gram-pozitif ve Gram-negatif zarf farklı
+            yapıdadır, bu yüzden izinli lokalizasyon listesi aynı olamaz (bkz.
+            config/thresholds.yaml → localization.allowed notu). Varyant anahtarı
+            yalnız gerçekten tanımlıysa devreye girdiği için eski davranış korunur.
         """
         if profile not in self.profiles:
             raise ValueError(f"Bilinmeyen profil: {profile!r}. Seçenekler: {self.profiles}")
         overrides = overrides or {}
+        variant = f"{profile}_gram_{gram}" if gram in ("positive", "negative") else None
         resolved: dict[str, ResolvedTool] = {}
         for tool, spec in self.raw.get("tools", {}).items():
             rtool = ResolvedTool(
@@ -101,7 +109,12 @@ class ThresholdConfig:
             )
             for pname, pspec in spec.get("params", {}).items():
                 default = pspec.get("default", {})
-                value = default.get(profile) if isinstance(default, dict) else default
+                if isinstance(default, dict):
+                    # Gram varyantı tanımlıysa onu kullan, değilse düz profil.
+                    value = (default[variant] if variant and variant in default
+                             else default.get(profile))
+                else:
+                    value = default
                 key = f"{tool}.{pname}"
                 if key in overrides:
                     value = overrides[key]

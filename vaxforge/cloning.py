@@ -44,6 +44,14 @@ _BEST = {aa: max(cod, key=cod.get) for aa, cod in _ECOLI.items()}
 _W = {codon: frac / max(fam.values())
       for aa, fam in _ECOLI.items() for codon, frac in fam.items()}
 
+# Sharp & Li 1987, CAI tanımı: Met (ATG) ve Trp (TGG) ailelerinin sinonim
+# alternatifi YOKTUR, dolayısıyla w'leri daima 1'dir ve CAI'ye dahil edilirlerse
+# indeksi yapay olarak 1'e doğru şişirirler. Orijinal yöntem bunları (ve stop
+# kodonlarını) HARİÇ TUTAR. Stoplar zaten _W'de değil; tek-kodonlu aileleri
+# burada açıkça dışlıyoruz.
+_SINGLE_CODON = {codon for aa, fam in _ECOLI.items() if len(fam) == 1 for codon in fam}
+_W_CAI = {c: w for c, w in _W.items() if c not in _SINGLE_CODON}
+
 # Klonlamada sık kullanılan enzimler (iç bölge = klonlama çakışması riski).
 _CLONING_ENZYMES = ["NdeI", "XhoI", "EcoRI", "BamHI", "HindIII", "NcoI", "SalI", "NotI"]
 
@@ -64,13 +72,51 @@ def back_translate(protein: str, host: str = "ecoli") -> str:
 
 
 def cai(dna: str) -> float:
-    """Codon Adaptation Index (Sharp & Li 1987) — w'lerin geometrik ortalaması."""
+    """Codon Adaptation Index (Sharp & Li 1987) — w'lerin geometrik ortalaması.
+
+    Met/Trp (tek-kodonlu aileler) ve stop kodonları hariç tutulur; bkz. _W_CAI notu.
+
+    KENAR DURUM: skorlanabilir tek bir kodon bile yoksa (ör. yalnız Met/Trp'den
+    oluşan yapay dizi) CAI TANIMSIZdır; burada 0.0 döner. Gerçek bir MEV
+    konstruktunda bu durum oluşmaz, ancak 0.0'ı "çok kötü adaptasyon" diye
+    okumamak gerekir.
+    """
     import math
     codons = [dna[i:i + 3] for i in range(0, len(dna) - len(dna) % 3, 3)]
-    ws = [_W[c] for c in codons if c in _W]
+    ws = [_W_CAI[c] for c in codons if c in _W_CAI]
     if not ws:
         return 0.0
     return round(math.exp(sum(math.log(w) for w in ws) / len(ws)), 3)
+
+
+def expected_cai(protein: str) -> float:
+    """Bu aminoasit bileşimi için OPTİMİZASYON ÖNCESİ beklenen CAI (taban çizgisi).
+
+    NEDEN GEREKLİ: `back_translate()` her kalıntıya ailenin en sık kodonunu verir,
+    yani w=1 → `cai(back_translate(x))` TANIM GEREĞİ 1.0'dır. Tek başına rapor
+    edilen bu 1.0 hiçbir şey ölçmez, bir totolojidir.
+
+    Anlamlı karşılaştırma, aynı proteinin konağın DOĞAL kodon kullanım dağılımıyla
+    yazılmış hâlidir: her kalıntı için E[log w] = Σ_c frac_c · log w_c alınır ve
+    geometrik ortalama hesaplanır. Sonuç "optimizasyon öncesi beklenen CAI"dır;
+    1.0'a olan mesafe optimizasyonun gerçek kazancını verir. Rastgele örnekleme
+    yok, deterministik beklenen değer — uydurma sayı değil.
+
+    Tek-kodonlu aileler (Met/Trp) CAI tanımına uygun olarak hariç tutulur.
+    """
+    import math
+    tot, n = 0.0, 0
+    for aa in protein.upper():
+        fam = _ECOLI.get(aa)
+        if not fam or len(fam) == 1:
+            continue
+        mx = max(fam.values())
+        denom = sum(fam.values()) or 1.0
+        tot += sum((frac / denom) * math.log(frac / mx) for frac in fam.values())
+        n += 1
+    if not n:
+        return 0.0
+    return round(math.exp(tot / n), 3)
 
 
 def _gc(dna: str) -> float:
@@ -101,6 +147,9 @@ def run(protein_seq: str, host: str = "ecoli") -> dict | None:
         return None
     try:
         dna = back_translate(protein_seq, host)
+        # back_translate tanınmayan kalıntıyı (X, U, boşluk...) SESSİZCE atar →
+        # DNA artık verilen proteini kodlamaz. Kaç kalıntı atıldığını raporla.
+        n_skipped = sum(1 for a in protein_seq if a.upper() not in _BEST)
         sites = _restriction_scan(dna)
         n_internal = sum(len(v) for v in sites.values())
         # NdeI/XhoI iç bölgesi yoksa pET-28a(+) His-tag klonlaması temiz.
@@ -117,13 +166,25 @@ def run(protein_seq: str, host: str = "ecoli") -> dict | None:
             "dna_len_bp": len(dna),
             "gc_percent": _gc(dna),
             "cai": cai(dna),
+            "cai_baseline": expected_cai(protein_seq),
+            "n_skipped_residues": n_skipped,
             "restriction_sites": sites,
             "n_internal_sites": n_internal,
             "suggested_vector": vector,
             "tag": tag,
-            "note": ("CAI>0.8 iyi ekspresyon beklentisi (E. coli); GC %30-70 arası tercih. "
+            "note": ("`cai` her kalıntıya en sık kodon verildiği için TANIM GEREĞİ 1.0'dır; "
+                     "tek başına bir başarı ölçütü değildir. Anlamlı olan `cai_baseline`: "
+                     "aynı proteinin doğal E. coli kodon dağılımıyla beklenen CAI'si — "
+                     "1.0'a olan mesafe optimizasyonun kazancıdır. GC %30-70 arası tercih. "
                      "İç restriksiyon bölgeleri klasik kesim-ligasyonu bozar → gen sentezi/"
                      "alternatif enzim. Bu in silico öngörüdür, deneysel ekspresyon garantisi değil."),
+            "note_en": ("`cai` is 1.0 BY CONSTRUCTION, because every residue receives its most "
+                        "frequent codon; on its own it is not a measure of success. What matters "
+                        "is `cai_baseline`: the expected CAI of the same protein under the native "
+                        "E. coli codon distribution — the gap to 1.0 is the gain from "
+                        "optimization. GC 30-70% preferred. Internal restriction sites break "
+                        "classic cut-and-ligate cloning, requiring gene synthesis or alternative "
+                        "enzymes. This is an in silico prediction, not a guarantee of expression."),
         }
     except Exception:
         return None

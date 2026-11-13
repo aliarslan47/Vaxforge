@@ -81,7 +81,6 @@ STRINGS: dict[str, dict[str, str]] = {
     "rep_thresholds":     {"tr": "Kullanılan eşikler (tekrarlanabilirlik)",
                            "en": "Thresholds used (reproducibility)"},
     "rep_plan":           {"tr": "Çalıştırılan plan", "en": "Executed plan"},
-    "rep_methods":        {"tr": "Kullanılan yöntemler ve araçlar", "en": "Methods and tools used"},
     "rep_references":     {"tr": "Referanslar", "en": "References"},
     "tt_ctl":             {"tr": "CTL — MHC-I / CD8⁺ T-hücre", "en": "CTL — MHC-I / CD8⁺ T-cell"},
     "tt_htl":             {"tr": "HTL — MHC-II / CD4⁺ T-hücre", "en": "HTL — MHC-II / CD4⁺ T-cell"},
@@ -290,7 +289,51 @@ _METHOD_TOKENS = [
     ("insan", "human"), ("Homo sapiens", "Homo sapiens"),
     ("VaxiJen DEĞİL", "not VaxiJen"), ("DEĞİL", "NOT"), ("resmi model değil", "not the official model"),
     ("insan Swiss-Prot", "human Swiss-Prot"), ("proteom", "proteome"),
+    ("YUMUŞAK mod", "SOFT mode"), ("işaretlendi, elenmedi", "flagged, not removed"),
+    ("izinli", "allowed"), ("UYARI", "WARNING"),
 ]
+
+
+# ---- 2026-11-12 düzeltmeleriyle gelen uyarı/etiket metinleri (TR+EN zorunlu) ----
+STRINGS.update({
+    # Klonlama / CAI
+    "cai_optimized":      {"tr": "CAI (optimize)", "en": "CAI (optimized)"},
+    "cai_baseline":       {"tr": "CAI (optimizasyon öncesi beklenen)",
+                           "en": "CAI (expected before optimization)"},
+    "cai_skipped":        {"tr": "Tanınmayan kalıntı (ters-translasyonda atlandı)",
+                           "en": "Unrecognized residues (skipped in back-translation)"},
+    "cai_tautology_warn": {"tr": "UYARI: optimize CAI her kalıntıya en sık kodon verildiği için "
+                                 "tanım gereği 1.0'dır; tek başına başarı ölçütü DEĞİLDİR. "
+                                 "Anlamlı olan taban çizgisiyle farkıdır.",
+                           "en": "WARNING: the optimized CAI is 1.0 by construction, because every "
+                                 "residue gets its most frequent codon; on its own it is NOT a "
+                                 "measure of success. What matters is its gap to the baseline."},
+    "cai_skipped_warn":   {"tr": "UYARI: tanınmayan kalıntı atlandığı için DNA verilen proteini "
+                                 "birebir kodlamıyor.",
+                           "en": "WARNING: unrecognized residues were skipped, so the DNA does not "
+                                 "encode the given protein exactly."},
+    # Huni — yumuşak mod uyarıları
+    "soft_localization":  {"tr": "YUMUŞAK mod (config hard_filter: false) — işaretlendi, elenmedi",
+                           "en": "SOFT mode (config hard_filter: false) — flagged, not removed"},
+    "soft_self_homology": {"tr": "YUMUŞAK mod (config hard_filter: false) — konak homolojisi "
+                                 "işaretlendi, elenmedi",
+                           "en": "SOFT mode (config hard_filter: false) — host homology flagged, "
+                                 "not removed"},
+    # Gram-duyarlı lokalizasyon
+    "gram_allowed_note":  {"tr": "İzinli lokalizasyon listesi Gram tipine göre seçilir: "
+                                 "Gram-pozitifte sitoplazmik zar DIŞ sınırdır (zar = yüzey), "
+                                 "Gram-negatifte iç zar dış zarla perdelidir (yüzey değil).",
+                           "en": "The allowed-localization list is selected by Gram type: in "
+                                 "Gram-positives the cytoplasmic membrane is the outer boundary "
+                                 "(membrane = surface), in Gram-negatives the inner membrane is "
+                                 "shielded by the outer membrane (not surface)."},
+    # Tanılama
+    "diagnostics":        {"tr": "Tanılama", "en": "Diagnostics"},
+    "diag_clean":         {"tr": "Beklenmeyen hata yok — tüm atlamalar dürüst ARAÇ_YOK.",
+                           "en": "No unexpected errors — every skip is an honest TOOL_MISSING."},
+    "diag_unexpected":    {"tr": "UYARI: beklenmeyen hatayla düşen aşama",
+                           "en": "WARNING: stages that failed with an unexpected error"},
+})
 
 
 def method_label(s: str, lang: str) -> str:
@@ -307,3 +350,48 @@ def t(lang: str, key: str, default: str | None = None) -> str:
     if not entry:
         return default if default is not None else key
     return entry.get(lang) or entry.get("tr") or key
+
+# Araç durumu bölümü (2026-11-13): atıf tablosu eskiden koşulsuzdu, yani
+# kurulu olmayan araç da "kullanıldı" gibi raporlanıyordu.
+STRINGS.update({
+    "tool_status":        {"tr": "Araç durumu", "en": "Tool status"},
+    "tool_status_ok":     {"tr": "Atıf tablosundaki dış araçların tamamı bu koşuda hazırdı.",
+                           "en": "Every external tool in the citation table was available in this run."},
+    "tool_status_warn":   {"tr": "Aşağıdaki araçlar bu koşuda KULLANILAMADI. Atıf tablosunda "
+                                 "listelenseler bile ilgili metrikler ÖLÇÜLMEMİŞTİR — "
+                                 "eksik değer, olumsuz bulgu değildir.",
+                           "en": "The tools below were NOT available in this run. Even though "
+                                 "they appear in the citation table, their metrics were NOT "
+                                 "measured — a missing value is not a negative finding."},
+    "tool_status_tool":   {"tr": "Araç", "en": "Tool"},
+    "tool_status_state":  {"tr": "Durum", "en": "State"},
+    "tool_status_avail":  {"tr": "hazır", "en": "available"},
+    "tool_status_absent": {"tr": "ARAÇ YOK", "en": "TOOL ABSENT"},
+    "tool_status_count":  {"tr": "hazır / toplam", "en": "available / total"},
+})
+
+STRINGS.update({
+    "tox_out_of_domain": {
+        "tr": "ToxinPred2 skoru hesaplandı ama ELEME YAPILMADI: peptit, aracın "
+              "doğrulanmış uzunluk alanının (>=35 aa) altında. Bu uzunlukta araç "
+              "ayırt edemiyor (9-mer AUC 0.69; varsayılan eşikte zararsız "
+              "peptitlerin ~%66'sını toksik sayıyor).",
+        "en": "ToxinPred2 score computed but NOT used to filter: the peptide is "
+              "below the tool's validated length domain (>=35 aa). At this length "
+              "the tool does not discriminate (9-mer AUC 0.69; at the default "
+              "threshold it calls ~66% of harmless peptides toxic).",
+    },
+    "tox_ood_count": {"tr": "alan dışı (elenmedi)", "en": "out of domain (not filtered)"},
+})
+
+STRINGS.update({
+    "tool_check_note": {
+        "tr": "Araçların {v} tanesi GERÇEKTEN çalıştırılarak doğrulandı; {s} tanesi "
+              "yalnızca dosya varlığına göre işaretlendi. 'Dosya var' garanti "
+              "değildir: bu projede TMHMM, IApred ve ToxinPred2 'hazır' görünüp "
+              "hiç çalışmıyordu.",
+        "en": "{v} tool(s) were verified by actually running them; {s} were marked "
+              "from file presence alone. 'File present' is not a guarantee: in this "
+              "project TMHMM, IApred and ToxinPred2 all looked ready and never ran.",
+    },
+})

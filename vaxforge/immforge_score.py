@@ -5,7 +5,8 @@ seçili konak(lar)ın MHC allelleri için GERÇEK NetMHCpan/NetMHCIIpan'den geç
 motorunda immünize eder → immünojenisite skoru + karar. ImmForge = adayları eleyen immün test.
 
 ORTAM-BAĞIMSIZ: NetMHCpan/BepiPred nerede kuruluysa (yerel VEYA servis sunucusu) orada çalışır;
-predict_fn enjekte edilir. immforge paketi IMMFORGE_PATH (varsayılan ~/immforge) üzerinden bulunur
+predict_fn enjekte edilir. immforge paketi IMMFORGE_PATH ile, o yoksa bilinen yerel
+konumlar (~/immforge, ~/repos/ImmForge, repo komşusu ImmForge) taranarak bulunur
 (serviste pip-kurulu olur — netmhc_local'ın path deseniyle aynı).
 
 DÜRÜSTLÜK: NetMHCpan yoksa uydurma yapmaz → {"verdict": "ARAÇ_YOK"}. Tür-özgü ImmForge
@@ -13,13 +14,44 @@ kalibrasyonu olmayan konak (ör. chicken) → human motoru proxy + açık not.
 """
 from __future__ import annotations
 
+import functools
+import importlib
 import os
 import sys
 from pathlib import Path
 
 from vaxforge import bepipred, netmhc_local
 
-IMMFORGE_PATH = os.environ.get("IMMFORGE_PATH", str(Path.home() / "immforge"))
+def _resolve_immforge_path() -> str:
+    """ImmForge kurulumunun yolunu bulur.
+
+    IMMFORGE_PATH verilmişse SORGUSUZ o kullanılır (servis/konteyner dağıtımı).
+    Verilmemişse bilinen yerel konumlar sırayla denenir; hiçbiri yoksa ilk aday
+    döner ve `available()` dürüstçe False olur.
+
+    Tarihsel not: eski varsayılan yalnız ~/immforge idi; repo ~/repos/ImmForge
+    altında klonlanmışsa kalibrasyon katmanı SESSİZCE devre dışı kalıyordu
+    (tüm konaklar human-proxy). Aday listesi bu sessiz düşüşü kapatır.
+    """
+    env = os.environ.get("IMMFORGE_PATH")
+    if env:
+        return env
+    home = Path.home()
+    repo_parent = Path(__file__).resolve().parents[2]
+    candidates = [
+        home / "immforge",
+        home / "repos" / "ImmForge",
+        home / "ImmForge",
+        repo_parent / "ImmForge",
+        repo_parent / "immforge",
+    ]
+    for c in candidates:
+        if (c / "config").is_dir() or (c / "immforge").is_dir():
+            return str(c)
+    return str(candidates[0])
+
+
+IMMFORGE_PATH = _resolve_immforge_path()
 
 def _calib_file(species: str) -> Path:
     return Path(IMMFORGE_PATH) / "config" / f"calibration.{species}.yaml"
@@ -43,11 +75,45 @@ def _ensure_immforge() -> None:
         sys.path.insert(0, IMMFORGE_PATH)
 
 
-def available() -> bool:
-    """ImmForge skorlaması bu ortamda çalışabilir mi? (NetMHCpan + immforge paketi)."""
+ENTRY_MODULE = "immforge.integrations.vaxforge"
+ENTRY_FUNC = "evaluate_candidate"
+
+
+@functools.lru_cache(maxsize=1)
+def entrypoint_available() -> tuple[bool, str]:
+    """Entegrasyon giriş noktası GERÇEKTEN import edilebiliyor mu? (neden, ile birlikte)
+
+    NEDEN GEREKLİ: `available()` eskiden yalnız ImmForge DİZİNİNİN varlığına ve
+    NetMHCpan'a bakıyordu. Dizin varsa "araç var" diyor, pipeline da adımı
+    çalıştırmayı deniyor ve `immforge.integrations.vaxforge` paketi mevcut
+    olmadığı için ModuleNotFoundError ile düşüyordu. Sonuç: dürüst bir
+    ARAÇ_YOK yerine BEKLENMEYEN bir istisna — projenin "araç yoksa dürüstçe
+    söyle" ilkesine aykırı.
+
+    ImmForge deposunda bu alt paket yok (köprü `immforge/bridge.py` olarak
+    duruyor ama `evaluate_candidate` sağlamıyor), yani entegrasyon ImmForge
+    tarafında henüz yazılmamış. Bu kontrol onu bir çökme değil, etiketli bir
+    yokluk hâline getirir.
+    """
     if not Path(IMMFORGE_PATH).is_dir():
-        return False
-    return netmhc_local.available()
+        return False, f"ImmForge dizini yok: {IMMFORGE_PATH}"
+    _ensure_immforge()
+    try:
+        mod = importlib.import_module(ENTRY_MODULE)
+    except Exception as e:
+        return False, f"{ENTRY_MODULE} import edilemedi ({type(e).__name__})"
+    if not hasattr(mod, ENTRY_FUNC):
+        return False, f"{ENTRY_MODULE}.{ENTRY_FUNC} yok"
+    return True, "hazır"
+
+
+def available() -> bool:
+    """ImmForge skorlaması bu ortamda çalışabilir mi?
+
+    Üç koşul: ImmForge dizini + entegrasyon giriş noktası + NetMHCpan.
+    """
+    ok, _ = entrypoint_available()
+    return ok and netmhc_local.available()
 
 
 def _immforge_species(host_name: str) -> str:
@@ -96,8 +162,11 @@ def score_construct(seq: str, hosts, *, name: str = "MEV") -> dict:
         return {"tool": "none", "verdict": "ARAÇ_YOK",
                 "note": "Boş konstrukt ya da konak yok."}
     if not available():
+        ok, why = entrypoint_available()
+        reason = why if not ok else "NetMHCpan bu ortamda çalıştırılamıyor"
         return {"tool": "none", "verdict": "ARAÇ_YOK",
-                "note": "NetMHCpan/ImmForge bu ortamda yok — serviste kurulu olacak."}
+                "note": f"İmmünizasyon testi yapılamadı: {reason}.",
+                "reason": reason}
 
     _ensure_immforge()
     from immforge.integrations.vaxforge import evaluate_candidate

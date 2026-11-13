@@ -16,6 +16,7 @@ import tempfile
 from pathlib import Path
 
 from . import antigen_acc, deeploc, host_db, iapred, psortb, signalp, tmhmm_local, vaxijen
+from .i18n import t
 from .config_loader import ResolvedTool
 from .hosts import Host
 from .models import ProteinRecord
@@ -116,7 +117,15 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
     # Parazit (ökaryot) DeepLoc kuruluysa lokalizasyon SERT filtre olur (bakteri gibi);
     # virüste DeepLoc YUMUŞAK (virionlar için güvenilmez → sadece etiketle).
     deeploc_ok = profile in ("parasite", "virus") and deeploc.available()
-    loc_hard = profile == "bacteria" or (profile == "parasite" and deeploc_ok)
+    # YÖNTEM güvenilirliği: lokalizasyonla eleme yalnız prokaryot PSORTb'de (bakteri)
+    # ya da DeepLoc kurulu ökaryot parazitte anlamlı.
+    loc_method_ok = profile == "bacteria" or (profile == "parasite" and deeploc_ok)
+    # CONFIG kararı: thresholds.yaml → localization.hard_filter. Önceden bu bayrak
+    # OKUNMUYORDU, yani `hard_filter: false` yazmak hiçbir şeyi değiştirmiyordu
+    # (README'nin "sihirli sayı yok, her şey config'te" sözüyle çelişiyordu).
+    # Varsayılan true olduğu için mevcut davranış AYNEN korunur.
+    loc_hard = loc_method_ok and tools["localization"].hard_filter
+    hh_hard = tools["human_homology"].hard_filter
     loc_allowed = set(tools["localization"].params["allowed"].value)
     max_tm = int(tools["transmembrane"].params["max_helices"].value)
     vaxijen_thr = float(tools["antigenicity_vaxijen"].params["threshold"].value)
@@ -215,8 +224,17 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
             if primary_antigenic == vj["antigenic"]:
                 n_vj_agree += 1
 
-        # -- sert (yalnız bakteride): lokalizasyon
-        if loc_hard and loc == "unknown":
+        # -- lokalizasyon kapısı (sertliği config'ten gelir)
+        if loc_method_ok and not loc_hard:
+            # Config `hard_filter: false` dedi → etiketle, ELEME YAPMA.
+            ok_loc = loc in loc_allowed
+            pr.trace.append({"step": "funnel:localization", "ok": True,
+                             "reason": (f"{loc} {'∈' if ok_loc else '∉'} izinli — "
+                                        + t("tr", "soft_localization")),
+                             "reason_en": (f"{loc} {'∈' if ok_loc else '∉'} allowed — "
+                                           + t("en", "soft_localization")),
+                             "warning": not ok_loc, "localization": loc})
+        elif loc_hard and loc == "unknown":
             # PSORTb belirsiz — muhafazakâr; gerçek yüzey proteinini kaçırmamak için
             # ELEME YAPMA, dürüst 'belirsiz' notuyla geçir.
             pr.trace.append({"step": "funnel:localization", "ok": True,
@@ -259,9 +277,24 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
             pr.annotations["human_homology"] = pid   # geriye-uyum (rapor/evaluate)
             pr.annotations["method_human_homology"] = f"GERÇEK (diamond → {', '.join(hh_scanned)} proteom)"
             ok_hh = pid < hh_id   # eşik ÜSTÜ konağa benzer -> elenir
-            pr.mark("funnel:human_homology", ok_hh,
-                    f"konak-öz %{pid} < {hh_id} (güvenli)" if ok_hh
-                    else f"{worst_host} %{pid} ≥ {hh_id} → OTOİMMÜNİTE riski, elendi", human_pident=pid)
+            if hh_hard:
+                pr.mark("funnel:human_homology", ok_hh,
+                        f"konak-öz %{pid} < {hh_id} (güvenli)" if ok_hh
+                        else f"{worst_host} %{pid} ≥ {hh_id} → OTOİMMÜNİTE riski, elendi",
+                        human_pident=pid)
+            else:
+                # Config `hard_filter: false` → işaretle ama ELEME. Korunmuş
+                # housekeeping antijenleri (şaperon/glikolitik enzim) insan ortoloğu
+                # taşıdığı için sert kapıda kaçınılmaz olarak düşer; homoloji ≠
+                # patoloji olduğundan bu modun açılması meşru bir araştırma sorusudur.
+                # Varsayılan true, yani bu dal varsayılan koşuda ÇALIŞMAZ.
+                pr.annotations["self_homology_soft"] = True
+                pr.trace.append({"step": "funnel:human_homology", "ok": True,
+                                 "reason": (f"konak-öz %{pid} (eşik {hh_id}) — "
+                                            + t("tr", "soft_self_homology")),
+                                 "reason_en": (f"host-self {pid}% (threshold {hh_id}) — "
+                                               + t("en", "soft_self_homology")),
+                                 "warning": not ok_hh, "human_pident": pid})
         else:
             pr.annotations["human_homology"] = "not_run"
             pr.trace.append({"step": "funnel:human_homology", "ok": True,

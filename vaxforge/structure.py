@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import socket
 import urllib.request
-from io import StringIO
 
 API_URL = "https://api.esmatlas.com/foldSequence/v1/pdb/"
 MAX_LEN = 400          # ESMAtlas fold ucu sınırı

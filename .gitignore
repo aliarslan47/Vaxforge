@@ -37,3 +37,10 @@ data/validation/*_prepared.faa
 data/validation/*_prepared_vaxign.faa
 data/validation/*_vaxign.faa
 data/validation/*_smoke.faa
+
+# Üretilen Word çıktıları (benchmark/md_to_docx.py ile *.md'den yeniden üretilir)
+benchmark/*.docx
+
+# Araç/lint önbellekleri
+.pytest_cache/
+.ruff_cache/

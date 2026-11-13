@@ -22,7 +22,7 @@ from reportlab.platypus import (Image, Paragraph, SimpleDocTemplate, Spacer,
                                 Table, TableStyle)
 
 from . import citations
-from .i18n import method_label, t
+from .i18n import t
 
 _FONT = "DejaVu"
 _FONT_B = "DejaVu-Bold"

@@ -11,6 +11,7 @@ Buradakiler HEURİSTİK vekillerdir ve 'method' ile etiketlenir.
 from __future__ import annotations
 
 from . import allergen, toxinpred
+from .i18n import t
 from .config_loader import ResolvedTool
 from .models import Peptide
 from .sequtils import KD, sanitize
@@ -74,12 +75,37 @@ def run(peptides: list[Peptide], tools: dict[str, ResolvedTool]) -> tuple[list[P
             after_allergen.append(p)
 
     # --- Aşama 2: TOKSİSİTE elemesi ----------------------------------------
-    survivors, n_toxic = [], 0
+    #
+    # UZUNLUK ALANI UYARISI: ToxinPred2'nin altı referans setinin tamamında en
+    # kısa dizi 35 aa. Bizim huniye verdiğimiz MHC epitopları 8-15 aa, yani
+    # aracın DOĞRULANMADIĞI uzunluk alanı. Bu ortamda ölçüldü (Model 1, eşik
+    # 0.6, referans setlerden rastgele 9-mer'ler, n=100+100):
+    #     tam dizi (>=35 aa) AUC 1.00  /  9-mer AUC 0.69
+    #     eşik 0.6'da toksik-OLMAYAN proteinden gelen 9-mer'lerin 66/100'ü
+    #     "toksik" ilan ediliyor.
+    # Hiçbir eşik iyi denge vermiyor (0.7 → seçicilik .77/duyarlılık .49).
+    #
+    # Bu yüzden alan DIŞI peptitte skor HESAPLANIR ve raporlanır ama SERT
+    # FİLTRE uygulanmaz. Aksi hâlde güvenli epitopların üçte ikisi sessizce
+    # elenirdi. (Araç daha önce bozuk olduğu için bu kalibrasyon sorunu
+    # görünmüyordu; bkz. DURUM.md bulgu 22.)
+    survivors, n_toxic, n_tox_ood = [], 0, 0
     for p in after_allergen:
+        in_domain = toxinpred.in_validated_domain(p.seq)
         if tox_avail and p.seq in tox_res:
             toxic = tox_res[p.seq]["toxic"]
             p.metrics["toxicity"] = tox_res[p.seq]["ml_score"]
             p.methods["toxicity"] = "GERÇEK (ToxinPred2, RF)"
+            if not in_domain:
+                # ölçülmüş ama filtreye SOKULMAZ — dürüst işaret
+                toxic = False
+                n_tox_ood += 1
+                p.methods["toxicity"] = (
+                    f"GERÇEK (ToxinPred2, RF) — UYARI: peptit "
+                    f"{len(p.seq)} aa < {toxinpred.MIN_VALIDATED_LENGTH} aa "
+                    "doğrulanmış alan; skor bilgi amaçlı, eleme yapılmadı")
+                p.notes.append(t("tr", "tox_out_of_domain"))
+                p.notes.append(t("en", "tox_out_of_domain"))
         else:
             tx = _tox_score(p.seq)
             toxic = tx > max_tox
@@ -96,6 +122,7 @@ def run(peptides: list[Peptide], tools: dict[str, ResolvedTool]) -> tuple[list[P
         "girdi_peptit": n_start,
         "alerjenite_sonrasi": len(after_allergen), "alerjen_elenen": n_allergen,
         "toksisite_sonrasi": len(survivors), "toksik_elenen": n_toxic,
+        "toksisite_alan_disi": n_tox_ood,
         "alerjenite": "GERÇEK (FAO/WHO)" if alg_avail else "proxy",
         "toksisite": "GERÇEK (ToxinPred2)" if tox_avail else "proxy",
     }

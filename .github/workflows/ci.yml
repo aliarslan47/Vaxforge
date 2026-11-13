@@ -1,0 +1,63 @@
+# VaxForge CI — hafif, ağ/lisanslı araç GEREKTİRMEZ.
+#
+# Kapsam bilinçli olarak sınırlı: birim testleri, statik lint ve frontend tip
+# kontrolü. Uçtan uca smoke testi (tests/test_smoke.py) BURADA KOŞMAZ, çünkü
+# pipeline DIAMOND/PSORTb/NetMHCpan gibi yerel araçları ve podman imajlarını
+# arar; CI runner'ında hepsi dürüst fallback'e düşeceği için testin bilgi
+# değeri düşer, süresi ise ~4 dakikadır. Smoke yerel olarak koşulur:
+#   pytest tests/ -m smoke
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  unit:
+    name: Birim testleri (ağsız)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Hafif bağımlılıklar
+        # Birim testleri yalnız bunlara ihtiyaç duyar; torch/fair-esm (BepiPred-3,
+        # DeepLoc) modül içinde TEMBEL import edildiği için CI'da gerekmez.
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest biopython pandas pyyaml
+      - name: Derleme kontrolü (söz dizimi)
+        run: python -m compileall -q vaxforge scripts benchmark
+      - name: pytest (smoke hariç)
+        run: pytest tests/ -m "not smoke" -q
+
+  lint:
+    name: Lint (ruff)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install ruff
+      - run: ruff check .
+
+  frontend:
+    name: Frontend tip kontrolü
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web/frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: web/frontend/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck

@@ -49,10 +49,51 @@ def _wrapper() -> str | None:
     return str(hits[0]) if hits else None
 
 
+def _home_ok(wrapper: str) -> bool:
+    """Sarmalayıcıdaki `setenv CTLHOME <yol>` gerçek bir dizin mi?
+
+    DTU paketleri satıcı YER TUTUCU yoluyla gelir; düzenlenmezse araç hiç
+    çalışmaz (bkz. netmhc_local._wrapper_home_ok, aynı kusur sınıfı).
+    """
+    try:
+        txt = Path(wrapper).read_text(errors="ignore")
+    except Exception:
+        return False
+    m = re.search(r"^\s*setenv\s+CTLHOME\s+(\S+)", txt, re.M)
+    return True if not m else Path(m.group(1)).is_dir()
+
+
 @functools.lru_cache(maxsize=1)
 def available() -> bool:
+    """NetCTL bu ortamda GERÇEKTEN koşabiliyor mu? (duman testiyle)
+
+    NEDEN DUMAN TESTİ: eski kontrol yalnız sarmalayıcı dosyası + tcsh varlığına
+    bakıyordu ve True döndürüyordu. Ama netCTL-1.2a'nın x86_64 binary'si bu
+    çekirdekte SEGFAULT veriyor (satıcının kendi test.fsa dosyasıyla bile;
+    statik bağlı eski binary). Sonuç: `predict()` boş sözlük dönüyor, her
+    adayın `processing_norm` değeri None kalıyor, AMA rapor Yöntemler
+    tablosunda NetCTL'i atıfla birlikte KULLANILMIŞ gibi listeliyordu.
+    Yani "araç yok" durumu, ölçülmemiş bir metrik + yanlış bir yöntem iddiası
+    hâline geliyordu. Duman testi bunu dürüst bir yokluğa çevirir.
+    """
     w = _wrapper()
-    return bool(w) and shutil.which("tcsh") is not None
+    if not w or shutil.which("tcsh") is None or not _home_ok(w):
+        return False
+    # Minik gerçek çağrı: çökme/boş çıktı -> araç yok say.
+    fpath = None
+    try:
+        with tempfile.NamedTemporaryFile("w", suffix=".fsa", delete=False) as fh:
+            fh.write(">smoke\nMKLVGGSAAYDEKLVGGSAAYDEKMNLLRKIVKNRRQ\n")
+            fpath = fh.name
+        r = subprocess.run([w, fpath], capture_output=True, text=True, timeout=120)
+    except Exception:
+        return False
+    finally:
+        if fpath:
+            Path(fpath).unlink(missing_ok=True)
+    if r.returncode != 0:
+        return False
+    return any(_ROW.search(ln) for ln in r.stdout.splitlines())
 
 
 def processing_norm(cle: float | None, tap: float | None) -> float:

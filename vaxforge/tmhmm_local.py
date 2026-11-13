@@ -61,3 +61,19 @@ def predict(proteins: list[tuple[str, str]]) -> dict[str, int]:
         if m:
             out[pid] = int(m.group(1))
     return out
+
+
+def verify() -> bool:
+    """GERÇEK yürütme denemesi: araç kurulu ama KOŞMUYOR olabilir.
+
+    Bu araçta shebang `#!/usr/local/bin/perl` yer tutucusuyla geliyordu ve bu
+    makinede perl `/usr/bin/perl`'de; script hiç başlamıyordu. `available()`
+    dosya + `which("perl")` kontrol ettiği için True diyordu ve huni
+    "GERÇEK (TMHMM-2.0)" yazıyordu. Transmembran hiç ölçülmemişti.
+    """
+    if not available():
+        return False
+    try:
+        return bool(predict([("vfprobe", "MKLVGGSAAYDEKLVGGSAAYDEKMNLLRKIVKNRRQSEFREAILLGKAYTIFNKTLMEADAHYKSGTFT")]))
+    except Exception:
+        return False

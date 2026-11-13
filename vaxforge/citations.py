@@ -129,8 +129,47 @@ CITATIONS = [
 ]
 
 
-def for_report() -> list[dict]:
-    return [{"step": s, "tool": t, "citation": c, "doi": d} for s, t, c, d in CITATIONS]
+# citation'daki `tool` metni -> tool_status modül anahtarı. Yalnız durumu
+# GERÇEKTEN ölçülebilen dış araçlar; eşlenmeyen satırlar `used: None` kalır
+# (saf-Python yöntemler gibi — iddia edilmez).
+_TOOL_TO_STATUS = {
+    "VFDB": "discovery",
+    "PSORTb 3.0": "psortb",
+    "DeepLoc-2.1": "deeploc",
+    "TMHMM-2.0": "tmhmm_local",
+    "SignalP-5.0": "signalp",
+    "IApred": "iapred",
+    "NetMHCpan-4.1/4.2": "netmhc_local",
+    "NetMHCIIpan-4.x": "netmhc_local",
+    "NetCTL-1.2 (kesim + TAP)": "netctl",
+    "BepiPred-1.0": "bepipred",
+    "BepiPred-3.0": "bepipred3",
+    "ToxinPred2": "toxinpred",
+    "IFNepitope2": "ifngamma",
+    "IEDB Population Coverage": "population",
+    "ImmForge": "immforge_score",
+}
+
+
+def for_report(tool_status: dict | None = None) -> list[dict]:
+    """Atıf satırları; araç durumu verilirse her satır `used` ile işaretlenir.
+
+    NEDEN: bu tablo eskiden KOŞULSUZ dönüyordu, yani kurulu olmayan ya da çöken
+    bir araç da atfıyla birlikte "kullanıldı" gibi raporlanıyordu (NetCTL
+    segfault verdiği koşuda tam olarak bu oldu). `used` üç değerli:
+    True = araç hazır, False = araç bu koşuda YOK, None = eşlenmemiş /
+    saf-Python yöntem (iddia edilmiyor).
+    """
+    rows = []
+    for st, t, c, d in CITATIONS:
+        row = {"step": st, "tool": t, "citation": c, "doi": d}
+        key = _TOOL_TO_STATUS.get(t)
+        if tool_status and key:
+            row["used"] = bool(tool_status.get(key, {}).get("available"))
+        else:
+            row["used"] = None
+        rows.append(row)
+    return rows
 
 
 def as_text() -> str:

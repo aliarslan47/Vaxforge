@@ -16,6 +16,7 @@ Uçlar:
 from __future__ import annotations
 
 import json
+import os
 import tempfile
 from pathlib import Path
 
@@ -41,9 +42,24 @@ _SSE_HEADERS = {
 app = FastAPI(title="VaxForge API", version="1.0")
 
 # Frontend (Next.js dev :3000 / prod) origin'lerine izin.
+#
+# Varsayılan YEREL: yalnız localhost:3000. Tek makinede geliştirme bununla
+# çalışır. LAN'dan ya da başka bir makineden erişeceksen origin'leri AÇIKÇA
+# ver (virgülle ayrılmış), joker yerine:
+#     VAXFORGE_CORS_ORIGINS="http://192.168.1.20:3000,https://vax.example.org"
+# `*` hâlâ mümkün (VAXFORGE_CORS_ORIGINS="*") ama bilinçli bir karar olur;
+# önceki sabit `*` değeri koşu çıktılarını ağdaki herkese okutabiliyordu.
+_DEFAULT_ORIGINS = [
+    "http://localhost:3000", "http://127.0.0.1:3000",
+    "http://localhost:3001", "http://127.0.0.1:3001",
+]
+_origins_env = os.environ.get("VAXFORGE_CORS_ORIGINS", "").strip()
+_origins = ([o.strip() for o in _origins_env.split(",") if o.strip()]
+            if _origins_env else _DEFAULT_ORIGINS)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # yerel/tek-makine dağıtım; gerekirse daraltılır
+    allow_origins=_origins,
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -1,0 +1,250 @@
+{
+  "input": "rabies_proteome.faa (NC_001542, 5 protein)",
+  "taxon": "NCBITaxon:11292",
+  "hosts": [
+    "human",
+    "bovine",
+    "mouse",
+    "pig"
+  ],
+  "runtime_s": 2438.7,
+  "n_input": 5,
+  "n_funnel": 5,
+  "n_candidate_proteins": 5,
+  "ground_truth": {
+    "antigen": "glycoprotein G",
+    "accession": "NP_056796.1",
+    "matched_id": "lcl|NC_001542.1_prot_NP_056796.1_4",
+    "produced_candidate": true,
+    "protein_rank": 1,
+    "best_candidacy": 0.7787
+  },
+  "g_rank_permutation": {
+    "test": "permutation_rank_test",
+    "statistic": 1.0,
+    "p_value": 0.20227977202279773,
+    "ci95": null,
+    "n": 1,
+    "detail": {
+      "statistic_type": "best_rank",
+      "N_total": 5,
+      "null_mean": 2.9812,
+      "positive_ranks": [
+        1.0
+      ]
+    },
+    "caveat": "küçük-n (n_pos=1, N=5) → test hesaplandı ama güç düşük; sonuç betimsel yorumlanmalı"
+  },
+  "multihost": {
+    "binder_counts_all_proteins": {
+      "human": 54,
+      "bovine": 53,
+      "mouse": 47,
+      "pig": 0
+    },
+    "binder_counts_G_only": {
+      "human": 10,
+      "bovine": 11,
+      "mouse": 10,
+      "pig": 0
+    },
+    "jaccard_overlap_all": {
+      "human~bovine": {
+        "test": "jaccard",
+        "statistic": 0.8771929824561403,
+        "p_value": null,
+        "ci95": null,
+        "n": 57,
+        "detail": {
+          "intersection": 50,
+          "union": 57,
+          "only_a": 4,
+          "only_b": 3
+        },
+        "caveat": null
+      },
+      "human~mouse": {
+        "test": "jaccard",
+        "statistic": 0.6833333333333333,
+        "p_value": null,
+        "ci95": null,
+        "n": 60,
+        "detail": {
+          "intersection": 41,
+          "union": 60,
+          "only_a": 13,
+          "only_b": 6
+        },
+        "caveat": null
+      },
+      "human~pig": {
+        "test": "jaccard",
+        "statistic": 0.0,
+        "p_value": null,
+        "ci95": null,
+        "n": 54,
+        "detail": {
+          "intersection": 0,
+          "union": 54,
+          "only_a": 54,
+          "only_b": 0
+        },
+        "caveat": null
+      },
+      "bovine~mouse": {
+        "test": "jaccard",
+        "statistic": 0.7241379310344828,
+        "p_value": null,
+        "ci95": null,
+        "n": 58,
+        "detail": {
+          "intersection": 42,
+          "union": 58,
+          "only_a": 11,
+          "only_b": 5
+        },
+        "caveat": null
+      },
+      "bovine~pig": {
+        "test": "jaccard",
+        "statistic": 0.0,
+        "p_value": null,
+        "ci95": null,
+        "n": 53,
+        "detail": {
+          "intersection": 0,
+          "union": 53,
+          "only_a": 53,
+          "only_b": 0
+        },
+        "caveat": null
+      },
+      "mouse~pig": {
+        "test": "jaccard",
+        "statistic": 0.0,
+        "p_value": null,
+        "ci95": null,
+        "n": 47,
+        "detail": {
+          "intersection": 0,
+          "union": 47,
+          "only_a": 47,
+          "only_b": 0
+        },
+        "caveat": null
+      }
+    },
+    "jaccard_overlap_G": {
+      "human~bovine": {
+        "test": "jaccard",
+        "statistic": 0.75,
+        "p_value": null,
+        "ci95": null,
+        "n": 12,
+        "detail": {
+          "intersection": 9,
+          "union": 12,
+          "only_a": 1,
+          "only_b": 2
+        },
+        "caveat": null
+      },
+      "human~mouse": {
+        "test": "jaccard",
+        "statistic": 0.6666666666666666,
+        "p_value": null,
+        "ci95": null,
+        "n": 12,
+        "detail": {
+          "intersection": 8,
+          "union": 12,
+          "only_a": 2,
+          "only_b": 2
+        },
+        "caveat": null
+      },
+      "human~pig": {
+        "test": "jaccard",
+        "statistic": 0.0,
+        "p_value": null,
+        "ci95": null,
+        "n": 10,
+        "detail": {
+          "intersection": 0,
+          "union": 10,
+          "only_a": 10,
+          "only_b": 0
+        },
+        "caveat": null
+      },
+      "bovine~mouse": {
+        "test": "jaccard",
+        "statistic": 0.75,
+        "p_value": null,
+        "ci95": null,
+        "n": 12,
+        "detail": {
+          "intersection": 9,
+          "union": 12,
+          "only_a": 2,
+          "only_b": 1
+        },
+        "caveat": null
+      },
+      "bovine~pig": {
+        "test": "jaccard",
+        "statistic": 0.0,
+        "p_value": null,
+        "ci95": null,
+        "n": 11,
+        "detail": {
+          "intersection": 0,
+          "union": 11,
+          "only_a": 11,
+          "only_b": 0
+        },
+        "caveat": null
+      },
+      "mouse~pig": {
+        "test": "jaccard",
+        "statistic": 0.0,
+        "p_value": null,
+        "ci95": null,
+        "n": 10,
+        "detail": {
+          "intersection": 0,
+          "union": 10,
+          "only_a": 10,
+          "only_b": 0
+        },
+        "caveat": null
+      }
+    }
+  },
+  "population_coverage": {
+    "method": "GERÇEK (IEDB Population Coverage, Bui 2006)",
+    "areas": [
+      "World",
+      "Europe",
+      "East Asia",
+      "South Asia",
+      "Southeast Asia",
+      "North Africa",
+      "West Africa",
+      "North America",
+      "South America",
+      "Oceania"
+    ],
+    "available": false,
+    "hosts": {},
+    "note": "IEDB Population Coverage aracı kurulu değil (tools/)."
+  },
+  "report_paths": {
+    "csv": "/home/ali/repos/Vaxforge/benchmark/results/run_2026-11-13T00-17-40/candidates.csv",
+    "fasta": "/home/ali/repos/Vaxforge/benchmark/results/run_2026-11-13T00-17-40/top_peptides.fasta",
+    "xlsx": "/home/ali/repos/Vaxforge/benchmark/results/run_2026-11-13T00-17-40/candidates_full.xlsx",
+    "json": "/home/ali/repos/Vaxforge/benchmark/results/run_2026-11-13T00-17-40/run.json",
+    "html": "/home/ali/repos/Vaxforge/benchmark/results/run_2026-11-13T00-17-40/report.html"
+  },
+  "note": "Virüs kolu = çok-konak MHC yetenek gösterimi (recall değil). Tek antijen (G) → rank istatistiği betimsel. Host seçimi VaxForge'a özgü; NERVE (bacterial-only) ve Vaxign bu kolda oynayamaz."
+}

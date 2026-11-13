@@ -19,3 +19,14 @@ importlib-resources>=5.8
 # Ağır/harici araçlar (diamond, prodigal, AlphaFold, GROMACS ...) konteyner
 # (podman) veya ayrı GPU makinesinde; buraya dahil değildir.
 python-docx
+# --- 2026-11-13'te EKLENDİ: taze venv'de eksikti ve SESSİZ kusura yol açıyordu ---
+# IApred'in import zinciri bunları istiyor (tools/IAPred/functions.py).
+# Eksikken IApred.py ModuleNotFoundError ile çöküyor, CSV üretilmiyor,
+# iapred.predict() BOŞ dönüyor — ama iapred.available() True diyordu ve huni
+# "antijenite: GERÇEK (IApred)" yazıyordu. Antijenite her proteinde 0.0 kalıyordu.
+# Bkz. DURUM.md bulgu 21.
+imbalanced-learn>=0.12
+seaborn>=0.13
+# Yayın-tarzı PDF raporu (vaxforge/report_pdf.py). Eksikken pipeline dürüstçe
+# pdf_error.txt yazıyordu ama PDF hiç üretilmiyordu.
+reportlab>=4.0
