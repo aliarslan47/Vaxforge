@@ -118,6 +118,20 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 
+def _virdb_label() -> str:
+    """Koşan virülans DB'sinin adı (VFDB ya da UniProt KW-0843), yoksa nötr metin.
+
+    Arayüzde kaynak adını sabit yazmak, diğer kaynakla koşarken yanlış araç
+    gösteriyordu (bkz. discovery.virulence_source).
+    """
+    try:
+        from vaxforge.discovery import virulence_source
+        src = virulence_source()
+        return src[1] if src else "virülans DB yok"
+    except Exception:
+        return "virülans DB"
+
+
 def _sec(num: str, title: str) -> None:
     """Numaralı profesyonel bölüm başlığı."""
     st.markdown(f'<div class="vf-sec"><div class="n">{num}</div>'
@@ -302,7 +316,7 @@ for step_id, tools in by_step.items():
 # --- Çalıştır ---------------------------------------------------------------
 _sec("5", t(lang,"sec_run"))
 _tool_status = []
-for _mod, _lbl in [("discovery", "DIAMOND+VFDB"), ("deeploc", "DeepLoc"),
+for _mod, _lbl in [("discovery", "DIAMOND+virülans DB"), ("deeploc", "DeepLoc"),
                    ("tmhmm_local", "TMHMM"), ("signalp", "SignalP"),
                    ("iapred", "IApred"), ("bepipred", "BepiPred"),
                    ("netmhc_local", "NetMHCpan"), ("toxinpred", "ToxinPred2")]:
@@ -365,7 +379,9 @@ if st.button(t(lang,"run_start"), type="primary"):
         flow = [
             (f"1· Girdi ({unit})", rmeta.get("n_raw", "?"), "dosyadaki ham dizi sayısı"),
             ("2· Proteine çevrildi", rmeta.get("n_input", "?"), "CDS→çeviri / ORF; ≥20 aa"),
-            ("3· Virülans skoru (VFDB)", rmeta.get("n_discovery", "?"), "DIAMOND→VFDB skorlama (eleme DEĞİL; NERVE2 gibi)"),
+            # Kaynak adı koşudan okunur (VFDB ya da UniProt KW-0843) — sabit yazılmaz.
+            (f"3· Virülans skoru ({_virdb_label()})", rmeta.get("n_discovery", "?"),
+             f"DIAMOND→{_virdb_label()} skorlama (eleme DEĞİL; NERVE2 gibi)"),
             ("4· Huni sonrası (protein)", rmeta.get("n_funnel", "?"), "DeepLoc+TMHMM+SignalP+IApred+insan homoloji"),
             ("5· Üretilen epitop", rmeta.get("n_epitope", "?"), "SLIDING-WINDOW: B + MHC-I + MHC-II"),
             ("6· Alerjenite sonrası", rmeta.get("n_after_allergen", "?"), "FAO/WHO 6-mer — alerjenler elendi"),

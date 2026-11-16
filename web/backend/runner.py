@@ -37,8 +37,11 @@ HOSTS = HostRegistry.load()
 # `fallback` yöntemi (heuristik de olsa gerçek bir yöntemdir). "kurulu değil" değil.
 # alan: (id, module, step_tr, step_en, real, fallback)   fallback=None → hep gerçek
 _PIPELINE_STEPS = [
+    # Virülans DB'si iki alternatiften biri olabilir (VFDB ya da UniProt
+    # KW-0843) → etiket SABİT YAZILMAZ, koşan kaynaktan okunur. Sabit "VFDB"
+    # yazmak, UniProt ile koşarken arayüzde yanlış kaynak göstermekti.
     ("discovery", "discovery", "Virülans keşfi", "Virulence discovery",
-     "DIAMOND 2.1.9 + VFDB", "VFDB anahtar-kelime + yerel hizalama"),
+     None, "anahtar-kelime + yerel hizalama (virülans DB yok)"),
     ("localization", "psortb", "Hücre-altı lokalizasyon", "Subcellular localization",
      "PSORTb 3.0 (bakteri, Gram) / DeepLoc-2.0 (ökaryot·virüs)", "Kyte-Doolittle + sinyal peptid"),
     ("conservation", "conservation", "Suşlar-arası konservasyon", "Cross-strain conservation",
@@ -91,10 +94,28 @@ def _module_available(mod: str) -> bool:
         return False
 
 
+def _dynamic_real(sid: str) -> str | None:
+    """`real` etiketi None olan adımların etiketini KOŞAN kaynaktan üretir.
+
+    Virülans DB'si kuruluma göre VFDB ya da UniProt KW-0843 olabilir; etiketi
+    sabit yazmak, arayüzde gerçekte koşmayan aracın adını gösteriyordu.
+    """
+    try:
+        if sid == "discovery":
+            from vaxforge.discovery import virulence_source
+            src = virulence_source()
+            return f"DIAMOND blastp → {src[1]}" if src else None
+    except Exception:
+        return None
+    return None
+
+
 def pipeline_steps() -> list[dict]:
     """Her pipeline adımı için GERÇEKTE çalışan yöntemi döndürür (grid için)."""
     out = []
     for sid, mod, step_tr, step_en, real, fallback in _PIPELINE_STEPS:
+        if real is None:
+            real = _dynamic_real(sid)
         installed = _module_available(mod)
         # fallback None ise yöntem zaten yereldir → her zaman gerçek/kurulu say.
         active_installed = installed or fallback is None

@@ -64,6 +64,40 @@ def load_proteins(path: str | Path, det: Detection) -> list[ProteinRecord]:
     return _find_orfs(path, det)
 
 
+def taxon_from_file(path: str | Path, det: Detection | None = None) -> str | None:
+    """GenBank kaydından NCBI taxon kimliğini okur → 'NCBITaxon:10320' biçiminde.
+
+    NEDEN: IEDB bilinen-epitop taraması (iedb_match) taxon verilmezse aday-başına
+    CANLI sorguya düşer ve LIVE_MAX sınırını aşan koşularda hiç çalışmaz; suş
+    otomatik çekimi (strain_fetch) de taxon'a bağlıdır. GenBank dosyası taxon'u
+    source feature'ının db_xref'inde ZATEN taşıyor — kullanıcının web formuna elle
+    yazmasını beklemek, ölçülebilir iki adımı sessizce atlatıyordu (BoHV-1 koşusu,
+    2026-11-16: 703 aday > 150 sınır → IEDB taraması hiç koşmadı).
+
+    Yalnız GenBank için çalışır (FASTA'da taxon bilgisi yoktur). Bulunamazsa
+    None döner; uydurma/varsayılan taxon YASAK.
+    """
+    molecule = getattr(det, "molecule", None) if det is not None else None
+    if det is not None and molecule != "genbank":
+        return None
+    try:
+        with _open(path) as fh:
+            for rec in SeqIO.parse(fh, "genbank"):
+                for f in rec.features:
+                    if f.type != "source":
+                        continue
+                    for xref in f.qualifiers.get("db_xref", []):
+                        xref = str(xref).strip()
+                        if xref.lower().startswith("taxon:"):
+                            tid = xref.split(":", 1)[1].strip()
+                            if tid.isdigit():
+                                return f"NCBITaxon:{tid}"
+                break  # taxon ilk kayıtta; tüm dosyayı taramaya gerek yok
+    except Exception:
+        return None
+    return None
+
+
 def _read_genbank(path) -> list[ProteinRecord]:
     """GenBank CDS'lerini protein olarak alır; gen/lokus/konum doğrudan gelir.
 

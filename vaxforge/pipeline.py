@@ -64,6 +64,18 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
         "lang": lang,
     }
 
+    # 0) Organizma taxon'u: kullanıcı vermediyse GenBank dosyasından OKU.
+    # Taxon'a iki adım bağlı: IEDB bilinen-epitop taraması (hedefli mod; yoksa
+    # aday-başına canlı sorgu LIVE_MAX'ı aşıp hiç koşmaz) ve suş otomatik çekimi.
+    # Dosya bilgiyi taşırken elle girilmesini beklemek ölçümü sessizce atlatıyordu.
+    taxon_source = "kullanıcı" if organism_taxon else None
+    if not organism_taxon:
+        detected = ingest.taxon_from_file(path, det)
+        if detected:
+            organism_taxon = detected
+            taxon_source = "GenBank (otomatik)"
+    meta["organism_taxon"] = {"value": organism_taxon, "source": taxon_source}
+
     # 1) Ingest (prep dahil): CDS -> protein çevirisi / ORF vb.
     unit = "CDS" if det.molecule == "cds" else ("okuma" if det.molecule == "reads" else "dizi")
     yield _ev("ingest", "running", f"Girdi: {det.num_seqs} {unit}. Proteom hazırlanıyor…")

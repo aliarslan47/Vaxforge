@@ -3,9 +3,11 @@
 > Forge ailesi konvansiyonu: bu dosya **ilk okunacak** dosyadır. Kod tarihçesi git'te,
 > bilimsel ayrıntı `benchmark/` altında, faz günlüğü `ROADMAP.md`'de.
 
-**Son güncelleme:** 2026-11-12
-**Son commit:** `00ae234` — kaçan 11 antijenin mekanistik atfı (48 antijen, 10 bakteri)
+**Son güncelleme:** 2026-11-17
+**Son commit:** `7591d68` — ImmForge entegrasyonu: eksik olan dal, kod değil
 **Faz:** makale yazımı / son rötuş. Pipeline tamam, benchmark tamam, taslak hazır.
+**Araç durumu:** 21/23 kurulu (oturum başında 11/22). Eksik: DeepLoc-2.1 (RAM, karar),
+NetCTL-1.2 (segfault; yeri IEDB processing API ile doldurulmuş).
 
 ## Tek bakışta
 
@@ -13,7 +15,7 @@
 |---|---|
 | Pipeline (`vaxforge/`, 50 modül) | ✅ çalışıyor, ROADMAP 11/11 faz kapalı |
 | Streamlit arayüzü (`app.py`) | ✅ |
-| Web yığını (`web/` FastAPI + Next.js 14) | ✅ |
+| Web yığını (`web/` FastAPI + Next.js 14) | ✅ bu makinede 2026-11-17'de ilk kez koştu (node elle kuruldu) |
 | Benchmark (10 bakteri + 9 virüs, 3'lü head-to-head) | ✅ koşuldu, atıf tamam |
 | Makale (`benchmark/MANUSCRIPT*.md`) | 🔨 taslak hazır, gönderim öncesi rötuş |
 | CI | 🔨 iş akışı yazıldı, HENÜZ KOŞULMADI |
@@ -22,6 +24,121 @@ Benchmark başlık metriği (10 bakteri, 48 koruyucu antijen, DEFAULT parametre)
 VaxForge 37/48 · Vaxign-ML 47/48 · NERVE 2.0 14/48. MenB exemplar'ında VaxForge 4/4,
 NERVE 1/4. Kaçan 11'in tamamı `benchmark/MISS_ATTRIBUTION.md`'de atfedilmiş; ölçekleme
 hatası YOK.
+
+## 2026-11-17 — eksik araçlar kapatıldı (11/22 → 21/23), arayüz ilk kez koştu
+
+Önceki turların aksine bu turda **her araç gerçek girdiyle koşturularak** doğrulandı
+(`available()` değil: boş olmayan + farklılaşmış çıktı aranır — bkz. 2026-11-13 dersi).
+
+**Arayüz bu makinede hiç çalışmamıştı:** `node`/`npm` kurulu değildi, venv'de
+`fastapi`/`uvicorn` yoktu. Node 20.20.2 `~/.local/opt/node`'a (sudo'suz) kuruldu,
+backend bağımlılıkları eklendi, `web/guardian/supervise.sh` ile ayağa kalktı
+(`:3000` + `:8011`). Next.js derlemesi Google Fonts'u ağdan çekiyor; ilk denemede
+düşerse tekrar koşmak yeterli.
+
+**ImmForge `ModuleNotFoundError` — kod değil dal eksikti.** `immforge/integrations/
+vaxforge.py` yalnız `phase-4.13b-anchors` dalında; yerel ImmForge shallow + yalnız
+`main` klonlanmıştı. `~/repos/ImmForge-phase4` worktree'si açıldı, `IMMFORGE_PATH`
+oraya bakıyor (`supervise.sh` artık varsa kendisi ayarlıyor). `calibration.bovine.yaml`
+var → sığır human-proxy DEĞİL. Doğrulandı: import + `evaluate_candidate` imzası uyuyor.
+
+**IEDB taraması neden hiç koşmadı:** `organism_taxon` boştu → aday-başına canlı moda
+düşüldü → 703 > `LIVE_MAX`=150 → dürüstçe atlandı. Oysa girdi `.gb` dosyasıydı ve
+taxon'u `source` feature'ının `db_xref`'inde taşıyor. `ingest.taxon_from_file()`
+eklendi, `pipeline.run` kullanıcı vermediyse dosyadan okuyor (`meta.organism_taxon`
+kaynağı da yazılır). Doğrulama: `br1.gb` → `NCBITaxon:430066`, `ebola.gb` →
+`NCBITaxon:186538`, FASTA → `None`.
+
+BoHV-1 koşusunun eksik kalan sonucu sonradan hesaplandı: taxon 10320 ile **58 deneysel
+doğrulanmış lineer epitop** indi, 703 adaydan **7'si eşleşti** (6 validated), recall
+4/57 = **%7.0**. Eşleşmeler **US6 = glikoprotein D**'de (BoHV-1'in bilinen koruyucu
+antijeni) → gerçek pozitif kontrol. Uyarı: bilinen setin 34/58'i tek referanstan
+(`top_ref_share` 0.59), yani payda taraflı.
+
+**VFDB zinciri → UniProt KW-0843 (kullanıcı kararı).** `www.mgc.ac.cn` bu ağdan DNS'te
+çözülmüyor; VFDB olmayınca virülans eşleşmesi + ACC modeli + VaxiJen birlikte düşüyordu.
+2.992 reviewed bakteriyel virülans proteini (`keyword:KW-0843 AND reviewed AND
+taxonomy_id:2`) indirildi, DIAMOND DB kuruldu. `discovery.virulence_source()` tek
+doğruluk kaynağı: VFDB varsa o, yoksa UniProt. **Kaynak adı hiçbir yerde sabit
+yazılmıyor** — yöntem etiketi, `tool_status` etiketi, `citations` tablosu, `runner.py`
+adım grid'i, `app.py` huni tablosu ve `pipeline-diagram.tsx` hepsi koşan kaynaktan
+okuyor. Atıf tablosunda yalnız koşan `used=True` (VFDB `False` / UniProt `True`).
+
+Doğrulama (Brucella abortus S19, 1967 protein): **88 DB eşleşmesi**, 103 benzersiz
+kimlik değeri, virülans skoru 90 benzersiz değer. Eşleşenler gerçek virülans faktörleri:
+BspG, üreaz operonu (ureA-G), Hfq, TcpB, BtaE, VtlR.
+
+**ACC/VaxiJen'de İKİNCİ kusur: negatif set yolu da yanlıştı.** Kod
+`tools/db/human_sprot.fasta.gz` arıyordu; diskteki dosya `human_sprot_auto.fasta`
+(sıkıştırılmamış, farklı ad). Yani **VFDB indirilmiş olsa bile model asla
+eğitilemezdi** — eksiklik tek başına VFDB'ye bağlı değildi. `antigen_acc` artık her iki
+seti aday listesinden çözüyor, `.gz` olmayan dosyayı da açıyor, ve hangi pozitif setle
+eğitildiğini modelin İÇİNE yazıyor (`model_info()`; rapor etiketi bunu okur).
+
+**ACC modelinin gerçek gücü ölçüldü (ayrı tutulan 300 protein):** dengeli doğruluk
+**0.747** — virülans ort. 0.686, insan ort. 0.254, insanda %24 yanlış pozitif.
+Çıktı dereceli (%12 doymuş, 150'de 113 benzersiz). Ayrım var ama mütevazı: **ikincil,
+zayıf kanıt hattı**. Birincil antijenite IApred kalmalı. (Uyarı: pozitif=bakteri,
+negatif=insan olduğu için model "antijenik mi" yerine "bakteriyel mi" ayırıyor
+olabilir — bu VaxiJen'in kendi yayınlanmış tasarımının da sınırı.)
+
+**NetCTL-1.2 → IEDB processing API (kullanıcı kararı).** Binary bu çekirdekte satıcının
+kendi test dosyasıyla bile segfault veriyor; yerelde çözümü yok, `processing_norm` her
+adayda `None` kalıyordu. `iedb_processing.py` yazıldı (`tools_api/processing/`,
+`proteasome_score` + `tap_score`, önbellekli, CHUNK=12) + `processing.py` omurga
+seçici: NetCTL gerçekten koşuyorsa o, yoksa IEDB. Yöntem etiketi "NetCTL-1.2" DEMEZ.
+
+**ÖLÇEK TUZAĞI — ve kendi iddiamın yanlışlanması.** IEDB'nin `proteasome_score`'u
+NetCTL'in `cle`'si değil: 0-1 olasılık değil, log-ölçekli. İlk yorumuma "netctl'in
+normalizasyonu her şeyi 1.0'a doyurur" yazdım; **ölçünce yanlış çıktı** (154/157
+benzersiz, 0 doymuş). Gerçek etki ölçüldü: 105 cle değerinin **%68'i 1.0'ı aşıyor**
+(aralık 0.321–1.722), `netctl.processing_norm` bunları kırpıyor → kesim bileşeni tek
+başına 35/105 benzersiz seviyeye düşüyor, sigmoidle 102/105. Nihai skor doymuyor çünkü
+TAP terimi kırpılmıyor. Yani kusur "her şey 1.0 olur" değil, **"kesim çözünürlüğünün
+üçte ikisi kaybolur"**. Yorum ölçülen sayılarla düzeltildi.
+
+Doğrulama: 3/3 protein döndü, pozisyonlar sınır içinde (61 aa dizide indeks 8–60),
+153/157 benzersiz normalize skor.
+
+**Kurulan ve gerçek koşuyla doğrulanan diğer araçlar:**
+- **BepiPred-3.0** — `tools/bepipred-3.0` HİÇ yoktu (yalnız 1.0 vardı). `bp3` 0.0.12.7
+  (Fold1-5 gömülü) + resmi `bepipred3_CLI.py`. Doğrulama: 145 aa diziye 145 skor,
+  145 benzersiz değer, 0.034–0.314, eşik 0.1512'nin iki yanında → ayrım var.
+  **Mevcut koşudaki 324 B-hücre adayı (703'ün %46'sı) vekille üretilmişti.**
+- **metapredict 3.1.1** — Cython eklentisi derleyici ister; makinede `gcc` DE,
+  Python başlıkları DA yoktu. İKİ sistem paketi şart: `build-essential` +
+  `python3.12-dev`. Doğrulama: yapısal protein %0 düzensiz (ort 0.112), düşük
+  karmaşıklıklı dizi %100 (ort 0.981).
+- **IEDB Population Coverage 3.0.2** — doğrulama: 2 bilinen epitop → World %52.43.
+  NOT: frekans verisi yalnız insan HLA'sı; sığır/fare konakta dürüstçe boş döner.
+- **Protein-Sol** — doğrulama: `population_sol` 0.446 = yayınlanan referans ortalaması
+  0.45 → `seq_reference_data.txt` gerçekten okunuyor.
+- **S4PRED** — ağırlıklar MD5 `e04ad7d10b61551f7e07a86b65bb88dc` (yayınlanan değerle
+  eşleşti). Çalıştırma doğrulaması YAPILMADI.
+- **DeepLoc-2.1 — KAPATILDI (kullanıcı kararı).** CLI kuruldu
+  (`pip install ./tools/deeploc2_package`), tek eksik ESM1b. Ölçüldü: ESM1b checkpoint
+  **7.29 GB** (ESM-2 650M aynı parametre sayısıyla 2.43 GB — ESM1b optimizer state
+  taşıyor), `torch.load` dosyayı bütün okuyor, makinede 7.6 GB RAM. Bu makinede
+  koşmaz; GPU/servis makinesine ait. Virüs profilinde lokalizasyon zaten yumuşak filtre.
+
+`requirements.txt` kurulum notlarıyla güncellendi (hangi paket, eksikse hangi vekile
+düşüyor, elle indirilenlerin adresleri, S4PRED MD5'i, gereken apt paketleri).
+
+**Kalan eksikler (2/23):** DeepLoc-2.1 (karar), NetCTL-1.2 (segfault — yeri IEDB
+processing ile dolduruldu, işlev kaybı yok).
+
+**AÇIK KARAR — örtüşen aday kümelenmesi.** 703 adayın **484'ü** aynı proteinden ≥4 aa
+kayan-pencere komşusu (birebir duplikasyon 0; iç içe 14; tandem yineleme 561;
+homopolimer ≥3 134; düşük karmaşıklık 262). Üst sıradaki rank 4/5/8/9 (UL44) tam bu
+düşük-karmaşıklıklı prolin-serin tekrarları. Kodda kümeleme adımı YOK → **aday sayısı
+şişkin**. Eklemek makaledeki sayıyı değiştirir, bu yüzden yapılmadı.
+
+**Yeniden koşu gerekiyor:** mevcut `outputs/run_2026-11-16T21-59-16` B-hücre
+epitoplarını vekille üretti, IEDB/ImmForge/çözünürlük/düzensizlik/ikincil yapı
+adımları boştu. Aynı dosyayı arayüzden tekrar yüklemek yeterli (taxon artık otomatik).
+
+Testler: 40/40 (üç ayrı koşu). Not: `pytest` çıktısını `tail`'e borulamak log dosyasını
+boş bırakıyor ve koşu sessizce ölmüş gibi görünüyor — doğrudan dosyaya yazdır.
 
 ## 2026-11-12 — kod gözden geçirmesi, acil maddeler kapatıldı
 

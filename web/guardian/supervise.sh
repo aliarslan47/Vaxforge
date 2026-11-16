@@ -26,6 +26,15 @@ export VF_BACKEND_PORT="$BACKEND_PORT" VF_FRONTEND_PORT="$FRONTEND_PORT"
 
 PY="python3"; [ -x "$VENV/bin/python" ] && PY="$VENV/bin/python"
 
+# ImmForge entegrasyonu: `immforge.integrations.vaxforge` yalnız phase-4 dalında
+# bulunur (main'de YOK). Yol verilmezse immforge_score.available() False döner ve
+# immünizasyon testi "ARAÇ_YOK" olarak atlanır — sessiz değil ama ölçüm kaybı.
+# Dışarıdan verilmişse ona dokunmaz; verilmemişse yerel worktree'yi VARSA kullanır.
+if [ -z "${IMMFORGE_PATH:-}" ] && [ -d "$HOME/repos/ImmForge-phase4/immforge/integrations" ]; then
+  export IMMFORGE_PATH="$HOME/repos/ImmForge-phase4"
+fi
+[ -n "${IMMFORGE_PATH:-}" ] && export IMMFORGE_PATH
+
 BACKEND_PID=""; FRONTEND_PID=""
 
 log() { echo "[$(date '+%F %T')] $*" | tee -a "$LOGS/supervisor.log"; }

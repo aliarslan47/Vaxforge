@@ -30,3 +30,40 @@ seaborn>=0.13
 # Yayın-tarzı PDF raporu (vaxforge/report_pdf.py). Eksikken pipeline dürüstçe
 # pdf_error.txt yazıyordu ama PDF hiç üretilmiyordu.
 reportlab>=4.0
+
+# --- 2026-11-16'da EKLENDİ: 22 araçtan 11'i eksikti, 5'i buradan kapandı ---
+# BepiPred-3.0 çekirdeği (eğitilmiş Fold1-5 modelleri paketin içinde gömülü).
+# AYRICA GEREKİR: tools/bepipred-3.0/bepipred3_CLI.py — pip paketinde YOKTUR,
+# resmi depodan ayrıca alınır:
+#   curl -L -o tools/bepipred-3.0/bepipred3_CLI.py \
+#     https://raw.githubusercontent.com/UberClifford/BepiPred3.0-Predictor/main/bepipred3_CLI.py
+# CLI yoksa bepipred3.available() False → epitope.py BepiPred-1.0'a, o da yoksa
+# Kolaskar-Tongaonkar'a düşer (dürüst, ama ölçüm kaybı: B-hücre adayları vekille).
+# ESM-2 (650M) ilk koşuda torch hub önbelleğine iner (~2.6 GB).
+bp3>=0.0.12.7
+#
+# DeepLoc-2.1 (hücre-altı lokalizasyon). Paket repo içinde: tools/deeploc2_package
+#   pip install ./tools/deeploc2_package
+# KALAN TEK EKSİK: ESM1b ağırlığı (7.29 GB) →
+#   ~/.cache/torch/hub/checkpoints/esm1b_t33_650M_UR50S.pt
+#   https://dl.fbaipublicfiles.com/fair-esm/models/esm1b_t33_650M_UR50S.pt
+# Ağırlık yokken available() False ve lokalizasyon Kyte-Doolittle vekiline düşer.
+# DeepLoc2  # tools/deeploc2_package'tan elle kurulur
+#
+# metapredict (düzensizlik/IDR). DİKKAT: Cython eklentisi KAYNAKTAN DERLENİR ve
+# PyPI'de hazır wheel'i YOK. Taze bir Ubuntu'da İKİ sistem paketi şart, yoksa
+# pip "failed-wheel-build" ile düşer (2026-11-16/17'de ikisi de eksikti):
+#   sudo apt install build-essential   # yoksa: 'x86_64-linux-gnu-gcc' bulunamadı
+#   sudo apt install python3.12-dev    # yoksa: fatal error: Python.h yok
+metapredict>=3.1
+#
+# PİP DIŞI, tools/ altına elle indirilenler (tools/ .gitignore'da):
+#   tools/population-coverage-3.0.2   IEDB Population Coverage 3.0.2 (saf Python)
+#     https://downloads.iedb.org/tools/population/3.0.2/IEDB_Population_Coverage-3.0.2.tar.gz
+#     NOT: frekans verisi YALNIZ insan HLA'sı; sığır/fare konakta dürüstçe boş döner.
+#   tools/protein-sol/...             Protein-Sol (saf Perl, perl gerekir)
+#     https://protein-sol.manchester.ac.uk/cgi-bin/utilities/download_sequence_code.php
+#   tools/s4pred + tools/s4pred/weights   S4PRED (ikincil yapı, torch, 430 MB)
+#     git clone https://github.com/psipred/s4pred
+#     http://bioinfadmin.cs.ucl.ac.uk/downloads/s4pred/weights.tar.gz
+#     MD5 e04ad7d10b61551f7e07a86b65bb88dc (yayınlanan değerle doğrulandı)

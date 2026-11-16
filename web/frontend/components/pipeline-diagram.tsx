@@ -21,8 +21,10 @@ const STAGES = [
   {
     key: "discovery",
     icon: Radar,
-    tr: { t: "Virülans Keşfi", d: "VFDB / anahtar-kelime ile virülans skoru (NERVE2 gibi)" },
-    en: { t: "Virulence Discovery", d: "Virulence scoring via VFDB / keywords (NERVE2-style)" },
+    // Kaynak adı burada SABİT YAZILMAZ: kurulu DB VFDB ya da UniProt KW-0843
+    // olabilir, koşan kaynağı /api/config'in discovery adımı bildirir.
+    tr: { t: "Virülans Keşfi", d: "Küratörlü virülans DB'si / anahtar-kelime ile virülans skoru (NERVE2 gibi)" },
+    en: { t: "Virulence Discovery", d: "Virulence scoring via curated virulence DB / keywords (NERVE2-style)" },
   },
   {
     key: "funnel",

@@ -19,7 +19,10 @@ from __future__ import annotations
 # citation'daki `tool` metnine karşılık gelen modül adı -> görünen etiket.
 # Yalnız parametresiz available() sunan, dışa bağımlı araçlar.
 _PROBES: list[tuple[str, str, str]] = [
-    ("discovery", "VFDB virülans eşleşmesi (DIAMOND)", "VFDB virulence match (DIAMOND)"),
+    # Etiket kaynak adı İÇERMEZ: kaynak VFDB ya da UniProt KW-0843 olabilir
+    # (bkz. discovery.virulence_source) ve hangisi koştuysa rapordaki yöntem
+    # satırı + atıf tablosu onu yazar. Sabit "VFDB" demek yanlış iddia olurdu.
+    ("discovery", "Virülans DB eşleşmesi (DIAMOND)", "Virulence DB match (DIAMOND)"),
     ("psortb", "PSORTb 3.0", "PSORTb 3.0"),
     ("deeploc", "DeepLoc-2.1", "DeepLoc-2.1"),
     ("tmhmm_local", "TMHMM-2.0", "TMHMM-2.0"),
@@ -27,6 +30,9 @@ _PROBES: list[tuple[str, str, str]] = [
     ("iapred", "IApred", "IApred"),
     ("netmhc_local", "NetMHCpan / NetMHCIIpan", "NetMHCpan / NetMHCIIpan"),
     ("netctl", "NetCTL-1.2", "NetCTL-1.2"),
+    # NetCTL'in yerine geçen yol (binary bu ortamda segfault veriyor).
+    ("iedb_processing", "IEDB processing API (kesim+TAP)",
+     "IEDB processing API (cleavage+TAP)"),
     ("bepipred", "BepiPred-1.0", "BepiPred-1.0"),
     ("bepipred3", "BepiPred-3.0", "BepiPred-3.0"),
     ("allergen", "Alerjen referans seti", "Allergen reference set"),

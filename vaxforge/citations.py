@@ -14,6 +14,11 @@ CITATIONS = [
     ("Keşif — virülans DB", "VFDB",
      "Liu B, Zheng D, Zhou S, Chen L, Yang J. VFDB 2022: a general classification scheme for bacterial virulence factors. Nucleic Acids Res. 2022;50(D1):D912-D917.",
      "10.1093/nar/gkab1107"),
+    # VFDB'nin alternatifi. İKİSİ BİRDEN "kullanıldı" görünemez: for_report()
+    # hangisinin gerçekten koştuğunu discovery.virulence_source()'tan okur.
+    ("Keşif — virülans DB", "UniProt KW-0843",
+     "The UniProt Consortium. UniProt: the Universal Protein Knowledgebase in 2025. Nucleic Acids Res. 2025;53(D1):D609-D617. (Swiss-Prot anahtar kelimesi KW-0843 'Virulence', reviewed + bakteri süzgeci; bu koşuda indirilen küratörlü virülans protein seti.)",
+     "10.1093/nar/gkae1010"),
     ("Lokalizasyon — bakteri", "PSORTb 3.0",
      "Yu NY, Wagner JR, Laird MR, Melli G, Rey S, Lo R, et al. PSORTb 3.0: improved protein subcellular localization prediction with refined localization subcategories and predictive capabilities for all prokaryotes. Bioinformatics. 2010;26(13):1608-1615.",
      "10.1093/bioinformatics/btq249"),
@@ -56,6 +61,12 @@ CITATIONS = [
     ("Antijen işleme (MHC-I)", "NetCTL-1.2 (kesim + TAP)",
      "Larsen MV, Lundegaard C, Lund O, Nielsen M. An integrative approach to CTL epitope prediction: a combined algorithm integrating MHC class I binding, TAP transport efficiency, and proteasomal cleavage predictions. Eur J Immunol. 2005;35(8):2295-2303. (yalnız allel-bağımsız kesim + TAP kullanıldı).",
      "10.1002/eji.200425811"),
+    # NetCTL binary'si bu ortamda segfault veriyor; aynı iki bileşen IEDB
+    # 'processing' API'sinden alınır. İKİSİ BİRDEN "kullanıldı" görünemez:
+    # for_report() hangi omurganın koştuğunu processing.backend()'ten okur.
+    ("Antijen işleme (MHC-I)", "IEDB processing API (kesim + TAP)",
+     "Tenzer S, Peters B, Bulik S, Schoor O, Lemmel C, Schatz MM, et al. Modeling the MHC class I pathway by combining predictions of proteasomal cleavage, TAP transport and MHC class I binding. Cell Mol Life Sci. 2005;62(9):1025-1037. (IEDB Analysis Resource 'processing' aracı; yalnız allel-bağımsız proteasome + TAP skorları kullanıldı, MHC bileşeni kullanılmadı).",
+     "10.1007/s00018-005-4528-2"),
     ("B-hücre epitopu", "BepiPred-3.0",
      "Clifford JN, Høie MH, Deleuran S, Peters B, Nielsen M, Marcatili P. BepiPred-3.0: Improved B-cell epitope prediction using protein language models. Protein Sci. 2022;31(12):e4497.",
      "10.1002/pro.4497"),
@@ -132,8 +143,17 @@ CITATIONS = [
 # citation'daki `tool` metni -> tool_status modül anahtarı. Yalnız durumu
 # GERÇEKTEN ölçülebilen dış araçlar; eşlenmeyen satırlar `used: None` kalır
 # (saf-Python yöntemler gibi — iddia edilmez).
+# Aynı adımın birbirinin yerine geçen iki veritabanı: yalnız gerçekten koşan
+# "kullanıldı" işaretlenir (bkz. for_report).
+_VIRDB_TOOLS = ("VFDB", "UniProt KW-0843")
+
+# Aynı adımın birbirinin yerine geçen iki antijen-işleme omurgası.
+_PROC_TOOLS = ("NetCTL-1.2 (kesim + TAP)", "IEDB processing API (kesim + TAP)")
+_PROC_MODULE_TO_TOOL = {"netctl": _PROC_TOOLS[0], "iedb_processing": _PROC_TOOLS[1]}
+
 _TOOL_TO_STATUS = {
     "VFDB": "discovery",
+    "UniProt KW-0843": "discovery",
     "PSORTb 3.0": "psortb",
     "DeepLoc-2.1": "deeploc",
     "TMHMM-2.0": "tmhmm_local",
@@ -142,6 +162,7 @@ _TOOL_TO_STATUS = {
     "NetMHCpan-4.1/4.2": "netmhc_local",
     "NetMHCIIpan-4.x": "netmhc_local",
     "NetCTL-1.2 (kesim + TAP)": "netctl",
+    "IEDB processing API (kesim + TAP)": "iedb_processing",
     "BepiPred-1.0": "bepipred",
     "BepiPred-3.0": "bepipred3",
     "ToxinPred2": "toxinpred",
@@ -160,12 +181,33 @@ def for_report(tool_status: dict | None = None) -> list[dict]:
     True = araç hazır, False = araç bu koşuda YOK, None = eşlenmemiş /
     saf-Python yöntem (iddia edilmiyor).
     """
+    # Virülans DB'si iki alternatiften BİRİ olabilir; ikisi de 'discovery'
+    # durumuna bağlı olduğundan düz eşleme ikisini de "kullanıldı" gösterirdi.
+    # Gerçekte koşan kaynağı tek doğruluk kaynağından okuyup diğerini False yap.
+    try:
+        from .discovery import virulence_source
+        active_virdb = (virulence_source() or (None, None))[1]
+    except Exception:
+        active_virdb = None
+
+    # Antijen işleme için de aynısı: iki omurgadan yalnız koşan işaretlenir.
+    try:
+        from .processing import backend
+        b = backend()
+        active_proc = _PROC_MODULE_TO_TOOL.get(b.__name__.rsplit(".", 1)[-1]) if b else None
+    except Exception:
+        active_proc = None
+
     rows = []
     for st, t, c, d in CITATIONS:
         row = {"step": st, "tool": t, "citation": c, "doi": d}
         key = _TOOL_TO_STATUS.get(t)
         if tool_status and key:
             row["used"] = bool(tool_status.get(key, {}).get("available"))
+            if t in _VIRDB_TOOLS and row["used"]:
+                row["used"] = (t == active_virdb)
+            if t in _PROC_TOOLS:
+                row["used"] = (t == active_proc)
         else:
             row["used"] = None
         rows.append(row)

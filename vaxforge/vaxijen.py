@@ -26,12 +26,21 @@ def available() -> bool:
 
 
 def local_score(seq: str) -> dict:
-    """VaxiJen-tarzı ACC skoru (yerel). {score, antigenic, method}."""
+    """VaxiJen-tarzı ACC skoru (yerel). {score, antigenic, method}.
+
+    `method` eğitim pozitif setini AÇIKÇA yazar: model VFDB ile de UniProt
+    KW-0843 ile de eğitilebiliyor ve ayrım gücü sete bağlı. Etikette seti
+    gizlemek, farklı setle eğitilmiş iki koşuyu aynı yöntem gibi gösterirdi.
+    """
     s = antigen_acc.predict(seq)
+    info = antigen_acc.model_info() or {}
+    pos = info.get("pos_label")
+    src = f"; pozitif set: {pos}" if pos else ""
     return {
         "score": s,
         "antigenic": s >= THRESHOLD,
-        "method": "GERÇEK (VaxiJen-tarzı ACC — 2. kanıt; resmi SVM değil)",
+        "method": f"GERÇEK (VaxiJen-tarzı ACC — 2. kanıt; resmi SVM değil{src})",
+        "pos_label": pos,
     }
 
 

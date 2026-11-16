@@ -12,7 +12,7 @@ yoksa IEDB API, o da yoksa proxy (dürüst etiketli).
 from __future__ import annotations
 
 from . import (bepipred, bepipred3, ifngamma, immunogenicity, mhc_motif,
-               netctl, predictors)
+               predictors, processing)
 from .config_loader import ResolvedTool
 from .hosts import Host
 from .models import Peptide, ProteinRecord
@@ -79,7 +79,8 @@ def _bcell(pr: ProteinRecord, tool: ResolvedTool, top: int = 5,
 def _mhc(pr: ProteinRecord, hosts: list[Host], mhc_class: str, kind_label: str,
          lengths: list[int], rank_strong: float, rank_weak: float,
          per_host: dict[str, dict[str, dict]], top: int = 6,
-         proc: dict[int, dict[str, float]] | None = None) -> list[Peptide]:
+         proc: dict[int, dict[str, float]] | None = None,
+         proc_backend=None) -> list[Peptide]:
     s = sanitize(pr.seq)
     pos = {}
     for L in lengths:
@@ -132,13 +133,17 @@ def _mhc(pr: ProteinRecord, hosts: list[Host], mhc_class: str, kind_label: str,
             # MHC yarığı anchor motifi (SALT YORUMLAMA — sıralamayı etkilemez)
             mhc_motif.annotate(p, best_allele, "mhc_i")
             # Antijen işleme: peptidin C-terminaline denk gelen 9-mer'in kesim+TAP'ı
-            if proc:
+            # Normalizasyon omurganın KENDİSİNDEN gelir: NetCTL cle'si 0-1
+            # olasılık, IEDB'nin proteasome_score'u log-ölçekli — sabit bir
+            # modülden normalize etmek ikinci durumda her şeyi 1.0'a doyurur.
+            if proc and proc_backend is not None:
                 ct = proc.get(pos[pep] + len(pep) - 1)
                 if ct:
                     p.metrics["cleavage"] = ct["cle"]
                     p.metrics["tap"] = ct["tap"]
-                    p.metrics["processing_norm"] = netctl.processing_norm(ct["cle"], ct["tap"])
-                    p.methods["processing"] = netctl.METHOD
+                    p.metrics["processing_norm"] = proc_backend.processing_norm(
+                        ct["cle"], ct["tap"])
+                    p.methods["processing"] = proc_backend.METHOD
         p.passed = best_rank <= rank_weak
         p.notes.append("güçlü" if best_rank <= rank_strong else "zayıf")
         out.append(p)
@@ -156,9 +161,13 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
     # BepiPred-1.0 / klasik yönteme düşer.
     bp3_scores = bepipred3.predict_batch([(pr.id, sanitize(pr.seq)) for pr in proteins])
     # Antijen işleme (proteozomal kesim + TAP): funnel-survivor proteinleri TEK
-    # batch NetCTL. Allel-bağımsız cle/tap protein-başına C-terminal pozisyona
-    # göre haritalanır; kuruluysa gerçek, yoksa boş (MHC-I metrikleri atlanır).
-    proc_scores = netctl.predict([(pr.id, sanitize(pr.seq)) for pr in proteins])
+    # batch. Omurga NetCTL-1.2 (yerel) ya da IEDB processing API — hangisi
+    # gerçekten koşuyorsa (bkz. processing.backend). Allel-bağımsız cle/tap
+    # protein-başına C-terminal pozisyona göre haritalanır; ikisi de yoksa boş
+    # (MHC-I işleme metrikleri dürüstçe ölçülmemiş kalır).
+    proc_backend = processing.backend()
+    proc_scores = (proc_backend.predict([(pr.id, sanitize(pr.seq)) for pr in proteins])
+                   if proc_backend is not None else {})
 
     # --- MHC bağlanma: TÜM proteinlerin peptitleri TEK GLOBAL BATCH ---
     # Eskiden _mhc her protein için ayrı netMHCpan çağırıyordu (580 protein =
@@ -188,7 +197,8 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
         made = _bcell(pr, tools["bcell_epitope"], bp3=bp3_scores.get(pr.id))
         made += _mhc(pr, hosts, "mhc_i", "MHC-I", i_lengths,
                      float(i_tool.params["rank_strong"].value), i_rank_weak,
-                     pred_i, proc=proc_scores.get(pr.id))
+                     pred_i, proc=proc_scores.get(pr.id),
+                     proc_backend=proc_backend)
         made += _mhc(pr, hosts, "mhc_ii", "MHC-II", [ii_length],
                      float(ii_tool.params["rank_strong"].value), ii_rank_weak,
                      pred_ii)

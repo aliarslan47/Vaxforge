@@ -3,8 +3,12 @@
 VaxiJen otomatikleştirilemediği için (web 403, indirilebilir sürüm yok),
 VaxiJen'in YAYINLANMIŞ ÖZELLİK YÖNTEMİNİ uygular: Sandberg (1998) z-skalaları +
 auto/cross-covariance dönüşümü. Üstüne kompakt bir lojistik regresyon eğitir:
-  pozitif = VFDB virülans faktörleri (antijenik/immünojenik bakteri proteinleri)
+  pozitif = küratörlü bakteriyel virülans faktörleri (VFDB setA, yoksa UniProt
+            KW-0843) — antijenik/immünojenik bakteri proteinleri
   negatif = insan Swiss-Prot (konağa yabancı olmayan -> antijenik değil)
+
+Hangi pozitif setle eğitildiği modelin içine yazılır (`model_info()`); rapor
+etiketi bunu okur, kaynak adı varsayılmaz.
 
 DÜRÜST ETİKET: Bu, VaxiJen'in ÖZELLİK yöntemidir; VaxiJen'in resmi eğitilmiş SVM
 modeli DEĞİLDİR. Yaklaşık bir antijenite indeksidir. Model bir kez eğitilip
@@ -34,9 +38,42 @@ Z5 = {
     "Y": (-2.54, 2.44, 0.43, 0.04, -1.47), "V": (-2.59, -2.64, -1.54, -0.85, -0.02),
 }
 _LAG = 8
-_MODEL = Path(__file__).resolve().parent.parent / "tools" / "db" / "antigen_acc_model.pkl"
-_VFDB = Path(__file__).resolve().parent.parent / "tools" / "db" / "VFDB_setA_pro.fas.gz"
-_HUMAN = Path(__file__).resolve().parent.parent / "tools" / "db" / "human_sprot.fasta.gz"
+_DB = Path(__file__).resolve().parent.parent / "tools" / "db"
+_MODEL = _DB / "antigen_acc_model.pkl"
+
+# POZİTİF SET adayları, sırayla (küratörlü bakteriyel virülans proteinleri).
+# discovery._VIRDB_SOURCES ile aynı mantık: VFDB varsa o, yoksa UniProt KW-0843.
+_POS_SOURCES: list[tuple[Path, str]] = [
+    (_DB / "VFDB_setA_pro.fas.gz", "VFDB setA"),
+    (_DB / "uniprot_virulence_kw0843.fasta.gz", "UniProt KW-0843"),
+]
+
+# NEGATİF SET adayları (konak proteomu). İKİ BİÇİM: host_db otomatik indirmesi
+# SIKIŞTIRILMAMIŞ `human_sprot_auto.fasta` yazıyor, eski sabit yol ise yalnız
+# `human_sprot.fasta.gz`e bakıyordu. O dosya hiç var olmadığı için model, VFDB
+# indirilmiş olsa bile ASLA eğitilemezdi — yani ACC/VaxiJen'in eksikliği tek
+# başına VFDB'ye bağlı değildi (2026-11-17'de bulundu).
+_NEG_SOURCES: list[tuple[Path, str]] = [
+    (_DB / "human_sprot.fasta.gz", "insan Swiss-Prot"),
+    (_DB / "human_sprot_auto.fasta", "insan Swiss-Prot (otomatik)"),
+]
+
+
+def _first_existing(cands: list[tuple[Path, str]]) -> tuple[Path, str] | None:
+    for path, label in cands:
+        if path.exists():
+            return path, label
+    return None
+
+
+def training_sets() -> tuple[tuple[Path, str], tuple[Path, str]] | None:
+    """Modelin GERÇEKTEN eğitilebileceği (pozitif, negatif) kaynaklar ya da None.
+
+    Rapordaki yöntem etiketi bunu kullanır: hangi pozitif set koştuysa o yazılır
+    (ör. 'UniProt KW-0843'), VFDB adı varsayılmaz.
+    """
+    pos, neg = _first_existing(_POS_SOURCES), _first_existing(_NEG_SOURCES)
+    return (pos, neg) if pos and neg else None
 
 
 def acc_features(seq: str, lag: int = _LAG) -> np.ndarray:
@@ -54,9 +91,16 @@ def acc_features(seq: str, lag: int = _LAG) -> np.ndarray:
     return np.concatenate(feats)
 
 
+def _open_text(path: Path):
+    """FASTA'yı aç — .gz olsun olmasın (eski hâli yalnız gzip açıyordu)."""
+    if str(path).endswith(".gz"):
+        return gzip.open(path, "rt", encoding="latin-1")
+    return open(path, "rt", encoding="latin-1")
+
+
 def _iter_seqs(path: Path, limit: int, min_len: int = 50):
     out = []
-    with gzip.open(path, "rt", encoding="latin-1") as fh:
+    with _open_text(path) as fh:
         seq = []
         for line in fh:
             if line.startswith(">"):
@@ -74,16 +118,33 @@ def _iter_seqs(path: Path, limit: int, min_len: int = 50):
 def _train():
     from sklearn.linear_model import LogisticRegression
     from sklearn.preprocessing import StandardScaler
-    pos = _iter_seqs(_VFDB, 500)
-    neg = _iter_seqs(_HUMAN, 500)
+    sets = training_sets()
+    if sets is None:
+        return None
+    (pos_path, pos_label), (neg_path, neg_label) = sets
+    pos = _iter_seqs(pos_path, 500)
+    neg = _iter_seqs(neg_path, 500)
+    if not pos or not neg:
+        return None
     X = np.array([acc_features(s) for s in pos + neg])
     y = np.array([1] * len(pos) + [0] * len(neg))
     scaler = StandardScaler().fit(X)
     clf = LogisticRegression(max_iter=1000).fit(scaler.transform(X), y)
-    model = {"scaler": scaler, "clf": clf, "n_pos": len(pos), "n_neg": len(neg)}
+    # Eğitim kaynakları modelin İÇİNE yazılır: önbellekten yüklenen bir model de
+    # hangi pozitif setle eğitildiğini söyleyebilsin (rapor etiketi buna bakar).
+    model = {"scaler": scaler, "clf": clf, "n_pos": len(pos), "n_neg": len(neg),
+             "pos_label": pos_label, "neg_label": neg_label}
     _MODEL.parent.mkdir(parents=True, exist_ok=True)
     _MODEL.write_bytes(pickle.dumps(model))
     return model
+
+
+def model_info() -> dict | None:
+    """Eğitilmiş modelin künyesi: pozitif/negatif set etiketi + örnek sayıları."""
+    m = _model()
+    if not m:
+        return None
+    return {k: m.get(k) for k in ("pos_label", "neg_label", "n_pos", "n_neg")}
 
 
 @functools.lru_cache(maxsize=1)
@@ -93,7 +154,7 @@ def _model():
             return pickle.loads(_MODEL.read_bytes())
         except Exception:
             pass
-    if _VFDB.exists() and _HUMAN.exists():
+    if training_sets() is not None:
         try:
             return _train()
         except Exception:

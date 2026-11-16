@@ -1,10 +1,23 @@
 """Adım 2 — Virülans faktörü / aşı hedefi keşfi.
 
-GERÇEK yol: proteomu 'diamond blastp' ile küratörlü VFDB'ye tarar
-(tools/diamond + tools/db/vfdb.dmnd varsa). Eşikler config'ten (evalue/identity/
-coverage). Ek olarak protein açıklamasında virülans anahtar-kelime taraması.
+GERÇEK yol: proteomu 'diamond blastp' ile küratörlü bir virülans protein
+veritabanına tarar. Eşikler config'ten (evalue/identity/coverage). Ek olarak
+protein açıklamasında virülans anahtar-kelime taraması.
 
-diamond/VFDB yoksa FALLBACK: paket-içi mini referansa yerel hizalama + anahtar-
+İKİ REFERANS KAYNAĞI desteklenir, sırayla aranır (bkz. _VIRDB_SOURCES):
+  1. VFDB setA  — tools/db/vfdb.dmnd
+  2. UniProt/Swiss-Prot KW-0843 — tools/db/uniprot_virulence_kw0843.dmnd
+
+NEDEN İKİ KAYNAK: VFDB'nin dağıtım sunucusu (www.mgc.ac.cn) bazı ağlardan
+erişilemiyor; erişilemediğinde bu adım, ACC antijenite modeli ve VaxiJen çapraz-
+kontrolü birlikte düşüyordu (üçünün de pozitif seti VFDB'den geliyor).
+
+DÜRÜSTLÜK: hangi kaynak kullanıldıysa rapora, yöntem etiketine ve atıf tablosuna
+O yazılır — `virulence_source()` tek doğruluk kaynağıdır. Kaynak adını sabit
+yazmak (ör. UniProt koşarken "VFDB" demek) YASAK: atıf tablosu yanlış DOI
+gösterir ve Methods bölümü gerçekte koşulmayan bir veritabanını iddia eder.
+
+Hiçbir kaynak yoksa FALLBACK: paket-içi mini referansa yerel hizalama + anahtar-
 kelime (heuristik). Sonuçlar 'method' ile etiketlenir. Sert filtre.
 """
 
@@ -22,7 +35,25 @@ from .models import ProteinRecord
 from .sequtils import sanitize
 
 _TOOLS = Path(__file__).resolve().parent.parent / "tools"
-_VFDB = _TOOLS / "db" / "vfdb.dmnd"
+
+# (diamond DB yolu, kısa etiket). SIRA ÖNEMLİ: VFDB varsa o tercih edilir
+# (makalenin özgün yöntemi), yoksa UniProt KW-0843'e düşülür.
+_VIRDB_SOURCES: list[tuple[Path, str]] = [
+    (_TOOLS / "db" / "vfdb.dmnd", "VFDB"),
+    (_TOOLS / "db" / "uniprot_virulence_kw0843.dmnd", "UniProt KW-0843"),
+]
+
+
+def virulence_source() -> tuple[Path, str] | None:
+    """Bu koşuda GERÇEKTEN kullanılacak virülans DB'si: (yol, etiket) ya da None.
+
+    Rapor/atıf/yöntem etiketi için TEK doğruluk kaynağı. Dosya yoksa None döner
+    ve çağıran heuristik yedeğe düşer (uydurma kaynak adı YOK).
+    """
+    for path, label in _VIRDB_SOURCES:
+        if path.exists():
+            return path, label
+    return None
 
 
 def _diamond_bin() -> str | None:
@@ -51,7 +82,7 @@ _VIRAL_KEYWORDS = [
 
 
 def diamond_available() -> bool:
-    return _diamond_bin() is not None and _VFDB.exists()
+    return _diamond_bin() is not None and virulence_source() is not None
 
 
 # runner/tool_status uyumu için standart isim (eskiden yalnız diamond_available
@@ -63,7 +94,7 @@ def available() -> bool:
 def _virulence_score(vf_hit: bool, pident: float, kw: str | None) -> float:
     """Virülans kanıtını 0-1 skora indirger (sert kapı DEĞİL, adaylık bileşeni).
 
-    Güçlü VFDB eşleşmesi → yüksek; zayıf/kısmi benzerlik → orta; yalnız küratörlü
+    Güçlü DB eşleşmesi → yüksek; zayıf/kısmi benzerlik → orta; yalnız küratörlü
     anahtar-kelime → 0.5; hiç kanıt yok → 0.15 (kanıt yokluğu, virülans-değil kanıtı
     değildir — bu yüzden taban sıfır değil). NERVE2'nin virülans-skoru mantığı.
     """
@@ -85,8 +116,12 @@ def _run_diamond(proteins: list[ProteinRecord], evalue: float, min_id: float,
             fh.write(f">{pr.id}\n{sanitize(pr.seq)}\n")
         qpath = fh.name
     lengths = {pr.id: len(sanitize(pr.seq)) for pr in proteins}
+    src = virulence_source()
+    if src is None:
+        Path(qpath).unlink(missing_ok=True)
+        return {}
     try:
-        cmd = [str(_diamond_bin()), "blastp", "-q", qpath, "-d", str(_VFDB),
+        cmd = [str(_diamond_bin()), "blastp", "-q", qpath, "-d", str(src[0]),
                "--outfmt", "6", "qseqid", "sseqid", "pident", "length", "evalue", "stitle",
                "--max-target-seqs", "1", "--evalue", str(evalue), "--quiet"]
         r = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
@@ -136,20 +171,23 @@ def _mini_ref_identity(seq: str, refs, aligner) -> tuple[float, str]:
 
 def run(proteins: list[ProteinRecord], tool: ResolvedTool,
         profile: str = "bacteria") -> list[ProteinRecord]:
-    # VFDB bakteriyel virülans faktörleri DB'sidir; viral/parazit proteinleri
-    # buraya vurmaz. Bu profillerde keşfi SERT filtre olarak uygulamak her şeyi
-    # eler. Bu yüzden bakteri-dışında keşif baypas edilir: tüm proteinler aday
-    # geçer (funnel + epitop adımları eler), viral anahtar-kelimeler etiketlenir.
+    # Her iki referans da (VFDB setA, UniProt KW-0843 bakteri süzgeçli) BAKTERİYEL
+    # virülans faktörü veritabanıdır; viral/parazit proteinleri buraya vurmaz. Bu
+    # profillerde keşfi SERT filtre olarak uygulamak her şeyi eler. Bu yüzden
+    # bakteri-dışında keşif baypas edilir: tüm proteinler aday geçer (funnel +
+    # epitop adımları eler), viral anahtar-kelimeler etiketlenir.
     if profile != "bacteria":
         for pr in proteins:
             desc = str(pr.annotations.get("desc", "")).lower()
             kw = next((k for k in _VIRAL_KEYWORDS + _KEYWORDS if k in desc), None)
-            # Virüs/parazitte VFDB anlamsız; virülans skoru anahtar-kelimeden
-            # (yüzey/yapısal protein etiketi) yaklaşık — 0.15 taban, kw varsa 0.5.
+            # Virüs/parazitte bakteriyel virülans DB'si anlamsız; virülans skoru
+            # anahtar-kelimeden (yüzey/yapısal protein etiketi) yaklaşık —
+            # 0.15 taban, kw varsa 0.5.
             pr.annotations.update({
                 "vf_identity": 0.0, "vf_ref": "", "vf_keyword": kw or "",
                 "virulence": 0.5 if kw else 0.15,
-                "method_discovery": f"ATLANDI ({profile}: VFDB bakteriye özgü) — tüm proteinler aday",
+                "method_discovery": (f"ATLANDI ({profile}: virülans DB bakteriye özgü)"
+                                     " — tüm proteinler aday"),
             })
             pr.mark("discovery", True,
                     (f"keşif atlandı ({profile}); anahtar-kelime: {kw}" if kw
@@ -162,6 +200,8 @@ def run(proteins: list[ProteinRecord], tool: ResolvedTool,
     evalue = float(tool.params["evalue"].value)
 
     use_diamond = diamond_available()
+    src = virulence_source()
+    db_label = src[1] if src else "virülans DB"
     dia = _run_diamond(proteins, evalue, min_id, min_cov) if use_diamond else {}
     if use_diamond and not dia:
         use_diamond = False  # diamond çalışmadı -> fallback
@@ -179,13 +219,13 @@ def run(proteins: list[ProteinRecord], tool: ResolvedTool,
         if use_diamond:
             d = dia.get(pr.id, {"pident": 0.0, "coverage": 0.0, "hit": False, "stitle": ""})
             vf_hit, pct, ref = d["hit"], d["pident"], d.get("stitle", "")
-            method = "GERÇEK (diamond blastp → VFDB) + anahtar-kelime"
-            reason = (f"VFDB %{pct} kimlik ({ref})" if vf_hit
-                      else f"anahtar-kelime: {kw}" if kw else f"VFDB hit yok (%{pct})")
+            method = f"GERÇEK (diamond blastp → {db_label}) + anahtar-kelime"
+            reason = (f"{db_label} %{pct} kimlik ({ref})" if vf_hit
+                      else f"anahtar-kelime: {kw}" if kw else f"{db_label} hit yok (%{pct})")
         else:
             pct, ref = _mini_ref_identity(pr.seq, refs, aligner)
             vf_hit = pct >= min_id
-            method = "heuristik (mini-ref + anahtar-kelime) — VFDB yok"
+            method = "heuristik (mini-ref + anahtar-kelime) — virülans DB yok"
             reason = (f"mini-ref %{pct} ({ref})" if vf_hit
                       else f"anahtar-kelime: {kw}" if kw else f"mini-ref %{pct}, anahtar-kelime yok")
 
