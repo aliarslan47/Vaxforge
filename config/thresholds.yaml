@@ -190,6 +190,16 @@ tools:
     params:
       min_percent: { default: {bacteria: 90, virus: 90, parasite: 85}, range: [0, 100], unit: "%", desc: "Minimum kapsam" }
 
+  # --- 6c2) Örtüşen aday kümeleme ---------------------------------------------
+  candidate_clustering:
+    step: scoring
+    engine: "aynı protein + aynı tür içinde kayan-pencere örtüşmesi"
+    description: "Kayan pencere komşuları (aynı proteinin bitişik offset'leri) ayrı aday sayılıyordu; aday sayısı şişiyordu. Her küme en yüksek adaylık puanlı temsilcisiyle gösterilir, kalanlar temsilciye yazılır. Tam kopya elemesi DEĞİL; örtüşme elemesi."
+    hard_filter: false
+    params:
+      min_overlap: { default: {bacteria: 4, virus: 4, parasite: 4}, range: [1, 15], unit: "aa", desc: "Bu kadar ya da daha fazla aa örtüşen aynı-protein peptitleri tek küme sayılır" }
+      enabled: { default: {bacteria: 1, virus: 1, parasite: 1}, range: [0, 1], desc: "1=kümele, 0=kapat (eski şişkin davranış)" }
+
   # --- 6d) IEDB literatür/bilinen-epitop taraması -----------------------------
   iedb_match:
     step: iedb_match

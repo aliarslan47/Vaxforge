@@ -15,9 +15,9 @@ from __future__ import annotations
 from datetime import datetime
 from pathlib import Path
 
-from . import (citations, conservation, diagnostics, discovery, epitope, funnel,
-               iedb_match, ingest, mev, mimicry, population, report, scoring,
-               survival, tool_status)
+from . import (citations, cluster, conservation, diagnostics, discovery, epitope,
+               funnel, iedb_match, ingest, mev, mimicry, population, report,
+               scoring, survival, tool_status)
 from .config_loader import ThresholdConfig, flatten_for_report
 from .detect import Detection
 from .hosts import HostRegistry
@@ -235,6 +235,29 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
     # 6b) Scoring
     yield _ev("scoring", "running", "Adaylık puanı hesaplanıyor…")
     peptides = scoring.score(peptides, cfg.candidacy_weights())
+    meta["n_scored"] = len(peptides)
+
+    # 6b2) Örtüşen aday kümeleme — kayan pencere komşuları tek epitop bölgesidir.
+    # Puanlamadan SONRA (temsilci en iyi puanlı olsun), popülasyon kapsamı/IEDB/MEV'den
+    # ÖNCE: yoksa o adımlar da şişkin set üzerinde hesaplanır.
+    _cc = resolved["candidate_clustering"]
+    peptides, clu = cluster.cluster(
+        peptides,
+        min_overlap=int(_cc.params["min_overlap"].value),
+        enabled=bool(int(_cc.params["enabled"].value)),
+    )
+    meta["clustering"] = clu
+    if clu["enabled"] and clu["n_absorbed"]:
+        yield _ev("clustering", "done",
+                  f"{clu['n_before']} aday → {clu['n_after']} küme temsilcisi "
+                  f"({clu['n_absorbed']} örtüşen komşu temsilciye katıldı, "
+                  f"≥{clu['min_overlap']} aa)", clu)
+    elif clu["enabled"]:
+        yield _ev("clustering", "done",
+                  f"{clu['n_after']} aday, örtüşen komşu yok", clu)
+    else:
+        yield _ev("clustering", "done", "Aday kümeleme kapalı (config)", clu)
+
     meta["n_survivors"] = len(peptides)
     yield _ev("scoring", "done", f"{len(peptides)} aday sıralandı",
               {"top": [(p.seq, p.kind, p.candidacy) for p in peptides[:5]]})
