@@ -32,6 +32,15 @@ def _resolve_immforge_path() -> str:
     Tarihsel not: eski varsayılan yalnız ~/immforge idi; repo ~/repos/ImmForge
     altında klonlanmışsa kalibrasyon katmanı SESSİZCE devre dışı kalıyordu
     (tüm konaklar human-proxy). Aday listesi bu sessiz düşüşü kapatır.
+
+    İkinci sessiz düşüş (2026-11-22): aday testi `config/` ya da `immforge/`
+    dizinine bakıyordu, ama entegrasyon giriş noktası
+    (`immforge/integrations/vaxforge.py`) YALNIZ phase-4 dalında var. ~/repos/ImmForge
+    `main`'de duruyorsa test geçiyor, sonra import başarısız oluyor ve ImmForge adımı
+    IMMFORGE_PATH elle verilmedikçe sessizce boş kalıyordu — `web/guardian/supervise.sh`
+    onu kendisi set ettiği için web arayüzünde çalışıyor, CLI/script koşusunda
+    çalışmıyordu. Artık aday, giriş noktasını GERÇEKTEN taşıyorsa seçilir; worktree
+    kardeşleri (ImmForge-phase4) de taranır.
     """
     env = os.environ.get("IMMFORGE_PATH")
     if env:
@@ -40,11 +49,21 @@ def _resolve_immforge_path() -> str:
     repo_parent = Path(__file__).resolve().parents[2]
     candidates = [
         home / "immforge",
+        home / "repos" / "ImmForge-phase4",
         home / "repos" / "ImmForge",
+        home / "ImmForge-phase4",
         home / "ImmForge",
+        repo_parent / "ImmForge-phase4",
         repo_parent / "ImmForge",
         repo_parent / "immforge",
     ]
+    entry_rel = Path("immforge") / "integrations" / "vaxforge.py"
+    # 1. tur: giriş noktasını gerçekten taşıyan kurulum (iş yapabilen).
+    for c in candidates:
+        if (c / entry_rel).is_file():
+            return str(c)
+    # 2. tur: ImmForge gibi duran ama entegrasyonu olmayan kurulum. Seçilir ki
+    # available() "import edilemedi" diye DÜRÜST bir yokluk raporlasın.
     for c in candidates:
         if (c / "config").is_dir() or (c / "immforge").is_dir():
             return str(c)
