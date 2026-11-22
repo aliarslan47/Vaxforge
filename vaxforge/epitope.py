@@ -11,8 +11,8 @@ yoksa IEDB API, o da yoksa proxy (dürüst etiketli).
 
 from __future__ import annotations
 
-from . import (bepipred, bepipred3, ifngamma, immunogenicity, mhc_motif,
-               predictors, processing)
+from . import (bepipred, bepipred3, complexity, ifngamma, immunogenicity,
+               mhc_motif, predictors, processing)
 from .config_loader import ResolvedTool
 from .hosts import Host
 from .models import Peptide, ProteinRecord
@@ -190,8 +190,14 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
 
     all_i = _all_peptides(i_lengths)
     all_ii = _all_peptides([ii_length])
-    pred_i = {h.name: predictors.predict(all_i, h, "mhc_i", i_rank_weak) for h in hosts}
-    pred_ii = {h.name: predictors.predict(all_ii, h, "mhc_ii", ii_rank_weak) for h in hosts}
+    # Güçlü eşik de omurgaya GEÇİRİLİR: `score` artık %rank'tan sınıfın kendi
+    # eşiklerine demirli log-ölçekle türetiliyor (bkz. mhc_rank).
+    i_rank_strong = float(i_tool.params["rank_strong"].value)
+    ii_rank_strong = float(ii_tool.params["rank_strong"].value)
+    pred_i = {h.name: predictors.predict(all_i, h, "mhc_i", i_rank_weak,
+                                         rank_strong=i_rank_strong) for h in hosts}
+    pred_ii = {h.name: predictors.predict(all_ii, h, "mhc_ii", ii_rank_weak,
+                                          rank_strong=ii_rank_strong) for h in hosts}
 
     for pr in proteins:
         made = _bcell(pr, tools["bcell_epitope"], bp3=bp3_scores.get(pr.id))
@@ -204,6 +210,10 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
                      pred_ii)
         parent_ag = pr.annotations.get("antigenicity")
         for p in made:
+            # Dizi karmaşıklığı: homopolimerik/düşük karmaşıklıklı peptit
+            # bağlanma eşiğini geçse bile aşı adayı OLAMAZ (gerekçe + kalibrasyon:
+            # complexity.py). `passed`'a dokunmaz — bağlanma kararı ayrı ölçüt.
+            complexity.annotate(p)
             p.metrics["parent_antigenicity"] = parent_ag
             p.metrics["gene"] = pr.annotations.get("gene")
             p.metrics["locus_tag"] = pr.annotations.get("locus_tag")

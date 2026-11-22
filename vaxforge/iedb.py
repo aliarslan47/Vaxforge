@@ -16,6 +16,8 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
+from . import mhc_rank
+
 MHCI_URL = "https://tools-cluster-interface.iedb.org/tools_api/mhci/"
 MHCII_URL = "https://tools-cluster-interface.iedb.org/tools_api/mhcii/"
 METHOD_I = "netmhcpan_el"
@@ -97,7 +99,8 @@ def _fasta(peptides: list[str]) -> str:
 
 
 def predict(peptides: list[str], alleles: list[str], mhc_class: str,
-            rank_weak: float, max_peptides: int = 400) -> dict[str, dict]:
+            rank_weak: float, max_peptides: int = 400,
+            rank_strong: float | None = None) -> dict[str, dict]:
     """Peptit -> {score, rank, best_allele, n_alleles, panel_size, coverage_frac}.
 
     Desteklenen allel yoksa / hata olursa boş döner (çağıran proxy'ye düşer).
@@ -128,9 +131,14 @@ def predict(peptides: list[str], alleles: list[str], mhc_class: str,
             pep = r.get("peptide", "")
             try:
                 rank = float(r.get(rank_col, "100"))
-                score = float(r.get("score", "0"))
             except ValueError:
                 continue
+            # ÖLÇEK: API'nin kendi `score` alanı KULLANILMAZ. O alan netMHCpan'ın
+            # yerel skoruyla karşılaştırılamaz bir ölçektedir; aynı koşuda iki
+            # omurga karışırsa (yerel düşer, IEDB devralır) adaylık puanları
+            # sessizce kıyaslanamaz hale gelirdi. %rank zaten omurgalar arası
+            # karşılaştırılabilir büyüklük → tek normalize edici mhc_rank.
+            score = mhc_rank.rank_to_score(rank, mhc_class, rank_strong, rank_weak)
             d = agg.setdefault(pep, {"score": 0.0, "rank": 99.0, "best_allele": "",
                                      "n_alleles": 0, "panel_size": len(alleles),
                                      "_bound": set()})

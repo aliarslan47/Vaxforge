@@ -139,13 +139,24 @@ def type_tables(peptides, meta: dict, top_n: int = 15) -> dict:
         for p in chosen:
             m = p.metrics
             tox = _num(m.get("toxicity"))
+            # DÜŞÜK KARMAŞIKLIK ★ ALAMAZ: ★ "final seçilen epitop" demek, ama
+            # homopolimerik peptit konstrükte hiç konmuyor (mev._pick dışlar).
+            # Eskiden böyle bir ölçüt yoktu; `AAAAARAA` gibi bir peptit bağlanma
+            # eşiğini geçtiği için seçilmiş gibi görünebiliyordu.
             star = antigenic(p) and (p.passed if kind == "B" else strong(p)) and (
-                m.get("ifn_gamma_inducer") is True if kind == "MHC-II" else True)
+                m.get("ifn_gamma_inducer") is True if kind == "MHC-II" else True
+            ) and not m.get("low_complexity")
             rows.append({
                 "star": bool(star), "epitope": p.seq, "kind": kind,
                 "source": (m.get("locus_tag") or m.get("gene") or p.parent or "?"),
                 "pos": _pos(m.get("location")), "length": len(p.seq),
                 "rank": _num(m.get("pseudo_rank")), "allele": m.get("best_allele") or "",
+                # Dizi karmaşıklığı (bkz. complexity.py): düşük karmaşıklıklı
+                # epitop tabloda KALIR ama gerekçesiyle işaretlenir — sessizce
+                # atmak "ölçülmemiş"i "olumsuz bulgu" gibi gösterirdi.
+                "low_complexity": bool(m.get("low_complexity")),
+                "low_complexity_reason": m.get("low_complexity_reason"),
+                "seq_entropy": _num(m.get("seq_entropy")),
                 "antigenicity": _num(m.get("parent_antigenicity")),
                 # TEHLİKE DURUMU, "ok" bayrağı DEĞİL. Eskiden burada
                 # `allergen_ok`/`toxic_ok` vardı ve rapor bunları "Alerjen" /

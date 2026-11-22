@@ -4,12 +4,81 @@
 > bilimsel ayrıntı `benchmark/` altında, faz günlüğü `ROADMAP.md`'de.
 
 **Son güncelleme:** 2026-11-22
-**Son commit:** `ea28b84` — Örtüşen aday kümeleme (kullanıcı kararı 2026-11-22)
+**Son commit:** `d261efe` — MHC-II sessiz düşüşü, tehlike sütunu polaritesi, plan donması
+**Bekleyen:** düşük karmaşıklık + %rank ölçeği düzeltmesi (bu tur, aşağıda)
 **Faz:** makale yazımı / son rötuş. Pipeline tamam, benchmark tamam, taslak hazır.
 **Araç durumu:** 21 araçtan 20'si kurulu. DeepLoc-2.1 ve NetCTL-1.2 **akıştan
 tamamen çıkarıldı** (kullanıcı kararı 2026-11-22): ikisi de hiç koşmuyordu, adları
 hiçbir katmanda geçmiyor. Lokalizasyon = PSORTb (bakteri) / etiketli heuristik;
 antijen işleme = IEDB processing API (tek omurga).
+
+## 2026-11-22 (üçüncü tur) — poly-Ala epitopları: iki ölçek hatası + eksik ölçüt
+
+**Şikâyet:** MHC-I top epitop listesinde `AAAAARAA` gibi düşük karmaşıklıklı
+peptitler var; "skorlayıcı Ala tekrarlarını ödüllendiriyor olabilir" diye not
+düşülmüştü. **Bu hipotez ÖLÇÜLDÜ ve YANLIŞ çıktı** — ama yerine üç gerçek
+kusur bulundu.
+
+### Ölçüm (gerçek netMHCpan, sığır BoLA 12 allel, 1500 doğal BoHV-1 9-mer'i)
+
+| peptit | %rank | doğal peptitler içindeki yeri |
+|---|---|---|
+| `AAAAARAA` | 1.131 | ilk %19.7 |
+| `AAAAAAAAA` | 1.240 | ilk %21.3 |
+| `GGGGGGGGG` | 47.9 | ilk %93 |
+| doğal %1'lik dilim | 0.037 | — |
+
+netMHCpan poly-Ala'yı ödüllendirmiyor; orta sıralarda bırakıyor. Düşük
+karmaşıklıklı doğal peptitlerin ortalama rank'i (12.58) yüksek karmaşıklıklı
+olanlardan (14.64) anlamlı farklı değil. Yani **skorlayıcı suçsuz**.
+
+### Bulunan üç kusur
+
+1. **`mhc_score = 1 - rank/100` ayırt etme gücünü yok ediyordu.** %rank bir
+   yüzdelik dilimdir, biyolojik aralığı 0.01-2'dir; bu doğrusal dönüşüm o
+   aralığın tamamını 0.98-1.00'e sıkıştırıyordu. Ölçüldü: eşiği geçen
+   peptitlerde skorun **toplam yayılımı 0.0196** — `mhc_score` pratikte sabit.
+   `scoring.py` bu bileşeni ağırlıklı ortalamaya kattığı için %rank 0.003'lük
+   gerçek bir bağlayıcı ile %rank 1.13'lük sınırda bir peptit adaylık puanında
+   ayırt edilemiyordu (0.99997 vs 0.9887).
+2. **IEDB omurgası bambaşka bir ölçekte skor veriyordu.** `iedb.predict` rank'ı
+   hiç kullanmayıp API'nin kendi `score` alanını döndürüyordu. Yerel araç
+   düşüp IEDB devralırsa adaylık puanları sessizce kıyaslanamaz hale geliyordu
+   (araç dürüstlüğü notundaki "ÖLÇEK UYUŞMAZLIĞI" varyantının üçüncü örneği).
+3. **Hiçbir katman düşük karmaşıklığı ölçüt saymıyordu.** `AAAAARAA` %rank
+   1.131 ile zayıf-bağlayıcı eşiğini (2.0) GEÇİYOR, dolayısıyla tabloya,
+   ★ işaretine, MEV kasetine ve `top_peptides.fasta`'ya girmeye hak kazanıyordu.
+
+### Düzeltme
+
+- **`vaxforge/mhc_rank.py` (yeni, TEK kaynak):** %rank → skor dönüşümü log10
+  ölçekte ve sınıfın KENDİ eşiklerine demirli (`rank <= güçlü/10` → 1.0,
+  `rank >= zayıf` → 0.0). Üç omurga da (yerel netMHCpan, IEDB, vekil) bunu
+  kullanıyor, `rank_strong` `epitope.run`'dan config'ten geçiriliyor.
+  Ölçülen etki: eşik geçen peptitlerde yayılım **0.0196 → 0.9948**;
+  `AAAAARAA` 0.9887 → **0.1545**, en iyi doğal bağlayıcı 1.0'da kalıyor.
+  Adaylık puanı: poly-Ala 0.41, gerçek bağlayıcılar 0.78-0.79.
+- **`vaxforge/complexity.py` (yeni):** dizi karmaşıklığı AYRI bir dışlama
+  ölçütü (skor cezası değil). Kural: `maxrun>=4 veya farklı_aa<=3 veya
+  entropi<1.5 bit`. **BoHV-1 proteomunda kalibre edildi:** 14/14 homopolimer
+  sondayı eliyor, gerçek güçlü bağlayıcıların (%rank<=0.5, n=145) yalnız
+  %2.1'ini kaybediyor. Daha agresif kurallar (uniq<=4: %4.8, H<2.0: %5.5)
+  reddedildi. Ala'dan ZENGİN olmak eleme sebebi değil: `AGAPAYVAA`
+  (%rank 0.008, en güçlü bağlayıcılardan) kuraldan GEÇİYOR — elenen tekrar,
+  kompozisyon değil.
+  *Biyolojik gerekçe:* homopolimer TCR'a ayırt edici yüzey sunmaz; düşük
+  karmaşıklıklı bölgeler konak proteomunda yaygın (tolerans/otoimmünite);
+  çoğunlukla düzensiz bölgelerden gelir; peptit sentezinde agregasyon yapar.
+- **Dışlama GÖRÜNÜR, sessiz değil** (dürüstlük kuralı): epitop tablosunda
+  satır kalıyor ama ★ alamıyor ve altında gerekçe yazıyor; MEV bölümünde
+  "düşük karmaşıklık nedeniyle dışlananlar" tablosu; `candidates.csv`'de
+  5 yeni sütun; `top_peptides.fasta`'da `>cand` değil `>excluded...
+  EXCLUDED=low_complexity|reason=...` olarak dosyanın sonunda.
+- `passed` alanına DOKUNULMADI — o bağlanma kararıdır, bu ayrı ölçüt.
+
+**Testler:** `tests/test_complexity.py` (12 test) + tüm paket **59/59 geçiyor**.
+**Koşu yapılmadı** (Ali'nin emri: biyolojik sorunlar çözülmeden ve o demeden
+yeni koşu yok). Eski `outputs/run_*` klasörleri Ali'nin isteğiyle silindi.
 
 ## 2026-11-22 (ikinci tur) — MHC-II sessiz düşüşü, tehlike sütunu polaritesi, plan donması
 

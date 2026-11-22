@@ -127,6 +127,23 @@ STRINGS: dict[str, dict[str, str]] = {
     "col_immuno":         {"tr": "İmmüno.", "en": "Immuno."},
     "col_proc":           {"tr": "İşleme", "en": "Processing"},
     "col_cons":           {"tr": "Kons.", "en": "Cons."},
+    "lc_excluded":        {"tr": "düşük karmaşıklık → konstrükte konmadı",
+                           "en": "low complexity → not placed in construct"},
+    "lc_title":           {"tr": "Düşük karmaşıklık nedeniyle dışlanan epitoplar",
+                           "en": "Epitopes excluded for low complexity"},
+    "lc_intro":           {"tr": "Bu peptitler bağlanma eşiğini GEÇTİ ama aşı adayı olarak "
+                                 "kullanılmadı: homopolimerik/düşük karmaşıklıklı diziler TCR'a "
+                                 "ayırt edici yüzey sunmaz, konak proteomunda yaygındır (tolerans/"
+                                 "otoimmünite) ve peptit sentezinde agregasyona yol açar. Eşikler "
+                                 "BoHV-1 proteomunda kalibre edildi: kural 14/14 homopolimer sondayı "
+                                 "eler, gerçek güçlü bağlayıcıların %2.1'ini kaybeder.",
+                           "en": "These peptides PASSED the binding threshold but were not used as "
+                                 "vaccine candidates: homopolymeric/low-complexity sequences present "
+                                 "no discriminating surface to the TCR, are common in the host "
+                                 "proteome (tolerance/autoimmunity) and aggregate during peptide "
+                                 "synthesis. Thresholds were calibrated on the BoHV-1 proteome: the "
+                                 "rule removes 14/14 homopolymer probes and loses 2.1% of genuine "
+                                 "strong binders."},
     "col_step":           {"tr": "Adım", "en": "Step"},
     "col_tool":           {"tr": "Araç", "en": "Tool"},
     "col_param":          {"tr": "Parametre", "en": "Parameter"},

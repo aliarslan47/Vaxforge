@@ -117,11 +117,32 @@ class MEVConstruct:
     cassette: str = ""                 # adjuvan HARİÇ epitop+linker kaseti
     components: list[dict] = field(default_factory=list)   # sıralı parça izi
     n_by_kind: dict[str, int] = field(default_factory=dict)
+    #: Bağlanma eşiğini geçmiş ama düşük karmaşıklık nedeniyle kasete KONMAYAN
+    #: epitoplar (dizi/tip/kaynak/gerekçe) — raporda gerekçesiyle gösterilir.
+    excluded_low_complexity: list[dict] = field(default_factory=list)
 
 
-def _pick(peptides: list[Peptide], kind: str, top: int) -> list[Peptide]:
-    """Verilen tipte, filtreden geçmiş, candidacy'ye göre en iyi `top` epitop."""
+def _pick(peptides: list[Peptide], kind: str, top: int,
+          excluded: list[dict] | None = None) -> list[Peptide]:
+    """Verilen tipte, filtreden geçmiş, candidacy'ye göre en iyi `top` epitop.
+
+    DÜŞÜK KARMAŞIKLIK DIŞLAMASI: homopolimerik/düşük karmaşıklıklı peptit
+    (ör. `AAAAARAA`) bağlanma eşiğini geçse bile konstrükte KONMAZ — TCR
+    tanıması, konak self-benzerliği ve üretilebilirlik gerekçeleriyle
+    (bkz. complexity.py). Dışlananlar `excluded` listesine yazılır, böylece
+    rapor "kaç epitop neden çıkarıldı" diye gösterebilir; sessiz atma yok.
+    """
     pool = [p for p in peptides if p.kind == kind and p.passed]
+    low = [p for p in pool if p.metrics.get("low_complexity")]
+    if excluded is not None:
+        for p in sorted(low, key=lambda x: x.candidacy, reverse=True):
+            excluded.append({
+                "seq": p.seq, "kind": kind, "source": p.parent,
+                "candidacy": p.candidacy,
+                "rank": p.metrics.get("pseudo_rank"),
+                "reason": p.metrics.get("low_complexity_reason", "düşük karmaşıklık"),
+            })
+    pool = [p for p in pool if not p.metrics.get("low_complexity")]
     pool.sort(key=lambda p: p.candidacy, reverse=True)
     # aynı diziyi iki kez koymayalım
     seen: set[str] = set()
@@ -148,9 +169,11 @@ def build_construct(
     Sıra:  [adjuvan]-EAAAK- CTL(AAY) -GPGPG- HTL(GPGPG) -GPGPG- LBL(KK)
     """
     adj_seq = ADJUVANTS.get(adjuvant, ADJUVANTS["beta_defensin"])
-    ctl = _pick(peptides, "MHC-I", top_i)
-    htl = _pick(peptides, "MHC-II", top_ii)
-    lbl = _pick(peptides, "B", top_b)
+    # Düşük karmaşıklık nedeniyle dışlananların izi (rapor gösterir, sessiz atma yok).
+    excluded: list[dict] = []
+    ctl = _pick(peptides, "MHC-I", top_i, excluded)
+    htl = _pick(peptides, "MHC-II", top_ii, excluded)
+    lbl = _pick(peptides, "B", top_b, excluded)
 
     parts: list[str] = []
     comp: list[dict] = []
@@ -196,6 +219,7 @@ def build_construct(
         cassette=cassette,
         components=comp,
         n_by_kind={"MHC-I": len(ctl), "MHC-II": len(htl), "B": len(lbl)},
+        excluded_low_complexity=excluded,
     )
 
 
@@ -354,6 +378,7 @@ def run(
         "adjuvant_label": ADJUVANT_INFO.get(mev.adjuvant, {}).get("label_en", mev.adjuvant),
         "n_by_kind": mev.n_by_kind,
         "components": mev.components,
+        "excluded_low_complexity": mev.excluded_low_complexity,
         "properties": props,
         "citation_keys": cites,
     }

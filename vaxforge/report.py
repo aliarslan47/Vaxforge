@@ -40,6 +40,13 @@ def _candidates_df(peptides: list[Peptide], lang: str = "tr") -> pd.DataFrame:
             "epitope_conservation": p.metrics.get("epitope_conservation"),
             "self_mimicry": p.metrics.get("self_mimicry"),
             "self_mimicry_host": p.metrics.get("self_mimicry_host"),
+            # Dizi karmaşıklığı (bkz. complexity.py) — düşük karmaşıklıklı epitop
+            # bağlanma eşiğini geçse de konstrükte konmaz; CSV'de gerekçesi durur.
+            "low_complexity": p.metrics.get("low_complexity"),
+            "low_complexity_reason": p.metrics.get("low_complexity_reason"),
+            "seq_entropy": p.metrics.get("seq_entropy"),
+            "seq_max_run": p.metrics.get("seq_max_run"),
+            "seq_distinct": p.metrics.get("seq_distinct"),
             "anchor_residues": ";".join(f"{k}={v}" for k, v in
                                         (p.metrics.get("anchor_residues") or {}).items()),
             "allele_anchor_motif": ";".join(f"{k}∈{{{','.join(v)}}}" for k, v in
@@ -106,13 +113,24 @@ def write_package(outdir: Path, peptides: list[Peptide],
     paths["csv"] = p_csv
 
     # FASTA (top 20)
+    # DÜŞÜK KARMAŞIKLIK bu dosyadan DIŞLANIR: bu dosya sentez/sipariş için
+    # kullanılıyor, homopolimerik peptit ise aşı adayı değil (TCR tanıması,
+    # konak self-benzerliği, sentezde agregasyon — bkz. complexity.py). Ama
+    # SESSİZCE silinmez: dosyanın sonuna EXCLUDED etiketiyle eklenir, böylece
+    # "neden yok" sorusu dosyanın içinden yanıtlanır.
     p_fa = outdir / "top_peptides.fasta"
+    ok = [p for p in peptides if not p.metrics.get("low_complexity")]
+    low = [p for p in peptides if p.metrics.get("low_complexity")][:20]
     with p_fa.open("w") as fh:
-        for i, p in enumerate(peptides[:20], 1):
+        for i, p in enumerate(ok[:20], 1):
             g = p.metrics.get("gene") or ""
             lt = p.metrics.get("locus_tag") or ""
             fh.write(f">cand{i}|{p.kind}|score={p.candidacy}|cds={p.parent}"
                      f"{('|gene='+g) if g else ''}{('|locus='+lt) if lt else ''}\n{p.seq}\n")
+        for i, p in enumerate(low, 1):
+            fh.write(f">excluded{i}|{p.kind}|score={p.candidacy}|cds={p.parent}"
+                     f"|EXCLUDED=low_complexity"
+                     f"|reason={p.metrics.get('low_complexity_reason','')}\n{p.seq}\n")
     paths["fasta"] = p_fa
 
     # Excel (tam liste) — Adaylar + aday-başına TÜM araç sonuçları
@@ -220,7 +238,12 @@ def _type_tables_html(peptides, meta) -> str:
             cls = ' class="sel"' if r["star"] else ""
             star = "★" if r["star"] else ""
             lit = "📖" if r["iedb"] else "–"
-            base = (f'<td>{star}</td><td class="mono"><b>{r["epitope"]}</b></td>'
+            # Düşük karmaşıklık: epitop satırda KALIR, yanında gerekçesi yazar.
+            lc = ""
+            if r.get("low_complexity"):
+                lc = (f'<br><span class="warn" style="font-size:.78rem">⚠ '
+                      f'{S("lc_excluded")} — {r.get("low_complexity_reason") or ""}</span>')
+            base = (f'<td>{star}</td><td class="mono"><b>{r["epitope"]}</b>{lc}</td>'
                     f'<td class="mono">{r["source"]}</td><td>{r["pos"]}</td>')
             haz = (f'<td>{hazard(r["allergen_state"])}</td>'
                    f'<td>{hazard(r["toxic_state"], value=r.get("toxicity"))}</td>')
@@ -357,6 +380,22 @@ def _mev_section(meta: dict) -> str:
                  f"CTL={nb['MHC-I']}, HTL={nb['MHC-II']}, LBL={nb['B']}")
     seq_lbl = "Construct sequence" if is_en else "Konstrukt dizisi"
     len_lbl = "length" if is_en else "uzunluk"
+    # Düşük karmaşıklık nedeniyle kasete KONMAYAN epitoplar: bağlanma eşiğini
+    # geçtikleri için "neden yok" sorusu doğar, o yüzden gerekçesiyle listelenir.
+    exc = mv.get("excluded_low_complexity") or []
+    exc_html = ""
+    if exc:
+        erows = "".join(
+            f'<tr><td class="mono">{e["seq"]}</td><td>{e["kind"]}</td>'
+            f'<td class="mono">{e.get("source","")}</td>'
+            f'<td>{"—" if e.get("rank") is None else e["rank"]}</td>'
+            f'<td>{e.get("reason","")}</td></tr>' for e in exc)
+        exc_html = (
+            f"<h3>⚠ {t(lang,'lc_title')} <span class='mono'>— {len(exc)}</span></h3>"
+            f"<p style='font-size:.85rem'>{t(lang,'lc_intro')}</p>"
+            f"<table><tr><th>{t(lang,'col_epitope')}</th><th>{'Type' if is_en else 'Tip'}</th>"
+            f"<th>{t(lang,'col_source')}</th><th>%rank</th>"
+            f"<th>{'Reason' if is_en else 'Gerekçe'}</th></tr>{erows}</table>")
     return (
         f"<h2>🧩 {ttl}</h2>"
         f"<p style='font-size:.85rem'>{comp} · {len_lbl}: <b>{len(mv['sequence'])} aa</b> "
@@ -365,6 +404,7 @@ def _mev_section(meta: dict) -> str:
         f"<p class='mono'>{mv['sequence']}</p></details>"
         f"<table><tr><th>{t(lang,'col_param') if False else ('Property' if is_en else 'Özellik')}</th>"
         f"<th>{'Value' if is_en else 'Değer'}</th></tr>{trows}</table>"
+        f"{exc_html}"
     )
 
 

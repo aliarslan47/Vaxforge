@@ -13,7 +13,7 @@ etiketinde hangi gerçek aracın eksik olduğu yazılır.
 
 from __future__ import annotations
 
-from . import iedb, netmhc_local
+from . import iedb, mhc_rank, netmhc_local
 from .hosts import Host
 from .sequtils import KD, sanitize
 
@@ -28,7 +28,8 @@ def _proxy_score(pep: str) -> float:
     return round(max(0.0, min(1.0, 0.5 * min(1.0, anchor_h / 4) + 0.5 * (0.5 + core_h / 8))), 3)
 
 
-def _proxy(peptides, alleles, rank_weak, missing_tool):
+def _proxy(peptides, alleles, rank_weak, missing_tool, mhc_class="mhc_i",
+           rank_strong=None):
     out = {}
     n = max(1, len(alleles))
     method = f"heuristik proxy ({missing_tool or 'gerçek yordayıcı'} yok)"
@@ -36,6 +37,10 @@ def _proxy(peptides, alleles, rank_weak, missing_tool):
         sc = _proxy_score(pep)
         rank = round(max(0.05, (1 - sc) * 10), 2)
         n_pres = max(1, round(sc * n)) if rank <= rank_weak else 0
+        # ÖLÇEK BİRLİĞİ: vekil de skorunu kendi rank'ından aynı dönüşümle üretir,
+        # yoksa proxy'li ve gerçek-araçlı peptitlerin `mhc_score`'u aynı tabloda
+        # kıyaslanamazdı (etiket dürüst olsa bile sayı yanıltırdı).
+        sc = mhc_rank.rank_to_score(rank, mhc_class, rank_strong, rank_weak)
         out[pep] = {"score": sc, "rank": rank, "best_allele": alleles[0] if alleles else "?",
                     "n_alleles": n_pres, "panel_size": n, "coverage_frac": n_pres / n,
                     "bound_alleles": [alleles[0]] if (n_pres and alleles) else [],
@@ -43,8 +48,9 @@ def _proxy(peptides, alleles, rank_weak, missing_tool):
     return out
 
 
-def _from_iedb(peptides, alleles, mhc_class, rank_weak, host):
-    raw = iedb.predict(peptides, alleles, mhc_class, rank_weak)
+def _from_iedb(peptides, alleles, mhc_class, rank_weak, host, rank_strong=None):
+    raw = iedb.predict(peptides, alleles, mhc_class, rank_weak,
+                       rank_strong=rank_strong)
     if not raw:
         return None
     tool = "NetMHCpan" if mhc_class == "mhc_i" else "NetMHCIIpan"
@@ -53,11 +59,15 @@ def _from_iedb(peptides, alleles, mhc_class, rank_weak, host):
     return raw
 
 
-def predict(peptides: list[str], host: Host, mhc_class: str, rank_weak: float) -> dict[str, dict]:
+def predict(peptides: list[str], host: Host, mhc_class: str, rank_weak: float,
+            rank_strong: float | None = None) -> dict[str, dict]:
     """Peptit -> {score, rank, best_allele, n_alleles, coverage_frac, method}.
 
     Öncelik: yerel NetMHCpan/NetMHCIIpan -> IEDB API (çok-tür) -> proxy.
     Hiçbir yere kilitli değil; kullanılan yöntem 'method' etiketinde yazılır.
+
+    `score` HER omurgada %rank'tan aynı log-ölçek dönüşümüyle üretilir
+    (bkz. mhc_rank) — omurgalar karışsa bile sayılar kıyaslanabilir kalır.
     """
     alleles = host.alleles(mhc_class)
     backend = host.predictor(mhc_class)
@@ -71,7 +81,8 @@ def predict(peptides: list[str], host: Host, mhc_class: str, rank_weak: float) -
     # GERÇEK: NetMHCpan / NetMHCIIpan
     if backend in ("netmhcpan", "netmhciipan"):
         # 1) yerel binary (varsa ve bu mimaride çalışıyorsa) — en hızlı, çevrimdışı
-        local = netmhc_local.predict(peptides, alleles, mhc_class, rank_weak)
+        local = netmhc_local.predict(peptides, alleles, mhc_class, rank_weak,
+                                     rank_strong=rank_strong)
         if local:
             tool = "NetMHCpan" if mhc_class == "mhc_i" else "NetMHCIIpan"
             # KAPSAMA DÜRÜSTLÜĞÜ: chunk'ların bir kısmı düşerse sonuç KISMİdir.
@@ -87,9 +98,10 @@ def predict(peptides: list[str], host: Host, mhc_class: str, rank_weak: float) -
                 d["method"] = label
             return local
         # 2) IEDB API (çok-tür, gerçek)
-        res = _from_iedb(peptides, alleles, mhc_class, rank_weak, host)
+        res = _from_iedb(peptides, alleles, mhc_class, rank_weak, host,
+                         rank_strong=rank_strong)
         if res is not None:
             return res
-        return _proxy(peptides, alleles, rank_weak, backend)
+        return _proxy(peptides, alleles, rank_weak, backend, mhc_class, rank_strong)
 
-    return _proxy(peptides, alleles, rank_weak, backend)
+    return _proxy(peptides, alleles, rank_weak, backend, mhc_class, rank_strong)

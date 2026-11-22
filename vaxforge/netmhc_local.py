@@ -22,6 +22,8 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+from . import mhc_rank
+
 _TOOLS = Path(__file__).resolve().parent.parent / "tools"
 
 # Tek chunk için zaman bütçesi. Maliyet peptit×allel ile büyür; bu makinede
@@ -250,7 +252,7 @@ def _norm_allele(a: str, mhc_class: str) -> str:
 
 
 def predict(peptides: list[str], alleles: list[str], mhc_class: str,
-            rank_weak: float) -> dict[str, dict] | None:
+            rank_weak: float, rank_strong: float | None = None) -> dict[str, dict] | None:
     """Yerel binary ile tahmin. Çalışmazsa None (çağıran IEDB'ye düşer)."""
     if not runnable(mhc_class):
         return None
@@ -343,7 +345,8 @@ def predict(peptides: list[str], alleles: list[str], mhc_class: str,
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as ex:
         for stdout in ex.map(_run_chunk, chunks):
             if stdout:
-                _parse_into(stdout, agg, alleles_n, rank_weak, mhc_class)
+                _parse_into(stdout, agg, alleles_n, rank_weak, mhc_class,
+                            rank_strong=rank_strong)
     _record(mhc_class, requested=len(peps), returned=len(agg),
             n_chunks=len(chunks), panel=n_panel, chunk=CHUNK, failures=failures)
     if not agg:
@@ -355,7 +358,8 @@ def predict(peptides: list[str], alleles: list[str], mhc_class: str,
     return agg
 
 
-def _parse_into(stdout: str, agg: dict, alleles, rank_weak: float, mhc_class: str) -> None:
+def _parse_into(stdout: str, agg: dict, alleles, rank_weak: float, mhc_class: str,
+                rank_strong: float | None = None) -> None:
     """netMHCpan/netMHCIIpan tablosunu ayrıştırır (başlık sütun indeksinden).
 
     Başlık MHC-I'de normal satır, MHC-II'de '#' ile yorumlu; ikisini de destekler.
@@ -391,7 +395,11 @@ def _parse_into(stdout: str, agg: dict, alleles, rank_weak: float, mhc_class: st
         allele = parts[mhc_i] if mhc_i is not None and mhc_i < len(parts) else (alleles[0] if alleles else "?")
         d = agg.setdefault(pep, {"score": 0.0, "rank": 99.0, "best_allele": "",
                                  "n_alleles": 0, "_bound_keys": set()})
-        score = max(0.0, 1 - rank / 100)
+        # ÖLÇEK: skor %rank'tan TEK kaynakta türetilir (mhc_rank). Eskiden burada
+        # `1 - rank/100` vardı; %rank'ın biyolojik aralığını (0.01-2) 0.98-1.00'e
+        # sıkıştırdığı için `mhc_score` pratikte sabitti ve adaylık puanında
+        # güçlü/sınırda bağlayıcı ayırt edilemiyordu (ölçüldü: yayılım 0.0196).
+        score = mhc_rank.rank_to_score(rank, mhc_class, rank_strong, rank_weak)
         if score > d["score"]:
             d["score"] = round(score, 4)
         if rank < d["rank"]:
