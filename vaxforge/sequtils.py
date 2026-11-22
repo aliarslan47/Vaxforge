@@ -117,7 +117,7 @@ def signal_peptide_prob(seq: str) -> float:
 
 
 def predict_localization(seq: str) -> str:
-    """Kaba lokalizasyon HEURİSTİĞİ (gerçek: DeepLoc/PSORTb).
+    """Kaba lokalizasyon HEURİSTİĞİ (gerçek araç: PSORTb, yalnız bakteri).
 
     Sinyal peptidi + TM sayısına göre yüzey/salgı vs sitoplazma tahmini.
     """

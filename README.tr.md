@@ -31,7 +31,7 @@ python3 -m venv --system-site-packages .venv
 pip install -r requirements.txt
 ```
 
-Harici araçlar `tools/` altındadır (git-ignore). Ücretsiz araçlar otomatik kurulur (DIAMOND, VFDB, Swiss-Prot, ToxinPred2, IApred, DeepLoc-2.1); lisanslı DTU HealthTech araçları (NetMHCpan, NetMHCIIpan, SignalP-5.0, TMHMM-2.0, BepiPred-1.0) manuel akademik indirme gerektirir — bkz. `tools/README.md`. Bir araç eksikse pipeline etiketli bir fallback ile yine çalışır.
+Harici araçlar `tools/` altındadır (git-ignore). Ücretsiz araçlar otomatik kurulur (DIAMOND, VFDB, Swiss-Prot, ToxinPred2, IApred); lisanslı DTU HealthTech araçları (NetMHCpan, NetMHCIIpan, SignalP-5.0, TMHMM-2.0, BepiPred-1.0) manuel akademik indirme gerektirir — bkz. `tools/README.md`. Bir araç eksikse pipeline etiketli bir fallback ile yine çalışır.
 
 **Herhangi bir DTU HealthTech paketini çıkardıktan sonra bir kez koşturun:**
 
@@ -137,7 +137,7 @@ Bilimsel çekirdek gerçek, atıflı araçlarla çalışır. Konstrukt-düzeyi y
 |---|---|---|
 | Girdi otomatik algılama | FASTA/FASTQ · nt/protein · genom/CDS/okuma | yerleşik |
 | Keşif (virülans faktörleri) | DIAMOND + VFDB | ✅ gerçek |
-| Antijen hunisi — lokalizasyon | DeepLoc-2.1 | ✅ gerçek |
+| Antijen hunisi — lokalizasyon | PSORTb 3.0 (bakteri) · aksi hâlde Kyte-Doolittle + sinyal heuristiği | ✅ gerçek / etiketli heuristik |
 | Antijen hunisi — transmembran | TMHMM-2.0 | ✅ gerçek |
 | Antijen hunisi — sinyal peptidi | SignalP-5.0 | ✅ gerçek |
 | Antijen hunisi — antijenite | IApred | ✅ gerçek |

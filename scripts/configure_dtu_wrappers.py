@@ -3,19 +3,19 @@
 
 NEDEN BU BETİK VAR
 ------------------
-netMHCpan / netMHCIIpan / netCTL / BepiPred paketleri, kurulum sırasında ELLE
+netMHCpan / netMHCIIpan / BepiPred paketleri, kurulum sırasında ELLE
 düzenlenmek üzere satıcı yer tutucu yoluyla gelir, örneğin:
 
     setenv NMHOME /tools/src/netMHCpan-4.2
     setenv BP     /usr/cbs/packages/bepipred/1.0/bepipred-1.0
-    setenv CTLHOME /var/www/packages/netCTL/1.2a/netCTL-1.2a
+    setenv NMHOME /var/www/packages/netMHCpan/4.2/netMHCpan-4.2
     setenv TMPDIR  /scratch
 
 Bu satır düzeltilmezse araç HİÇ çalışmaz ama çoğu zaman SESSİZCE başarısız olur:
 sarmalayıcı dosyası vardır, `available()` True döner, tahmin fonksiyonu boş
 sonuç döndürür ve pipeline bunu "bulgu yok" sanır. VaxForge artık bu durumu
 yakalıyor (netmhc_local._wrapper_home_ok, bepipred._configured,
-netctl.available duman testi, vaxforge/tool_status.py) — ama en iyisi yolu
+available() duman testleri, vaxforge/tool_status.py) — ama en iyisi yolu
 baştan doğru kurmaktır.
 
 `tools/` dizini .gitignore'da (lisanslı araçlar repoya girmez), dolayısıyla bu
@@ -46,8 +46,6 @@ TOOLS = REPO / "tools"
 WRAPPERS: list[tuple[str, str, str]] = [
     ("netMHCpan-*/netMHCpan",     "NMHOME",  "."),
     ("netMHCIIpan-*/netMHCIIpan", "NMHOME",  "."),
-    ("netCTL-*/netCTL",           "CTLHOME", "."),
-    ("netCTL-*/netCTL",           "TMPDIR",  "tmp"),
     ("bepipred-*/bepipred",       "BP",      "."),
     ("bepipred-*/bepipred",       "TMP",     "tmp"),
 ]

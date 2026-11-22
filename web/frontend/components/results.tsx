@@ -206,6 +206,10 @@ export function CandidatesTable({ candidates }: { candidates: Candidate[] }) {
               {filtered.slice(0, limit).map((r, i) => {
                 const st = kindStyle(String(r.kind));
                 const tox = typeof r.toxicity === "number" ? r.toxicity : undefined;
+                // ToxinPred2 yalnız >= 35 aa'da doğrulanmıştır; kısa epitopta
+                // skor bilgi amaçlıdır, eleme yapılmaz (bkz. vaxforge/survival.py).
+                const toxOod = String(r.peptide ?? "").length > 0
+                  && String(r.peptide).length < 35;
                 const allergen = String(r.allergen) === "true" || r.allergen === 1;
                 const cover = typeof r.host_coverage === "number" ? r.host_coverage : undefined;
                 return (
@@ -235,11 +239,19 @@ export function CandidatesTable({ candidates }: { candidates: Candidate[] }) {
                     </td>
                     <td className="hidden px-4 py-2.5 text-center md:table-cell">
                       {tox !== undefined ? (
-                        <span className={cn(
-                          "inline-block rounded-md px-1.5 py-0.5 font-mono text-[11px] font-medium",
-                          tox >= 0.5 ? "bg-danger/10 text-danger" : "bg-bio/10 text-bio-soft",
-                        )}>
-                          {tox.toFixed(2)}
+                        <span
+                          title={toxOod ? t("tox_ood_hint") : undefined}
+                          className={cn(
+                            "inline-block rounded-md px-1.5 py-0.5 font-mono text-[11px] font-medium",
+                            // Alan dışı skoru KIRMIZI boyamak ölçülmemiş bir
+                            // iddiayı olumsuz bulguya çevirir: ToxinPred2 yalnız
+                            // >= 35 aa'da doğrulanmıştır, epitoplar 8-15 aa.
+                            toxOod
+                              ? "bg-warn/10 text-warn"
+                              : tox >= 0.5 ? "bg-danger/10 text-danger" : "bg-bio/10 text-bio-soft",
+                          )}
+                        >
+                          {toxOod ? `? ${tox.toFixed(2)}` : tox.toFixed(2)}
                         </span>
                       ) : "—"}
                     </td>

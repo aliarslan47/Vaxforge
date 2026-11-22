@@ -1,23 +1,21 @@
-"""Antijen işleme omurgası seçimi: NetCTL-1.2 (yerel) ya da IEDB processing API.
+"""Antijen işleme omurgası seçimi (proteozomal kesim + TAP).
 
-NEDEN BU KATMAN: iki tahminci aynı iki bileşeni (proteozomal kesim + TAP)
-üretir ama ÖLÇEKLERİ farklıdır (NetCTL cle = 0-1 olasılık, IEDB
-proteasome_score = log-ölçekli, %68'i 1'i aşıyor). Normalizasyonu hangi omurga
-koştuysa onun yapması gerekir: IEDB skorlarını netctl.processing_norm'dan
-geçirmek kesim bileşeninin çözünürlüğünün üçte ikisini kırpıyor (ölçüm:
-iedb_processing modül başlığı). Bu yüzden çağıran yer omurganın KENDİSİNİ alır
-ve `processing_norm`/`METHOD`'u ondan okur.
+NEDEN BU KATMAN: işleme omurgası değiştirilebilir ve her omurganın skor ÖLÇEĞİ
+kendine özgüdür (ör. IEDB `proteasome_score` log-ölçeklidir ve değerlerin
+%68'i 1'i aşar; 0-1 olasılık varsayan bir normalizasyondan geçirmek kesim
+bileşeninin çözünürlüğünün üçte ikisini kırpar — ölçüm: iedb_processing modül
+başlığı). Bu yüzden normalizasyonu omurganın KENDİSİ yapar: çağıran yer modülü
+alır ve `processing_norm`/`METHOD`'u ondan okur.
 
-SIRA: NetCTL yerelde GERÇEKTEN koşuyorsa (duman testi geçerse) o tercih edilir —
-makalenin özgün yöntemi, çevrimdışı ve hızlı. Koşmuyorsa IEDB API'ye düşülür.
-İkisi de yoksa None → MHC-I işleme metrikleri dürüstçe ölçülmemiş kalır.
+Şu an tek omurga IEDB processing API'dir. Yoksa None → MHC-I işleme metrikleri
+dürüstçe ölçülmemiş kalır (ölçülmemiş ≠ olumsuz bulgu).
 """
 
 from __future__ import annotations
 
 from types import ModuleType
 
-from . import iedb_processing, netctl
+from . import iedb_processing
 
 
 def backend() -> ModuleType | None:
@@ -26,8 +24,6 @@ def backend() -> ModuleType | None:
     Dönen modül şu üçünü sunar: `METHOD`, `predict(proteins)`,
     `processing_norm(cle, tap)`.
     """
-    if netctl.available():
-        return netctl
     if iedb_processing.available():
         return iedb_processing
     return None

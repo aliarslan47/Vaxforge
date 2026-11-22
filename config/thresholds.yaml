@@ -32,7 +32,7 @@ tools:
   # --- 3) Antijen eleme hunisi -----------------------------------------------
   localization:
     step: antigen_funnel
-    engine: "PSORTb / DeepLoc"
+    engine: "PSORTb (bakteri) / heuristik"
     description: "Hücre-altı lokalizasyon; erişilebilir (yüzey/salgı) proteinler tercih. Sitoplazmik elenir. Bakteride izinli liste GRAM TİPİNE göre seçilir (aşağıdaki not)."
     hard_filter: true
     params:
@@ -139,10 +139,10 @@ tools:
       rank_strong:     { default: {bacteria: 0.5, virus: 0.5, parasite: 0.5}, range: [0.0, 5.0], unit: "%rank", desc: "Güçlü bağlayıcı eşiği" }
       rank_weak:       { default: {bacteria: 2.0, virus: 2.0, parasite: 2.0}, range: [0.0, 10.0], unit: "%rank", desc: "Zayıf bağlayıcı eşiği" }
 
-  netctl:
+  antigen_processing:
     step: epitope
-    engine: "NetCTL-1.2 (proteozomal kesim + TAP)"
-    description: "MHC-I sonrası antijen işleme: allel-bağımsız C-terminal kesim (cle) + TAP taşıma. NetCTL'in kendi eski MHC tahmincisi KULLANILMAZ (bağlanmayı NetMHCpan yapar)."
+    engine: "IEDB processing API (proteozomal kesim + TAP)"
+    description: "MHC-I sonrası antijen işleme: allel-bağımsız C-terminal kesim + TAP taşıma. Omurganın MHC bağlanma bileşeni KULLANILMAZ (bağlanmayı NetMHCpan yapar)."
     hard_filter: false
     params:
       min_cleavage: { default: {bacteria: 0.5, virus: 0.5, parasite: 0.5}, range: [0.0, 1.0], desc: "Etkin proteozomal C-terminal kesim eşiği (bilgi amaçlı; sert filtre değil)" }
@@ -251,7 +251,7 @@ candidacy_score:
     mhc_ii_binding:      0.18   # MHC-II %rank (NetMHCIIpan)
     organism_coverage:   0.14   # kaç konak allelinde/konakta sunuluyor
     immunogenicity:      0.12   # CD8+ T-hücre immünojenite (IEDB Calis 2013, yalnız MHC-I)
-    antigen_processing:  0.12   # proteozomal kesim + TAP (NetCTL-1.2, yalnız MHC-I)
+    antigen_processing:  0.12   # proteozomal kesim + TAP (yalnız MHC-I)
     ifn_gamma:           0.12   # IFN-γ (Th1) indükleme (IFNepitope2, yalnız MHC-II/HTL)
     conservation:        0.10   # suşlar arası korunmuşluk (yalnız kullanıcı ek suş verirse)
     surface_exposure:    0.12   # viral zarf/yüzey glikoproteini (SignalP+TM imzası; YALNIZ virüs profili)

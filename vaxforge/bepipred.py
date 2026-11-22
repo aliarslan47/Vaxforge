@@ -33,7 +33,7 @@ def _configured() -> bool:
     epitopu bulunamadı" sanıyordu. Yani araç yokluğu, negatif BULGU gibi
     görünüyordu: projenin dürüstlük ilkesinin tam tersi.
 
-    Aynı kusur netMHCpan/netMHCIIpan/netCTL sarmalayıcılarında da vardı
+    Aynı kusur netMHCpan/netMHCIIpan sarmalayıcılarında da vardı
     (bkz. netmhc_local._wrapper_home_ok).
     """
     if not _WRAPPER.exists():

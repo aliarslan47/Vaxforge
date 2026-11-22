@@ -6,7 +6,7 @@ insan homolojisi (ZORUNLU — ama bu makinede insan proteom DB'si yoksa
 Yumuşak (skorlama): sinyal peptidi, antijenite, konservasyon, adezin.
 
 Tüm eşikler config'ten gelir. Heuristik yöntemler 'method_*' ile etiketlenir;
-gerçek araçlar (DeepLoc/SignalP/DeepTMHMM/VaxiJen/blastp) takılınca değişir.
+gerçek araçlar (PSORTb/SignalP/TMHMM/VaxiJen/blastp) takılınca değişir.
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-from . import antigen_acc, deeploc, host_db, iapred, psortb, signalp, tmhmm_local, vaxijen
+from . import antigen_acc, host_db, iapred, psortb, signalp, tmhmm_local, vaxijen
 from .i18n import t
 from .config_loader import ResolvedTool
 from .hosts import Host
@@ -106,20 +106,20 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
         gram: str | None = None) -> tuple[list[ProteinRecord], dict]:
     """Huniyi uygula. (hayatta kalanlar, özet) döndürür.
 
-    Lokalizasyon (bakteride sert filtre): önce PSORTb (prokaryota-özel, Gram-tipine
-    göre; en doğru) → yoksa DeepLoc (ökaryot-yanlı, yedek) → yoksa heuristik.
-    Virüs/parazit profilinde lokalizasyon eleme yapmaz ('çalıştırılmadı').
+    Lokalizasyon (bakteride sert filtre): PSORTb (prokaryota-özel, Gram-tipine
+    göre) → yoksa heuristik (Kyte-Doolittle + sinyal). Virüs/parazit profilinde
+    lokalizasyon eleme yapmaz ('çalıştırılmadı'): bakteri-dışı lokalizasyon
+    tahmincisi bu kurulumda YOK, bu yüzden viral yüzey kararı TMHMM + SignalP
+    (ikisi de gerçek araç) üzerinden verilir.
 
     Otoimmünite (self-homoloji): HOST-DRIVEN — seçili her konağın kendi proteomuna
     karşı taranır (yalnız insan değil). DB'si olmayan konak için dürüst 'atlandı'.
     """
     hosts = hosts or []
-    # Parazit (ökaryot) DeepLoc kuruluysa lokalizasyon SERT filtre olur (bakteri gibi);
-    # virüste DeepLoc YUMUŞAK (virionlar için güvenilmez → sadece etiketle).
-    deeploc_ok = profile in ("parasite", "virus") and deeploc.available()
-    # YÖNTEM güvenilirliği: lokalizasyonla eleme yalnız prokaryot PSORTb'de (bakteri)
-    # ya da DeepLoc kurulu ökaryot parazitte anlamlı.
-    loc_method_ok = profile == "bacteria" or (profile == "parasite" and deeploc_ok)
+    # YÖNTEM güvenilirliği: lokalizasyonla eleme yalnız prokaryot PSORTb'de
+    # (bakteri profili) anlamlı. Bakteri-dışı profilde lokalizasyon ELEMEZ,
+    # yalnız heuristik etiket taşır — ölçülmemiş değer eleme ölçütü olamaz.
+    loc_method_ok = profile == "bacteria"
     # CONFIG kararı: thresholds.yaml → localization.hard_filter. Önceden bu bayrak
     # OKUNMUYORDU, yani `hard_filter: false` yazmak hiçbir şeyi değiştirmiyordu
     # (README'nin "sihirli sayı yok, her şey config'te" sözüyle çelişiyordu).
@@ -156,8 +156,6 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
     # -- lokalizasyon: bakteride PSORTb (Gram) > heuristik (Kyte-Doolittle + sinyal)
     psortb_ok = profile == "bacteria" and gram in ("positive", "negative") and psortb.available()
     psortb_real = psortb.predict(seq_pairs, gram) if psortb_ok else {}
-    # -- parazit/virüs: DeepLoc-2.0 (ökaryot lokalizasyon). Hata → {} → heuristik (dürüst).
-    deeploc_real = deeploc.predict(seq_pairs) if deeploc_ok else {}
     sp_available = signalp.available()
     sp_real = signalp.predict(seq_pairs, profile=profile) if sp_available else {}
     ia_available = iapred.available()
@@ -172,11 +170,6 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
             pr.annotations["localization_raw"] = psortb_real[pr.id]["raw"]
             pr.annotations["localization_score"] = psortb_real[pr.id]["score"]
             pr.annotations["method_localization"] = f"GERÇEK (PSORTb, Gram{'+' if gram=='positive' else '−'})"
-        elif deeploc_ok and pr.id in deeploc_real:
-            loc = deeploc_real[pr.id]["localization"]
-            pr.annotations["localization_raw"] = deeploc_real[pr.id]["raw"]
-            pr.annotations["localization_score"] = deeploc_real[pr.id]["score"]
-            pr.annotations["method_localization"] = "GERÇEK (DeepLoc-2.0, Fast)"
         else:
             loc = _LOC_MAP.get(predict_localization(pr.seq), "cytoplasm")
             pr.annotations["method_localization"] = "heuristik (KD+sinyal)"
@@ -243,13 +236,9 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
         elif loc_hard:
             ok_loc = loc in loc_allowed
             pr.mark("funnel:localization", ok_loc, f"{loc} {'∈' if ok_loc else '∉'} izinli", localization=loc)
-        elif deeploc_ok and pr.id in deeploc_real:
-            # Virüs: DeepLoc etiketlendi ama SERT eleme yok (virionlar için güvenilmez) — yumuşak.
-            pr.trace.append({"step": "funnel:localization", "ok": True,
-                             "reason": f"DeepLoc etiketi '{loc}' — virüste yumuşak (eleme yok)",
-                             "warning": True})
         else:
-            pr.annotations["method_localization"] = f"ÇALIŞTIRILMADI ({profile}: bakteri-dışı, DeepLoc gerekir)"
+            pr.annotations["method_localization"] = (
+                f"ÇALIŞTIRILMADI ({profile}: bakteri-dışı, lokalizasyon elemesi yok)")
             pr.trace.append({"step": "funnel:localization", "ok": True,
                              "reason": f"ATLANDI — lokalizasyon heuristiği yalnız bakteride geçerli ({profile})",
                              "warning": True})
@@ -311,8 +300,6 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
 
     if psortb_ok:
         loc_method = f"GERÇEK (PSORTb, Gram{'+' if gram=='positive' else '−'})"
-    elif deeploc_ok:
-        loc_method = "GERÇEK (DeepLoc-2.0, Fast)"
     else:
         loc_method = "heuristik (Kyte-Doolittle + sinyal)"
     hh_method = (f"GERÇEK (diamond → {', '.join(hh_scanned)})" if hh_available

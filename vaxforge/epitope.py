@@ -133,7 +133,7 @@ def _mhc(pr: ProteinRecord, hosts: list[Host], mhc_class: str, kind_label: str,
             # MHC yarığı anchor motifi (SALT YORUMLAMA — sıralamayı etkilemez)
             mhc_motif.annotate(p, best_allele, "mhc_i")
             # Antijen işleme: peptidin C-terminaline denk gelen 9-mer'in kesim+TAP'ı
-            # Normalizasyon omurganın KENDİSİNDEN gelir: NetCTL cle'si 0-1
+            # Normalizasyon omurganın KENDİSİNDEN gelir: bir omurganın cle'si 0-1
             # olasılık, IEDB'nin proteasome_score'u log-ölçekli — sabit bir
             # modülden normalize etmek ikinci durumda her şeyi 1.0'a doyurur.
             if proc and proc_backend is not None:
@@ -161,7 +161,7 @@ def run(proteins: list[ProteinRecord], tools: dict[str, ResolvedTool],
     # BepiPred-1.0 / klasik yönteme düşer.
     bp3_scores = bepipred3.predict_batch([(pr.id, sanitize(pr.seq)) for pr in proteins])
     # Antijen işleme (proteozomal kesim + TAP): funnel-survivor proteinleri TEK
-    # batch. Omurga NetCTL-1.2 (yerel) ya da IEDB processing API — hangisi
+    # batch. Omurga IEDB processing API (bkz. processing.backend) — hangisi
     # gerçekten koşuyorsa (bkz. processing.backend). Allel-bağımsız cle/tap
     # protein-başına C-terminal pozisyona göre haritalanır; ikisi de yoksa boş
     # (MHC-I işleme metrikleri dürüstçe ölçülmemiş kalır).

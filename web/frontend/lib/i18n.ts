@@ -104,6 +104,10 @@ export const STR: Dict = {
   col_cover: { tr: "Konak kaps.", en: "Host cov." },
   col_tox: { tr: "Toksisite", en: "Toxicity" },
   col_allergen: { tr: "Alerjen", en: "Allergen" },
+  tox_ood_hint: {
+    tr: "ToxinPred2 yalnız >= 35 aa dizilerde doğrulanmıştır; bu uzunlukta skor bilgi amaçlıdır, eleme yapılmamıştır.",
+    en: "ToxinPred2 is validated only for sequences >= 35 aa; at this length the score is informational and no filtering was applied.",
+  },
 
   // İn silico immünizasyon (ImmForge)
   immuno_title: { tr: "İn silico immünizasyon kararı (ImmForge)", en: "In silico immunization verdict (ImmForge)" },

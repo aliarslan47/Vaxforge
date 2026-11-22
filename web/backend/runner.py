@@ -43,7 +43,7 @@ _PIPELINE_STEPS = [
     ("discovery", "discovery", "Virülans keşfi", "Virulence discovery",
      None, "anahtar-kelime + yerel hizalama (virülans DB yok)"),
     ("localization", "psortb", "Hücre-altı lokalizasyon", "Subcellular localization",
-     "PSORTb 3.0 (bakteri, Gram) / DeepLoc-2.0 (ökaryot·virüs)", "Kyte-Doolittle + sinyal peptid"),
+     "PSORTb 3.0 (bakteri, Gram)", "Kyte-Doolittle + sinyal peptid"),
     ("conservation", "conservation", "Suşlar-arası konservasyon", "Cross-strain conservation",
      "diamond ortolog + BLOSUM62 (çok-suş; taxon'dan otomatik çekme)", None),
     ("tm", "tmhmm_local", "Transmembran topoloji", "Transmembrane topology",

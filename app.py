@@ -316,7 +316,7 @@ for step_id, tools in by_step.items():
 # --- Çalıştır ---------------------------------------------------------------
 _sec("5", t(lang,"sec_run"))
 _tool_status = []
-for _mod, _lbl in [("discovery", "DIAMOND+virülans DB"), ("deeploc", "DeepLoc"),
+for _mod, _lbl in [("discovery", "DIAMOND+virülans DB"), ("psortb", "PSORTb"),
                    ("tmhmm_local", "TMHMM"), ("signalp", "SignalP"),
                    ("iapred", "IApred"), ("bepipred", "BepiPred"),
                    ("netmhc_local", "NetMHCpan"), ("toxinpred", "ToxinPred2")]:
@@ -327,7 +327,7 @@ for _mod, _lbl in [("discovery", "DIAMOND+virülans DB"), ("deeploc", "DeepLoc")
         _tool_status.append(f"⚠️ {_lbl}")
 st.caption("Gerçek araç durumu: " + " · ".join(_tool_status)
            + "  \n(⚠️ = araç yok, o adım için dürüst-etiketli yedek yöntem kullanılır. "
-             "Gerçek bir koşu birkaç dakika sürer — DeepLoc/NetMHCpan CPU'da yavaştır.)")
+             "Gerçek bir koşu birkaç dakika sürer — NetMHCpan CPU'da yavaştır.)")
 
 if st.button(t(lang,"run_start"), type="primary"):
     # arayüzden düzenlenen sayısal/bool eşikleri override olarak topla
@@ -382,7 +382,7 @@ if st.button(t(lang,"run_start"), type="primary"):
             # Kaynak adı koşudan okunur (VFDB ya da UniProt KW-0843) — sabit yazılmaz.
             (f"3· Virülans skoru ({_virdb_label()})", rmeta.get("n_discovery", "?"),
              f"DIAMOND→{_virdb_label()} skorlama (eleme DEĞİL; NERVE2 gibi)"),
-            ("4· Huni sonrası (protein)", rmeta.get("n_funnel", "?"), "DeepLoc+TMHMM+SignalP+IApred+insan homoloji"),
+            ("4· Huni sonrası (protein)", rmeta.get("n_funnel", "?"), "PSORTb+TMHMM+SignalP+IApred+insan homoloji"),
             ("5· Üretilen epitop", rmeta.get("n_epitope", "?"), "SLIDING-WINDOW: B + MHC-I + MHC-II"),
             ("6· Alerjenite sonrası", rmeta.get("n_after_allergen", "?"), "FAO/WHO 6-mer — alerjenler elendi"),
             ("7· Toksisite sonrası", rmeta.get("n_after_toxicity", "?"), "ToxinPred2 — toksikler elendi"),
@@ -467,6 +467,14 @@ if st.button(t(lang,"run_start"), type="primary"):
         def _yn(b):
             return "✔" if b else "✗"
 
+        _HAZ = {"clean": "Temiz", "allergen": "ALERJEN", "toxic": "TOKSİK",
+                "ood": "? alan dışı", "unknown": "ölçülmedi"}
+
+        def _haz(state, value=None):
+            # Durumun kendisi; ✔/✗ ters okunuyordu (bkz. vaxforge/report.py).
+            txt = _HAZ.get(state, state)
+            return txt if value is None else f"{txt} ({value:.2f})"
+
         def _n(v, nd=2):
             return "—" if v is None else f"{v:.{nd}f}"
 
@@ -484,18 +492,18 @@ if st.button(t(lang,"run_start"), type="primary"):
                         "Kaynak": r["source"], "Poz.": r["pos"]}
                 if kind == "B":
                     base.update({"Uzun.": r["length"], "BepiPred": _n(r["bcell"]),
-                                 "Antij.": _n(r["antigenicity"]), "Alerjen": _yn(r["allergen_ok"]),
-                                 "Toksik": _yn(r["toxic_ok"]), "📖": "📖" if r["iedb"] else "–"})
+                                 "Antij.": _n(r["antigenicity"]), "Alerjenite": _haz(r["allergen_state"]),
+                                 "Toksisite": _haz(r["toxic_state"], r.get("toxicity")), "📖": "📖" if r["iedb"] else "–"})
                 elif kind == "MHC-I":
                     base.update({"%rank": _n(r["rank"]), "Allel": r["allele"],
-                                 "Antij.": _n(r["antigenicity"]), "Alerjen": _yn(r["allergen_ok"]),
-                                 "Toksik": _yn(r["toxic_ok"]), "İmmüno.": _n(r["immunogenicity"]),
+                                 "Antij.": _n(r["antigenicity"]), "Alerjenite": _haz(r["allergen_state"]),
+                                 "Toksisite": _haz(r["toxic_state"], r.get("toxicity")), "İmmüno.": _n(r["immunogenicity"]),
                                  "İşleme": _n(r["processing"]), "Kons.": "–",
                                  "📖": "📖" if r["iedb"] else "–"})
                 else:
                     base.update({"%rank": _n(r["rank"]), "Allel": r["allele"],
-                                 "Antij.": _n(r["antigenicity"]), "Alerjen": _yn(r["allergen_ok"]),
-                                 "Toksik": _yn(r["toxic_ok"]), "IFN-γ": _yn(r["ifn_ok"]),
+                                 "Antij.": _n(r["antigenicity"]), "Alerjenite": _haz(r["allergen_state"]),
+                                 "Toksisite": _haz(r["toxic_state"], r.get("toxicity")), "IFN-γ": _yn(r["ifn_ok"]),
                                  "Kons.": "–", "📖": "📖" if r["iedb"] else "–"})
                 data.append(base)
             df_t = pd.DataFrame(data)

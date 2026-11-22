@@ -29,8 +29,8 @@ const STAGES = [
   {
     key: "funnel",
     icon: FilterX,
-    tr: { t: "Antijen Hunisi", d: "DeepLoc + TMHMM + SignalP + IApred + insan-homoloji" },
-    en: { t: "Antigen Funnel", d: "DeepLoc + TMHMM + SignalP + IApred + self-homology" },
+    tr: { t: "Antijen Hunisi", d: "PSORTb + TMHMM + SignalP + IApred + insan-homoloji" },
+    en: { t: "Antigen Funnel", d: "PSORTb + TMHMM + SignalP + IApred + self-homology" },
   },
   {
     key: "epitope",

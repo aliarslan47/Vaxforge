@@ -57,6 +57,30 @@ def report_subset(peptides, top_n: int = 15) -> list[tuple]:
     return out
 
 
+def _allergen_state(m: dict) -> str:
+    """'allergen' | 'clean' | 'unknown' — ölçülmediyse 'clean' DEMEZ."""
+    v = m.get("allergen")
+    if v is True:
+        return "allergen"
+    if v is False:
+        return "clean"
+    return "unknown"
+
+
+def _toxic_state(seq: str, tox, tox_max) -> str:
+    """'toxic' | 'clean' | 'ood' | 'unknown'.
+
+    'ood' = ToxinPred2'nin doğrulanmış uzunluk alanının dışında ölçüldü; skor
+    bilgi amaçlı, eleme yapılmadı (bkz. survival.py kalibrasyon ölçümü).
+    """
+    if tox is None:
+        return "unknown"
+    from . import toxinpred
+    if not toxinpred.in_validated_domain(seq or ""):
+        return "ood"
+    return "toxic" if (tox_max is not None and tox >= tox_max) else "clean"
+
+
 def _num(x):
     try:
         return float(x)
@@ -78,8 +102,10 @@ def type_tables(peptides, meta: dict, top_n: int = 15) -> dict:
     içinde bağlanma gücüne göre sıralı (T-hücre: %rank artan = güçlü üstte;
     B-hücre: BepiPred azalan). 'star' = tüm zorunlu ölçütleri geçen 'final
     seçilen' epitop: antijenik + güçlü bağlanma (B'de BepiPred geçti) [+ HTL'de
-    IFN-γ indükleyici]. Alerjen/toksisite zaten sağ-kalım sert filtresinde
-    elendiği için tüm adaylar geçer; yine de sütun gösterilir (literatür gibi).
+    IFN-γ indükleyici]. Alerjen sağ-kalım sert filtresinde elendiği için tüm
+    adaylar temizdir; TOKSİSİTE böyle DEĞİL: 8-15 aa epitoplar ToxinPred2'nin
+    doğrulanmış alanının dışında olduğundan skor ölçülür ama eleme yapılmaz, bu
+    yüzden sütunda 'alan dışı' durumu görülür (bkz. _toxic_state).
     top_n + literatürde (IEDB) eşleşen HER aday dahil. Tam döküm Excel'de.
     """
     thr = thr_lookup(meta)
@@ -121,8 +147,21 @@ def type_tables(peptides, meta: dict, top_n: int = 15) -> dict:
                 "pos": _pos(m.get("location")), "length": len(p.seq),
                 "rank": _num(m.get("pseudo_rank")), "allele": m.get("best_allele") or "",
                 "antigenicity": _num(m.get("parent_antigenicity")),
-                "allergen_ok": (m.get("allergen") is not True),
-                "toxic_ok": (tox is None or tox < tox_max),
+                # TEHLİKE DURUMU, "ok" bayrağı DEĞİL. Eskiden burada
+                # `allergen_ok`/`toxic_ok` vardı ve rapor bunları "Alerjen" /
+                # "Toksik" başlıklı sütunlara ✔/✗ olarak basıyordu: ✔ aslında
+                # "alerjen DEĞİL" demekti, ama başlık tehlikenin adını taşıdığı
+                # için tam TERSİ okunuyordu. Artık hücre durumun kendisini yazar.
+                #
+                # Toksisitede üçüncü bir durum şart: ToxinPred2 yalnız
+                # >= MIN_VALIDATED_LENGTH aa'da doğrulanmıştır (survival.py'de
+                # ölçüldü: 9-mer AUC 0.69, toksik olmayanın %66'sı "toksik"),
+                # bu yüzden 8-15 aa'lık epitoplarda eleme YAPILMAZ. O skoru
+                # "toksik" diye basmak ölçülmemiş bir iddiayı olumsuz bulguya
+                # çevirirdi → 'ood' (alan dışı) ayrı durum.
+                "allergen_state": _allergen_state(m),
+                "toxic_state": _toxic_state(p.seq, tox, tox_max),
+                "toxicity": tox,
                 "immunogenicity": _num(m.get("immunogenicity")),
                 "processing": _num(m.get("processing_norm")),
                 "bcell": _num(m.get("bcell_score")),
@@ -146,7 +185,7 @@ def candidate_rows(p, thr: dict) -> list[dict]:
     if loc is not None:
         allowed = gv("localization", "allowed") or []
         st = PASS if loc in allowed else (FAIL if allowed else NA)
-        rows.append(_row("Hücre-altı lokalizasyon (DeepLoc)", loc,
+        rows.append(_row("Hücre-altı lokalizasyon", loc,
                          f"∈ {{{', '.join(allowed)}}}" if allowed else "—",
                          st if allowed else NA, m.get("method_localization", ""), hard=True))
     if m.get("signalp") is not None:
@@ -217,11 +256,11 @@ def candidate_rows(p, thr: dict) -> list[dict]:
             rows.append(_row("CD8+ immünojenite (IEDB Calis 2013)", v, "> 0", st,
                              p.methods.get("immunogenicity", "")))
         if m.get("cleavage") is not None:
-            v = _num(m.get("cleavage")); c = _num(gv("netctl", "min_cleavage"))
+            v = _num(m.get("cleavage")); c = _num(gv("antigen_processing", "min_cleavage"))
             st = (PASS if v >= c else FAIL) if c is not None else NA
-            rows.append(_row("Proteozomal kesim cle (NetCTL)", v, f"≥ {c}", st,
+            rows.append(_row("Proteozomal kesim (işleme omurgası)", v, f"≥ {c}", st,
                              p.methods.get("processing", "")))
-            rows.append(_row("TAP taşıma (NetCTL)", m.get("tap"), "bilgi", NA,
+            rows.append(_row("TAP taşıma (işleme omurgası)", m.get("tap"), "bilgi", NA,
                              p.methods.get("processing", "")))
         if m.get("anchor_note"):
             rows.append(_row("MHC yarığı anchor/cep motifi", m.get("anchor_match", ""),

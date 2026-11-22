@@ -31,7 +31,7 @@ python3 -m venv --system-site-packages .venv
 pip install -r requirements.txt
 ```
 
-External tools live under `tools/` (git-ignored). Free tools auto-install (DIAMOND, VFDB, Swiss-Prot, ToxinPred2, IApred, DeepLoc-2.1); licensed DTU HealthTech tools (NetMHCpan, NetMHCIIpan, SignalP-5.0, TMHMM-2.0, BepiPred-1.0) need a manual academic download — see `tools/README.md`. If a tool is missing, the pipeline still runs with a labeled fallback.
+External tools live under `tools/` (git-ignored). Free tools auto-install (DIAMOND, VFDB, Swiss-Prot, ToxinPred2, IApred); licensed DTU HealthTech tools (NetMHCpan, NetMHCIIpan, SignalP-5.0, TMHMM-2.0, BepiPred-1.0) need a manual academic download — see `tools/README.md`. If a tool is missing, the pipeline still runs with a labeled fallback.
 
 **After extracting any DTU HealthTech package, run this once:**
 
@@ -136,7 +136,7 @@ The scientific core runs with real, cited tools. Construct-level structure predi
 |---|---|---|
 | Input auto-detection | FASTA/FASTQ · nt/protein · genome/CDS/reads | built-in |
 | Discovery (virulence factors) | DIAMOND + VFDB | ✅ real |
-| Antigen funnel — localization | DeepLoc-2.1 | ✅ real |
+| Antigen funnel — localization | PSORTb 3.0 (bacteria) · Kyte-Doolittle + signal heuristic otherwise | ✅ real / labeled heuristic |
 | Antigen funnel — transmembrane | TMHMM-2.0 | ✅ real |
 | Antigen funnel — signal peptide | SignalP-5.0 | ✅ real |
 | Antigen funnel — antigenicity | IApred | ✅ real |

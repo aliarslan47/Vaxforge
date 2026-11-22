@@ -64,6 +64,36 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
         "lang": lang,
     }
 
+    # PLAN DURUMU CANLI TUTULUR (2026-11-22): `meta["plan"]` koşunun EN BAŞINDA
+    # bir kez alınıyordu, yani her adım "pending" donmuş hâlde rapora giriyordu.
+    # Rapor "Çalıştırılan plan" başlığı altında 8 adımın 8'ini de "pending"
+    # gösteriyordu — koşu bittikten SONRA bile. Modül düzeyindeki `_ev`'yi
+    # bilinçli gölgeleyen bu yerel sürüm, yayınlanan her olayı ilgili Step'e
+    # işler ve plan tablosunu meta içinde tazeler; böylece rapor gerçekten
+    # koşulanı gösterir ve her adımın son mesajı 'not' sütununda kalır.
+    _steps_by_id = {s.id: s for s in steps}
+    # Olay adı ile Step.id her yerde birebir DEĞİL: girdi hazırlığı tek bir
+    # "ingest" olayı yayınlar ama planda dala göre ayrı adımlar olarak durur
+    # (qc/assembly/gene_pred/translate). Eşlemesiz kalan adım "pending" donar,
+    # yani düzeltilen hatanın aynısı küçük ölçekte geri gelirdi.
+    _PHASE_ALIAS = {"ingest": ("qc", "assembly", "gene_pred", "translate")}
+
+    def _ev(phase, status, msg, data=None):      # noqa: F811
+        if status in ("running", "done", "skipped", "deferred"):
+            ids = (phase,) + _PHASE_ALIAS.get(phase, ())
+            hit = False
+            for sid in ids:
+                s = _steps_by_id.get(sid)
+                if s is None:
+                    continue
+                hit = True
+                s.status = status
+                if status in ("done", "skipped") and msg:
+                    s.note = f"{s.note} · {msg}" if s.note else str(msg)
+            if hit:
+                meta["plan"] = plan_table(steps)
+        return {"phase": phase, "status": status, "msg": msg, "data": data}
+
     # 0) Organizma taxon'u: kullanıcı vermediyse GenBank dosyasından OKU.
     # Taxon'a iki adım bağlı: IEDB bilinen-epitop taraması (hedefli mod; yoksa
     # aday-başına canlı sorgu LIVE_MAX'ı aşıp hiç koşmaz) ve suş otomatik çekimi.

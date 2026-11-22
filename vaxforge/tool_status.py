@@ -2,9 +2,9 @@
 
 NEDEN BU MODÜL VAR: rapordaki Yöntemler/Referanslar tablosu `citations.py`'den
 KOŞULSUZ besleniyordu, yani kurulu olmayan ya da çöken bir araç da atıfla
-birlikte "kullanıldı" gibi listeleniyordu. Kuduz koşusunda NetCTL tam olarak
+birlikte "kullanıldı" gibi listeleniyordu. Kuduz koşusunda işleme aracı tam olarak
 bunu yaptı: binary segfault verdi, 85 adayın tamamında `processing_norm` None
-kaldı, ama rapor NetCTL-1.2'yi Larsen 2005 atfıyla yöntem olarak gösterdi.
+kaldı, ama rapor o aracı kendi atfıyla yöntem olarak gösterdi.
 
 Burada toplanan durum `meta["tool_status"]` olarak run.json'a yazılır ve
 `citations.for_report()` her atıf satırını `used` alanıyla işaretler. Böylece
@@ -24,13 +24,10 @@ _PROBES: list[tuple[str, str, str]] = [
     # satırı + atıf tablosu onu yazar. Sabit "VFDB" demek yanlış iddia olurdu.
     ("discovery", "Virülans DB eşleşmesi (DIAMOND)", "Virulence DB match (DIAMOND)"),
     ("psortb", "PSORTb 3.0", "PSORTb 3.0"),
-    ("deeploc", "DeepLoc-2.1", "DeepLoc-2.1"),
     ("tmhmm_local", "TMHMM-2.0", "TMHMM-2.0"),
     ("signalp", "SignalP-5.0", "SignalP-5.0"),
     ("iapred", "IApred", "IApred"),
     ("netmhc_local", "NetMHCpan / NetMHCIIpan", "NetMHCpan / NetMHCIIpan"),
-    ("netctl", "NetCTL-1.2", "NetCTL-1.2"),
-    # NetCTL'in yerine geçen yol (binary bu ortamda segfault veriyor).
     ("iedb_processing", "IEDB processing API (kesim+TAP)",
      "IEDB processing API (cleavage+TAP)"),
     ("bepipred", "BepiPred-1.0", "BepiPred-1.0"),

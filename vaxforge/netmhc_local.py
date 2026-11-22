@@ -24,6 +24,28 @@ from pathlib import Path
 
 _TOOLS = Path(__file__).resolve().parent.parent / "tools"
 
+# Tek chunk için zaman bütçesi. Maliyet peptit×allel ile büyür; bu makinede
+# ölçülen hız ~115 (peptit×allel)/sn → 20.000 iş birimi ≈ 3 dk, TIMEOUT'un
+# (20 dk) çok altında. Böylece panel kaç allel olursa olsun chunk timeout'a
+# çarpmaz. Üst sınır tek-allelli panelde dosya başına makul kalsın diye var.
+_UNITS_PER_CHUNK = 20_000
+_MAX_CHUNK = 20_000
+TIMEOUT = 1200
+
+# Son predict() çağrısının kapsama tanılaması: {mhc_class: {...}}. Çağıran
+# (predictors.py) buradan okuyup yöntem etiketine "kısmi" yazar, böylece
+# düşen chunk'lar GERÇEK araç koşmuş gibi görünmez.
+_DIAGNOSTIC: dict[str, dict] = {}
+
+
+def _record(mhc_class: str, **kw) -> None:
+    _DIAGNOSTIC[mhc_class] = kw
+
+
+def last_diagnostic(mhc_class: str) -> dict:
+    """Son yerel koşunun kapsaması: requested/returned/failures (boşsa {})."""
+    return _DIAGNOSTIC.get(mhc_class, {})
+
 # ELF e_machine -> mimari adı
 _ELF_MACHINE = {0x3E: "x86_64", 0xB7: "aarch64", 0x28: "arm", 0x03: "x86"}
 _ARCH_ALIASES = {"x86_64": {"x86_64", "amd64"}, "aarch64": {"aarch64", "arm64"}}
@@ -256,11 +278,25 @@ def predict(peptides: list[str], alleles: list[str], mhc_class: str,
     # antijenleri kayboluyor. Bu yüzden peptitleri CHUNK'lara böl; netMHCpan tek-thread
     # olduğundan chunk'ları ÇEKİRDEKLER ARASINDA PARALEL koştur (16 çekirdek → ~12×).
     # Sonuçlar birleştirilir; bir chunk başarısız olsa diğerleri kurtulur (kısmi > hiç).
-    CHUNK = 20000
+    #
+    # CHUNK SABİT PEPTİT SAYISI OLAMAZ (2026-11-22, BoHV-1 koşusu): araç maliyeti
+    # peptit DEĞİL, peptit×allel ile büyür. Bu makinede ölçüldü: netMHCIIpan tek
+    # süreçte ~115 (peptit×allel)/sn. Eski sabit 20.000 peptitlik chunk × 11 BoLA
+    # alleli = ~32 dk, yani TIMEOUT'un iki katı → her iki chunk da düştü, `agg` boş
+    # kaldı, predict None döndü ve çağıran sessizce heuristik vekile indi. Koşu
+    # "MHC-II=proxy" ile bitti, oysa araç kurulu ve çalışıyordu (35.993 15-mer).
+    # Bu yüzden chunk İŞ MİKTARINA göre bölünür: panel büyüdükçe chunk küçülür.
+    n_panel = max(1, len(alleles_n))
+    CHUNK = max(250, min(_MAX_CHUNK, _UNITS_PER_CHUNK // n_panel))
     chunks = [(L, group[k:k + CHUNK])
               for L, group in by_len.items()
               for k in range(0, len(group), CHUNK)]
     workers = min(12, max(1, (os.cpu_count() or 4) - 2), len(chunks))
+    # Düşen chunk'lar SESSİZ KALMAZ: hangi uzunlukta kaç peptidin neden kaybolduğu
+    # buraya yazılır, çağıran `last_diagnostic()` ile okur ve yöntem etiketine
+    # "kısmi" yazar. Eskiden `except Exception: return ""` tek kelime etmeden
+    # yutuyordu; bütün batch düştüğünde bile kullanıcı yalnız "proxy" görüyordu.
+    failures: list[str] = []
 
     def _run_chunk(task):
         L, sub = task
@@ -280,11 +316,19 @@ def predict(peptides: list[str], alleles: list[str], mhc_class: str,
             # timeout (takılan chunk hızlı bırakılır; kod kısmi sonucu tolere eder).
             scratch = tempfile.mkdtemp(prefix="netmhc_")
             env = dict(os.environ, TMPDIR=scratch, TMP=scratch, TEMP=scratch)
-            r = subprocess.run(cmd, capture_output=True, timeout=1200, text=True,
+            r = subprocess.run(cmd, capture_output=True, timeout=TIMEOUT, text=True,
                                env=env, stdin=subprocess.DEVNULL)
+            if r.returncode != 0:
+                failures.append(f"{L}-mer × {len(sub)} peptit: çıkış kodu "
+                                f"{r.returncode} ({(r.stderr or '').strip()[:120]})")
+                return ""
             return r.stdout
-        except Exception:
-            return ""      # bu chunk atlandı (timeout/çökme); diğerleri devam
+        except subprocess.TimeoutExpired:
+            failures.append(f"{L}-mer × {len(sub)} peptit: {TIMEOUT}s timeout")
+            return ""      # bu chunk atlandı; diğerleri devam
+        except Exception as exc:
+            failures.append(f"{L}-mer × {len(sub)} peptit: {type(exc).__name__}")
+            return ""
         finally:
             if fpath:
                 try:
@@ -300,6 +344,8 @@ def predict(peptides: list[str], alleles: list[str], mhc_class: str,
         for stdout in ex.map(_run_chunk, chunks):
             if stdout:
                 _parse_into(stdout, agg, alleles_n, rank_weak, mhc_class)
+    _record(mhc_class, requested=len(peps), returned=len(agg),
+            n_chunks=len(chunks), panel=n_panel, chunk=CHUNK, failures=failures)
     if not agg:
         return None
     for pep, d in agg.items():

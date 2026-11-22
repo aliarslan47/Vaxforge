@@ -180,6 +180,19 @@ def _type_tables_html(peptides, meta) -> str:
     def ok(b):
         return '<span class="pass">✔</span>' if b else '<span class="fail">✗</span>'
 
+    def hazard(state, lang_=lang, value=None):
+        """Tehlike sütunu: DURUMUN KENDİSİNİ yazar, 'ok' bayrağı basmaz.
+
+        Eskiden burada ✔/✗ vardı ve ✔ "alerjen DEĞİL" demekti; sütun başlığı
+        tehlikenin adını taşıdığı için tam tersi okunuyordu. Artık hücre
+        'Temiz' / 'Alerjen' / 'Toksik' / '? alan dışı' yazar, toksisitede ham
+        skor da parantezde görünür (çıplak işaret bu araç için bilgi taşımıyor).
+        """
+        txt = t(lang_, f"haz_{state}")
+        cls = {"clean": "pass", "allergen": "fail", "toxic": "fail"}.get(state, "warn")
+        v = "" if value is None else f' <span class="mono">({value:.2f})</span>'
+        return f'<span class="{cls}">{txt}</span>{v}'
+
     def nz(v, nd=2):
         return "—" if v is None else f"{v:.{nd}f}"
 
@@ -209,19 +222,19 @@ def _type_tables_html(peptides, meta) -> str:
             lit = "📖" if r["iedb"] else "–"
             base = (f'<td>{star}</td><td class="mono"><b>{r["epitope"]}</b></td>'
                     f'<td class="mono">{r["source"]}</td><td>{r["pos"]}</td>')
+            haz = (f'<td>{hazard(r["allergen_state"])}</td>'
+                   f'<td>{hazard(r["toxic_state"], value=r.get("toxicity"))}</td>')
             if kind == "B":
                 trs += (f'<tr{cls}>{base}<td>{r["length"]}</td><td>{nz(r["bcell"])}</td>'
-                        f'<td>{nz(r["antigenicity"])}</td><td>{ok(r["allergen_ok"])}</td>'
-                        f'<td>{ok(r["toxic_ok"])}</td><td>{lit}</td></tr>')
+                        f'<td>{nz(r["antigenicity"])}</td>{haz}<td>{lit}</td></tr>')
             elif kind == "MHC-I":
                 trs += (f'<tr{cls}>{base}<td>{nz(r["rank"])}</td><td class="mono">{r["allele"]}</td>'
-                        f'<td>{nz(r["antigenicity"])}</td><td>{ok(r["allergen_ok"])}</td>'
-                        f'<td>{ok(r["toxic_ok"])}</td><td>{nz(r["immunogenicity"])}</td>'
+                        f'<td>{nz(r["antigenicity"])}</td>{haz}<td>{nz(r["immunogenicity"])}</td>'
                         f'<td>{nz(r["processing"])}</td><td>–</td><td>{lit}</td></tr>')
             else:
                 trs += (f'<tr{cls}>{base}<td>{nz(r["rank"])}</td><td class="mono">{r["allele"]}</td>'
-                        f'<td>{nz(r["antigenicity"])}</td><td>{ok(r["allergen_ok"])}</td>'
-                        f'<td>{ok(r["toxic_ok"])}</td><td>{ok(r["ifn_ok"])}</td><td>–</td><td>{lit}</td></tr>')
+                        f'<td>{nz(r["antigenicity"])}</td>{haz}<td>{ok(r["ifn_ok"])}</td>'
+                        f'<td>–</td><td>{lit}</td></tr>')
         out.append(f"<table>{head}{trs}</table>")
     return "".join(out)
 
@@ -560,8 +573,8 @@ def _tool_status_section(meta: dict) -> str:
     """Araç durumu — hangi dış araç bu koşuda GERÇEKTEN hazırdı (iki dilli).
 
     NEDEN: Referanslar/Yöntemler tablosu `citations.py`'den koşulsuz besleniyordu.
-    Kuduz koşusunda NetCTL binary'si segfault verdi; 85 adayın tamamında
-    `processing_norm` None kaldı, ama rapor NetCTL'i Larsen 2005 atfıyla yöntem
+    Kuduz koşusunda işleme omurgasının binary'si segfault verdi; 85 adayın
+    tamamında `processing_norm` None kaldı, ama rapor o aracı atfıyla yöntem
     olarak gösterdi. Bu bölüm eksik aracı açıkça adlandırır ve eksik metriğin
     olumsuz bir bulgu OLMADIĞINI söyler.
     """
@@ -754,7 +767,8 @@ th{{background:#f4f4f4}}code{{background:#f4f4f4;padding:.1rem .3rem;border-radi
 .warn{{background:#fff4e5;border-left:4px solid #b26a00;padding:.6rem;margin:1rem 0}}
 .mono{{font-family:monospace;font-size:.72rem;color:#555;word-break:break-all}}
 td.pass{{color:#0a7;font-weight:600}}td.fail{{color:#c33;font-weight:600}}td.na{{color:#999}}
-span.pass{{color:#0a7;font-weight:700}}span.fail{{color:#c33}}
+span.pass{{color:#0a7;font-weight:700}}span.fail{{color:#c33;font-weight:600}}
+span.warn{{color:#b26a00;font-weight:600}}
 tr.sel{{background:#e7f7ee}}tr.sel td{{border-color:#b7e6ca}}
 details{{margin:.4rem 0;border:1px solid #e5e5e5;border-radius:5px;padding:.3rem .6rem}}
 summary{{cursor:pointer;font-size:.95rem}}</style></head><body>

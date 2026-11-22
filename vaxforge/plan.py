@@ -46,7 +46,7 @@ def _core(det: Detection) -> list[Step]:
         Step("discovery", "Virülans faktörü / hedef keşfi (küratörlü DB)",
              ["diamond", "VFDB", "Victors", "BV-BRC"]),
         Step("funnel", "Antijen eleme hunisi (melez)",
-             ["DeepLoc", "SignalP", "DeepTMHMM", "human-BLAST", "VaxiJen"]),
+             ["PSORTb", "SignalP", "TMHMM", "human-BLAST", "VaxiJen"]),
         Step("epitope", "B/T-hücre epitop tahmini (kayan pencere + gerçek araç skorlama)",
              ["BepiPred", "NetMHCpan", "NetMHCIIpan"]),
         Step("mhc_panel", "Çok-organizmalı MHC bağlanma haritası",

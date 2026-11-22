@@ -1,30 +1,29 @@
 """Adım 4 (MHC-I sonrası) — antijen işleme: IEDB Analysis Resource 'processing' API.
 
-NetCTL-1.2'NİN YERİNE GEÇEN YOL. netctl.py'nin modül başlığında anlatılan kusur
-bu makinede kalıcı: netCTL-1.2a'nın x86_64 binary'si satıcının kendi test
-dosyasıyla bile SEGFAULT veriyor (statik bağlı eski binary, yeni çekirdek).
-Yerelde düzeltilemiyor → `processing_norm` her adayda None kalıyordu, yani MHC-I
-adaylarının sunulabilirliği HİÇ ölçülmüyordu.
+Bu adımın TEK omurgası. Daha önce yerel bir binary denendi; satıcının kendi
+test dosyasıyla bile segfault verdiği ve yerelde düzeltilemediği için akıştan
+çıkarıldı (o dönemde `processing_norm` her adayda None kalıyordu, yani MHC-I
+adaylarının sunulabilirliği HİÇ ölçülmüyordu).
 
 IEDB 'processing' aracı aynı iki allel-bağımsız bileşeni HTTP üzerinden verir:
   * proteasome_score — proteozomal C-terminal kesim
   * tap_score        — TAP taşıma yakınlığı
 
-ÖLÇEK UYARISI (önemli): IEDB'nin `proteasome_score`'u NetCTL'in `cle`'si DEĞİLDİR.
-NetCTL cle'si 0-1 olasılıktır; IEDB'nin skoru log-ölçekli ve 1'i aşar. Bu yüzden
-bu modül KENDİ normalizasyonunu taşır: iki skor da sigmoid ile 0-1'e çekilir,
-NetCTL'in kesim:TAP = 3:1 göreli ağırlığı korunur (karşılaştırılabilirlik için).
+ÖLÇEK UYARISI (önemli): IEDB'nin `proteasome_score`'u 0-1 bir OLASILIK DEĞİLDİR
+— log-ölçeklidir ve 1'i aşar. Bu yüzden bu modül KENDİ normalizasyonunu taşır:
+iki skor da sigmoid ile 0-1'e çekilir, literatürdeki kesim:TAP = 3:1 göreli
+ağırlığı korunur. Her omurga kendi normalizasyonunu taşımalıdır; başka bir
+tahmincinin normalizasyonunu ödünç almak aşağıdaki çözünürlük kaybını yaratır.
 
 ÖLÇÜLEN ETKİ (2026-11-17, 105 gerçek IEDB cle değeri, aralık 0.321–1.722):
-değerlerin %68'i 1.0'ı aşıyor. netctl.processing_norm() cle'yi [0,1]'e KIRPTIĞI
-için bu %68 tek bir değere çöküyor: kesim bileşeni tek başına 105 değerde
+değerlerin %68'i 1.0'ı aşıyor. Skoru 0-1 varsayıp [0,1]'e KIRPAN bir
+normalizasyonda bu %68 tek bir değere çöküyor: kesim bileşeni 105 değerde
 35 benzersiz seviyeye düşüyor, sigmoidle 102. Nihai processing_norm yine de
 tamamen doymaz (TAP terimi kırpılmadığından değişmeye devam eder) — yani kusur
 "her şey 1.0 olur" değil, "kesim çözünürlüğünün üçte ikisi kaybolur". Yorumun
 ilk hâli bunu abartıyordu; ölçüp düzeltildi.
 
-DÜRÜSTLÜK: yöntem etiketi "NetCTL-1.2" DEMEZ — farklı tahminci, farklı ölçek.
-Ağ yoksa / API hata verirse boş döner (çağıran sessizce atlar, uydurma yok).
+DÜRÜSTLÜK: yöntem etiketi gerçekten koşan tahmincinin adını taşır. Ağ yoksa / API hata verirse boş döner (çağıran sessizce atlar, uydurma yok).
 Sonuçlar diske önbelleklenir; aynı protein ikinci koşuda tekrar sorulmaz.
 """
 
@@ -41,11 +40,11 @@ _URL = "https://tools-cluster-interface.iedb.org/tools_api/processing/"
 _CACHE_DIR = Path(__file__).resolve().parent.parent / "tools" / "db" / "iedb_processing"
 _TIMEOUT = 300
 
-METHOD = "GERÇEK (IEDB processing API — proteozomal kesim + TAP; NetCTL-1.2 değil)"
-METHOD_EN = "REAL (IEDB processing API — proteasomal cleavage + TAP; not NetCTL-1.2)"
+METHOD = "GERÇEK (IEDB processing API — proteozomal kesim + TAP)"
+METHOD_EN = "REAL (IEDB processing API — proteasomal cleavage + TAP)"
 
-# NetCTL'in içsel göreli ağırlıkları (kesim:TAP = 3:1) — netctl.py ile aynı,
-# böylece iki omurganın ürettiği processing_norm aynı ölçekte okunur.
+# Literatürdeki içsel göreli ağırlıklar (kesim:TAP = 3:1), böylece ileride
+# eklenecek başka bir omurganın processing_norm'u aynı ölçekte okunur.
 _W_CLE, _W_TAP = 0.15, 0.05
 
 # API allel ister ama proteasome/tap skorları allel-BAĞIMSIZDIR (aynı peptit
@@ -56,7 +55,7 @@ _DUMMY_ALLELE = "HLA-A*02:01"
 # Tek istekte gönderilen protein sayısı. IEDB paylaşımlı bir küme; büyük FASTA
 # zaman aşımına ve 502'ye yol açıyor. Küçük parça + önbellek daha güvenilir.
 CHUNK = 12
-PEPTIDE_LENGTH = 9  # NetCTL de yalnız 9-mer tarar (bkz. netctl.py başlığı)
+PEPTIDE_LENGTH = 9  # işleme tahmini 9-mer üzerinden yapılır
 
 
 def available() -> bool:
@@ -107,7 +106,7 @@ def _post(fasta_or_seq: str) -> list[dict]:
 def processing_norm(cle: float | None, tap: float | None) -> float:
     """IEDB kesim+TAP skorlarını 0-1 işleme skoruna indirger.
 
-    netctl.processing_norm'dan FARKI: cle de sigmoidden geçer, çünkü IEDB'nin
+    Kırpan bir normalizasyondan FARKI: cle de sigmoidden geçer, çünkü IEDB'nin
     proteasome_score'u olasılık değil log-ölçekli skordur (bkz. modül başlığı).
     Kırpmak yerine sigmoid kullanmak ayrımı korur.
     """
@@ -149,7 +148,7 @@ def _to_cache(seq: str, val: dict[int, dict[str, float]]) -> None:
 def predict(proteins: list[tuple[str, str]]) -> dict[str, dict[int, dict[str, float]]]:
     """[(id, seq)] -> {protein_id: {cterm_pos: {"cle":.., "tap":..}}}.
 
-    netctl.predict ile AYNI dönüş şekli (epitope.py ikisini ayırt etmeden
+    Omurgalar için ORTAK dönüş şekli (epitope.py omurgayı ayırt etmeden
     okuyabilsin): cterm_pos = 9-mer'in 0-tabanlı C-terminal kalıntı indeksi.
     API 1-tabanlı `end` verir → 0-tabanlıya çevrilir.
 

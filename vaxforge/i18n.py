@@ -91,12 +91,20 @@ STRINGS: dict[str, dict[str, str]] = {
     "tt_intro":           {"tr": "Epitoplar tipe göre ayrı tablolarda, her tip kendi içinde bağlanma "
                                  "gücüne göre sıralı. ★ + yeşil satır = tüm zorunlu ölçütleri geçen final "
                                  "seçilen epitop (antijenik + güçlü bağlanma [+ HTL'de IFN-γ]). ✔=geçti, "
-                                 "📖=IEDB literatürde, Kons.=suş verisi yok. Tam araç dökümü "
+                                 "📖=IEDB literatürde, Kons.=suş verisi yok. Alerjenite/Toksisite "
+                                 "sütunları ÖLÇÜM DURUMUNU yazar: 'Temiz' = tehlike bulunmadı, "
+                                 "'? alan dışı' = ToxinPred2 bu peptit uzunluğunda doğrulanmamıştır "
+                                 "(skor parantezde, bilgi amaçlı; eleme YAPILMAMIŞTIR — ölçülmemiş "
+                                 "değer olumsuz bulgu değildir). Tam araç dökümü "
                                  "candidates_full.xlsx dosyasındadır.",
                            "en": "Epitopes are shown in separate tables per type, each ranked by binding "
                                  "strength. ★ + green row = final selected epitope passing all mandatory "
                                  "criteria (antigenic + strong binding [+ IFN-γ for HTL]). ✔=pass, "
-                                 "📖=in IEDB literature, Cons.=no strain data. Full per-tool dump is in "
+                                 "📖=in IEDB literature, Cons.=no strain data. The Allergenicity/Toxicity "
+                                 "columns state the MEASUREMENT STATUS: 'Clean' = no hazard found, "
+                                 "'? out of domain' = ToxinPred2 is not validated at this peptide length "
+                                 "(score in parentheses, informational; NO filtering was applied — an "
+                                 "unmeasured value is not a negative finding). Full per-tool dump is in "
                                  "candidates_full.xlsx."},
     # tablo kolon başlıkları
     "col_epitope":        {"tr": "Epitop", "en": "Epitope"},
@@ -105,8 +113,17 @@ STRINGS: dict[str, dict[str, str]] = {
     "col_len":            {"tr": "Uzun.", "en": "Len."},
     "col_allele":         {"tr": "Allel", "en": "Allele"},
     "col_antig":          {"tr": "Antij.", "en": "Antig."},
-    "col_allergen":       {"tr": "Alerjen", "en": "Allergen"},
-    "col_toxic":          {"tr": "Toksik", "en": "Toxic"},
+    # Sütun başlıkları TEHLİKENİN ADI değil ÖLÇÜLEN ÖZELLİK. Eskiden "Alerjen" /
+    # "Toksik" yazıp hücreye "alerjen değil" anlamında ✔ basılıyordu; başlık
+    # iddia gibi okunduğu için polarite tersine dönüyordu. Hücre artık durumu
+    # yazar (haz_* anahtarları), başlık yalnız hangi özellik olduğunu söyler.
+    "col_allergen":       {"tr": "Alerjenite", "en": "Allergenicity"},
+    "col_toxic":          {"tr": "Toksisite", "en": "Toxicity"},
+    "haz_clean":          {"tr": "Temiz", "en": "Clean"},
+    "haz_allergen":       {"tr": "ALERJEN", "en": "ALLERGEN"},
+    "haz_toxic":          {"tr": "TOKSİK", "en": "TOXIC"},
+    "haz_ood":            {"tr": "? alan dışı", "en": "? out of domain"},
+    "haz_unknown":        {"tr": "ölçülmedi", "en": "not measured"},
     "col_immuno":         {"tr": "İmmüno.", "en": "Immuno."},
     "col_proc":           {"tr": "İşleme", "en": "Processing"},
     "col_cons":           {"tr": "Kons.", "en": "Cons."},
@@ -250,11 +267,19 @@ STRINGS: dict[str, dict[str, str]] = {
     "tt_intro_pdf":       {"tr": "Epitoplar tipe göre ayrı tablolarda, her tip kendi içinde bağlanma gücüne "
                                  "göre sıralı (T-hücre: %rank artan; B-hücre: BepiPred azalan). ★ + yeşil "
                                  "satır = tüm zorunlu ölçütleri geçen final seçilen epitop. ✓=geçti, "
-                                 "Lit ✓=IEDB literatürde, Kons.=suş verisi yok.",
+                                 "Lit ✓=IEDB literatürde, Kons.=suş verisi yok. Alerjenite/Toksisite "
+                                 "sütunları ölçüm DURUMUNU yazar: 'Temiz' = tehlike bulunmadı; "
+                                 "'? <skor>' = ToxinPred2 bu peptit uzunluğunda doğrulanmamıştır, "
+                                 "skor bilgi amaçlıdır ve ELEME YAPILMAMIŞTIR (ölçülmemiş değer "
+                                 "olumsuz bulgu değildir).",
                            "en": "Epitopes shown per type, each ranked by binding strength (T-cell: %rank "
                                  "ascending; B-cell: BepiPred descending). ★ + green row = final selected "
                                  "epitope passing all mandatory criteria. ✓=pass, Lit ✓=in IEDB literature, "
-                                 "Cons.=no strain data."},
+                                 "Cons.=no strain data. The Allergenicity/Toxicity columns state the "
+                                 "measurement STATUS: 'Clean' = no hazard found; '? <score>' = ToxinPred2 "
+                                 "is not validated at this peptide length, the score is informational and "
+                                 "NO filtering was applied (an unmeasured value is not a negative "
+                                 "finding)."},
     "col_anchors":        {"tr": "Anchorlar", "en": "Anchors"},
     "col_pocket":         {"tr": "Allel cep tercihi", "en": "Allele pocket pref."},
     "col_match2":         {"tr": "Uyum", "en": "Match"},

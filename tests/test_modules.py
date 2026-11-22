@@ -11,16 +11,6 @@ from __future__ import annotations
 import pytest
 
 
-# ── Faz 2: DeepLoc lokalizasyon eşleme ──────────────────────────────
-def test_deeploc_norm_mapping():
-    from vaxforge import deeploc
-    assert deeploc._norm("Extracellular") == "extracellular"
-    assert deeploc._norm("Cell membrane") == "plasma_membrane"
-    assert deeploc._norm("Cytoplasm") == "cytoplasm"
-    assert deeploc._norm("Zznonsense") == "unknown"
-    assert isinstance(deeploc.available(), bool)
-
-
 # ── Faz 3: yapı (pLDDT parse + ölçek) / RSA / konformasyonel B ───────
 def test_structure_plddt_rescale_and_sanitize():
     from vaxforge import structure
@@ -465,18 +455,19 @@ def test_configured_host_alleles_all_pass_enforced_validation():
 def test_citations_are_marked_when_tool_is_unavailable():
     """Atıf tablosu kurulu OLMAYAN aracı 'kullanıldı' gibi göstermemeli.
 
-    NEDEN: `citations.for_report()` eskiden KOŞULSUZ dönüyordu. NetCTL binary'si
-    segfault verdiği koşuda 85 adayın tamamında `processing_norm` None kaldı ama
-    rapor NetCTL'i Larsen 2005 atfıyla yöntem olarak listeledi.
+    NEDEN: `citations.for_report()` eskiden KOŞULSUZ dönüyordu. İşleme
+    omurgasının binary'si segfault verdiği koşuda 85 adayın tamamında
+    `processing_norm` None kaldı ama rapor o aracı atfıyla yöntem olarak
+    listeledi.
     """
     from vaxforge import citations
     fake = {
-        "netctl": {"label": "NetCTL-1.2", "available": False},
+        "bepipred3": {"label": "BepiPred-3.0", "available": False},
         "netmhc_local": {"label": "NetMHCpan / NetMHCIIpan", "available": True},
     }
     rows = citations.for_report(fake)
     by_tool = {r["tool"]: r for r in rows}
-    assert by_tool["NetCTL-1.2 (kesim + TAP)"]["used"] is False
+    assert by_tool["BepiPred-3.0"]["used"] is False
     assert by_tool["NetMHCpan-4.1/4.2"]["used"] is True
     # eşlenmemiş satır iddia ETMEZ (None), False değil
     unmapped = [r for r in rows if r["tool"] not in citations._TOOL_TO_STATUS]
@@ -500,18 +491,29 @@ def test_tool_status_records_every_probe_without_raising():
     assert s["available"] + s["missing"] == s["total"] == len(st)
 
 
-def test_netctl_availability_is_smoke_tested_not_just_file_existence():
-    """netCTL sarmalayıcı dosyası varken bile binary çöküyorsa available() False.
+def test_removed_tools_are_absent_from_every_layer():
+    """Akıştan çıkarılan araçların adı HİÇBİR katmanda geçmemeli.
 
-    netCTL-1.2a'nın x86_64 binary'si bu çekirdekte (satıcının kendi test.fsa
-    dosyasıyla bile) segfault veriyor.
+    NEDEN: koşmayan bir araç yalnız 'eksik' işaretlenince bile rapora, atıf
+    tablosuna ve araç sayısına girmeye devam ediyordu (kullanıcı kararı
+    2026-11-22: akıştan tamamen sökülsün). Bu test adın geri sızmasını
+    engeller — probe listesi, atıf tablosu, funnel, processing ve config dâhil.
     """
-    import inspect
+    import pathlib
 
-    from vaxforge import netctl
-    src = inspect.getsource(netctl.available)
-    assert "subprocess.run" in src, "available() gerçek bir duman testi yapmıyor"
-    assert "returncode" in src
+    from vaxforge import citations, processing, tool_status
+    gone = ("deeploc", "netctl")
+    probes = {k for k, _, _ in tool_status._PROBES}
+    assert not (probes & set(gone))
+    assert not [t for t in citations._TOOL_TO_STATUS.values() if t in gone]
+    assert all(g not in str(citations.CITATIONS).lower() for g in gone)
+    b = processing.backend()
+    assert b is None or "iedb" in b.__name__
+    root = pathlib.Path(__file__).resolve().parent.parent
+    for rel in ("vaxforge/funnel.py", "vaxforge/processing.py",
+                "vaxforge/plan.py", "config/thresholds.yaml"):
+        txt = (root / rel).read_text(errors="ignore").lower()
+        assert not any(g in txt for g in gone), rel
 
 
 def test_bepipred_availability_validates_wrapper_home():

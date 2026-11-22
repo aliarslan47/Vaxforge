@@ -3,11 +3,55 @@
 > Forge ailesi konvansiyonu: bu dosya **ilk okunacak** dosyadır. Kod tarihçesi git'te,
 > bilimsel ayrıntı `benchmark/` altında, faz günlüğü `ROADMAP.md`'de.
 
-**Son güncelleme:** 2026-11-17
-**Son commit:** `7591d68` — ImmForge entegrasyonu: eksik olan dal, kod değil
+**Son güncelleme:** 2026-11-22
+**Son commit:** `ea28b84` — Örtüşen aday kümeleme (kullanıcı kararı 2026-11-22)
 **Faz:** makale yazımı / son rötuş. Pipeline tamam, benchmark tamam, taslak hazır.
-**Araç durumu:** 21/23 kurulu (oturum başında 11/22). Eksik: DeepLoc-2.1 (RAM, karar),
-NetCTL-1.2 (segfault; yeri IEDB processing API ile doldurulmuş).
+**Araç durumu:** 21 araçtan 20'si kurulu. DeepLoc-2.1 ve NetCTL-1.2 **akıştan
+tamamen çıkarıldı** (kullanıcı kararı 2026-11-22): ikisi de hiç koşmuyordu, adları
+hiçbir katmanda geçmiyor. Lokalizasyon = PSORTb (bakteri) / etiketli heuristik;
+antijen işleme = IEDB processing API (tek omurga).
+
+## 2026-11-22 (ikinci tur) — MHC-II sessiz düşüşü, tehlike sütunu polaritesi, plan donması
+
+BoHV-1 raporu incelenirken üç hata bulundu ve düzeltildi:
+
+1. **MHC-II hiç koşmamış, ama rapor "21/23 hazır" diyordu.** `tool_status`
+   netMHCIIpan'ı `available` sayıyordu (dosya var) ve araç gerçekten çalışıyordu;
+   düşme noktası `netmhc_local.predict`'teki sabit `CHUNK = 20000` idi. Maliyet
+   peptit DEĞİL **peptit×allel** ile büyüyor: ölçüldü, bu makinede ~115
+   (peptit×allel)/sn. 35.993 15-mer × 11 BoLA alleli = 2 chunk × ~30 dk, yani
+   1200 sn timeout'un iki katı → iki chunk da düştü, `except Exception: return ""`
+   tek kelime etmeden yuttu, `agg` boş kaldı, `predict` None döndü ve çağıran
+   heuristik vekile indi. 407 adayın 262'si (tüm MHC-II) proxy skoruyla
+   sıralanmıştı; gerçek araç 1 numaralı adaya %rank 33.6 (bağlanmaz) diyor,
+   proxy 1.17 verip listenin başına koymuştu.
+   **Fix:** chunk iş miktarına göre bölünüyor (`_UNITS_PER_CHUNK=20.000`;
+   11 allelde chunk 1818), düşen chunk `last_diagnostic()`'e yazılıyor, kısmi
+   sonuç yöntem etiketinde `· KISMİ n/m peptit` olarak görünüyor.
+   **Doğrulandı:** tam havuz 13.6 dk, 35.993/35.993 peptit, 20/20 chunk, hiç
+   düşen yok, rank≤10 bağlanan 12.028.
+2. **Alerjen/Toksik sütunlarının polaritesi tersti.** Başlık tehlikenin adını
+   taşıyor, hücre ise `allergen_ok`/`toxic_ok` basıyordu: "Alerjen" sütununda ✔
+   aslında "alerjen DEĞİL" demekti. Üstelik toksisitedeki ✗'lerin çoğu gerçek bir
+   iddia değildi — ToxinPred2 yalnız ≥35 aa'da doğrulanmış, epitoplar 8-15 aa, bu
+   yüzden eleme bilinçli yapılmıyor; koşuda 407 adayın 348'i eşiğin üstündeydi,
+   yani sütun hiçbir şeyi ayırt etmiyordu. **Fix:** başlıklar `Alerjenite` /
+   `Toksisite`, hücre durumun kendisini yazıyor (`Temiz` / `ALERJEN` / `TOKSİK` /
+   `? alan dışı (skor)`), dört katmanda birden (HTML, PDF, Streamlit, Next.js).
+3. **Plan tablosunun 8 adımı da `pending` donuyordu.** `meta["plan"]` koşunun en
+   başında bir kez alınıyordu. **Fix:** `pipeline.run` içinde yerel `_ev` her
+   olayı Step'e işliyor, plan tazeleniyor, adımın son mesajı `not` sütununa
+   geçiyor.
+
+**Bu turda bulunan ama DOKUNULMAYAN açık:** `tool_status` yük altında yanlış
+"ARAÇ YOK" diyor. 9 paralel netMHCIIpan + pytest koşarken ToxinPred2 `verify()`
+düştü ve araç eksik işaretlendi; tek başına `verify() -> True`. Yani geçici bir
+yük hatası rapora "ARAÇ YOK" yazdırabiliyor — ilk düzeltilen hatanın tersi ama
+aynı derecede yanıltıcı. Düzeltmesi: bir kez retry + "dosya yok" ile "verify
+düştü" ayrımı.
+
+**Yapılmadı:** BoHV-1 gerçek MHC-II skorlarıyla yeniden koşulmadı; README
+benchmark sayıları hâlâ eski koşudan.
 
 ## Tek bakışta
 

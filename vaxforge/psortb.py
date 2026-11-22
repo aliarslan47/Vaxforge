@@ -1,13 +1,13 @@
 """PSORTb — prokaryota-özel hücre-altı lokalizasyon (podman container).
 
-DeepLoc ökaryot-yanlıdır; bakteri proteinlerini yanlış konumlandırabilir
+Ökaryot-yanlı lokalizasyon tahmincileri bakteri proteinlerini yanlış konumlandırır
 (ör. MenB'de yüzey lipoproteini fHbp'yi 'sitoplazma' sandı). PSORTb bakteriye
 özel eğitilmiştir ve Gram-tipine göre doğru bölmeleri (sitoplazma / iç membran /
 periplazma / dış membran / hücre duvarı / hücre-dışı) tanır. RV'nin özü yüzey/
 salgı proteinlerini bulmak olduğundan bakteri dalında PSORTb biyolojik doğrudur.
 
 Kurulum: podman container (brinkmanlab/psortb_commandline). Kurulu değilse
-available()=False → funnel DeepLoc'a düşer (dürüst 'method' etiketi).
+available()=False → funnel heuristiğe düşer (dürüst 'method' etiketi).
 
 Gram bilgisi ZORUNLU: --positive (Gram+) veya --negative (Gram−). Yanlış Gram =
 yanlış tahmin, bu yüzden kullanıcı arayüzden seçer.

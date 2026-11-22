@@ -22,9 +22,6 @@ CITATIONS = [
     ("Lokalizasyon — bakteri", "PSORTb 3.0",
      "Yu NY, Wagner JR, Laird MR, Melli G, Rey S, Lo R, et al. PSORTb 3.0: improved protein subcellular localization prediction with refined localization subcategories and predictive capabilities for all prokaryotes. Bioinformatics. 2010;26(13):1608-1615.",
      "10.1093/bioinformatics/btq249"),
-    ("Lokalizasyon — yedek/ökaryot", "DeepLoc-2.1",
-     "Thumuluri V, Almagro Armenteros JJ, Johansen AR, Nielsen H, Winther O. DeepLoc 2.0: multi-label subcellular localization prediction using protein language models. Nucleic Acids Res. 2022;50(W1):W228-W234.",
-     "10.1093/nar/gkac278"),
     ("Transmembran", "TMHMM-2.0",
      "Krogh A, Larsson B, von Heijne G, Sonnhammer ELL. Predicting transmembrane protein topology with a hidden Markov model: application to complete genomes. J Mol Biol. 2001;305(3):567-580.",
      "10.1006/jmbi.2000.4315"),
@@ -58,12 +55,9 @@ CITATIONS = [
     ("Popülasyon kapsamı", "IEDB Population Coverage",
      "Bui HH, Sidney J, Dinh K, Southwood S, Newman MJ, Sette A. Predicting population coverage of T-cell epitope-based diagnostics and vaccines. BMC Bioinformatics. 2006;7:153. (allelefrequencies.net insan HLA frekansları).",
      "10.1186/1471-2105-7-153"),
-    ("Antijen işleme (MHC-I)", "NetCTL-1.2 (kesim + TAP)",
-     "Larsen MV, Lundegaard C, Lund O, Nielsen M. An integrative approach to CTL epitope prediction: a combined algorithm integrating MHC class I binding, TAP transport efficiency, and proteasomal cleavage predictions. Eur J Immunol. 2005;35(8):2295-2303. (yalnız allel-bağımsız kesim + TAP kullanıldı).",
-     "10.1002/eji.200425811"),
-    # NetCTL binary'si bu ortamda segfault veriyor; aynı iki bileşen IEDB
-    # 'processing' API'sinden alınır. İKİSİ BİRDEN "kullanıldı" görünemez:
-    # for_report() hangi omurganın koştuğunu processing.backend()'ten okur.
+    # Antijen işleme omurgası değiştirilebilir; yalnız GERÇEKTEN koşan
+    # "kullanıldı" işaretlenir — for_report() bunu processing.backend()'ten
+    # okur, atıf tablosu koşmayan bir aracı DOI'siyle listelemez.
     ("Antijen işleme (MHC-I)", "IEDB processing API (kesim + TAP)",
      "Tenzer S, Peters B, Bulik S, Schoor O, Lemmel C, Schatz MM, et al. Modeling the MHC class I pathway by combining predictions of proteasomal cleavage, TAP transport and MHC class I binding. Cell Mol Life Sci. 2005;62(9):1025-1037. (IEDB Analysis Resource 'processing' aracı; yalnız allel-bağımsız proteasome + TAP skorları kullanıldı, MHC bileşeni kullanılmadı).",
      "10.1007/s00018-005-4528-2"),
@@ -147,21 +141,20 @@ CITATIONS = [
 # "kullanıldı" işaretlenir (bkz. for_report).
 _VIRDB_TOOLS = ("VFDB", "UniProt KW-0843")
 
-# Aynı adımın birbirinin yerine geçen iki antijen-işleme omurgası.
-_PROC_TOOLS = ("NetCTL-1.2 (kesim + TAP)", "IEDB processing API (kesim + TAP)")
-_PROC_MODULE_TO_TOOL = {"netctl": _PROC_TOOLS[0], "iedb_processing": _PROC_TOOLS[1]}
+# Antijen-işleme omurgaları (şu an tek: IEDB). Yapı korunur ki yeni bir
+# omurga eklendiğinde yalnız koşan işaretlenmeye devam etsin.
+_PROC_TOOLS = ("IEDB processing API (kesim + TAP)",)
+_PROC_MODULE_TO_TOOL = {"iedb_processing": _PROC_TOOLS[0]}
 
 _TOOL_TO_STATUS = {
     "VFDB": "discovery",
     "UniProt KW-0843": "discovery",
     "PSORTb 3.0": "psortb",
-    "DeepLoc-2.1": "deeploc",
     "TMHMM-2.0": "tmhmm_local",
     "SignalP-5.0": "signalp",
     "IApred": "iapred",
     "NetMHCpan-4.1/4.2": "netmhc_local",
     "NetMHCIIpan-4.x": "netmhc_local",
-    "NetCTL-1.2 (kesim + TAP)": "netctl",
     "IEDB processing API (kesim + TAP)": "iedb_processing",
     "BepiPred-1.0": "bepipred",
     "BepiPred-3.0": "bepipred3",
@@ -176,7 +169,7 @@ def for_report(tool_status: dict | None = None) -> list[dict]:
     """Atıf satırları; araç durumu verilirse her satır `used` ile işaretlenir.
 
     NEDEN: bu tablo eskiden KOŞULSUZ dönüyordu, yani kurulu olmayan ya da çöken
-    bir araç da atfıyla birlikte "kullanıldı" gibi raporlanıyordu (NetCTL
+    bir araç da atfıyla birlikte "kullanıldı" gibi raporlanıyordu (işleme
     segfault verdiği koşuda tam olarak bu oldu). `used` üç değerli:
     True = araç hazır, False = araç bu koşuda YOK, None = eşlenmemiş /
     saf-Python yöntem (iddia edilmiyor).

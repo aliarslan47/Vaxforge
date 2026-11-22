@@ -202,6 +202,19 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
     def _yn(b):
         return "✓" if b else "✗"
 
+    def _haz(state, value=None):
+        """Tehlike sütunu: durumun kendisi (bkz. report.py hazard()).
+
+        ✓/✗ kaldırıldı: ✓ "alerjen değil" demekti ama sütun başlığı tehlikenin
+        adını taşıdığı için ters okunuyordu.
+        """
+        # PDF sütunu dar: 'alan dışı' uzun yazısı yerine '?' + skor. Anlamı
+        # tablo altındaki dipnotta (tt_intro_pdf) açıklanır.
+        if state == "ood":
+            return "—" if value is None else f"? {value:.2f}"
+        txt = t(lang, f"haz_{state}")
+        return txt if value is None else f"{txt} {value:.2f}"
+
     def _n(v, nd=2):
         return "—" if v is None else f"{v:.{nd}f}"
 
@@ -213,15 +226,15 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
                   ["★", t(lang, "col_epitope"), t(lang, "col_source"), "%rank", t(lang, "col_allele"),
                    t(lang, "col_antig"), t(lang, "col_allergen"), t(lang, "col_toxic"),
                    t(lang, "col_immuno"), t(lang, "col_proc"), "Lit"],
-                  [0.6*cm, 2.5*cm, 2.9*cm, 1.2*cm, 2.1*cm, 1.3*cm, 1.4*cm, 1.3*cm, 1.4*cm, 1.3*cm, 0.9*cm]),
+                  [0.6*cm, 2.5*cm, 2.0*cm, 1.2*cm, 2.1*cm, 1.3*cm, 1.8*cm, 1.8*cm, 1.4*cm, 1.3*cm, 0.9*cm]),
         "MHC-II": (t(lang, "tt_htl"),
                    ["★", t(lang, "col_epitope"), t(lang, "col_source"), "%rank", t(lang, "col_allele"),
                     t(lang, "col_antig"), t(lang, "col_allergen"), t(lang, "col_toxic"), "IFN-γ", "Lit"],
-                   [0.6*cm, 3.0*cm, 3.0*cm, 1.3*cm, 2.5*cm, 1.3*cm, 1.4*cm, 1.3*cm, 1.2*cm, 0.9*cm]),
+                   [0.6*cm, 3.0*cm, 2.2*cm, 1.3*cm, 2.5*cm, 1.3*cm, 1.8*cm, 1.8*cm, 1.2*cm, 0.9*cm]),
         "B": (t(lang, "tt_bcell"),
               ["★", t(lang, "col_epitope"), t(lang, "col_source"), t(lang, "col_len"), "BepiPred",
                t(lang, "col_antig"), t(lang, "col_allergen"), t(lang, "col_toxic"), "Lit"],
-              [0.6*cm, 3.2*cm, 3.2*cm, 1.3*cm, 1.8*cm, 1.4*cm, 1.4*cm, 1.3*cm, 0.9*cm]),
+              [0.6*cm, 3.2*cm, 2.4*cm, 1.3*cm, 1.8*cm, 1.4*cm, 1.8*cm, 1.8*cm, 0.9*cm]),
     }
     for kind in ("MHC-I", "MHC-II", "B"):
         rows = tt.get(kind, [])
@@ -241,14 +254,16 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
             if kind == "B":
                 drows.append([star, epi, src, str(r["length"]),
                               _n(r["bcell"]), _n(r["antigenicity"]),
-                              _yn(r["allergen_ok"]), _yn(r["toxic_ok"]), lit])
+                              _haz(r["allergen_state"]), _haz(r["toxic_state"], r.get("toxicity")), lit])
             elif kind == "MHC-I":
                 drows.append([star, epi, src, _n(r["rank"]), all,
-                              _n(r["antigenicity"]), _yn(r["allergen_ok"]), _yn(r["toxic_ok"]),
+                              _n(r["antigenicity"]), _haz(r["allergen_state"]),
+                              _haz(r["toxic_state"], r.get("toxicity")),
                               _n(r["immunogenicity"]), _n(r["processing"]), lit])
             else:
                 drows.append([star, epi, src, _n(r["rank"]), all,
-                              _n(r["antigenicity"]), _yn(r["allergen_ok"]), _yn(r["toxic_ok"]),
+                              _n(r["antigenicity"]), _haz(r["allergen_state"]),
+                              _haz(r["toxic_state"], r.get("toxicity")),
                               _yn(r["ifn_ok"]), lit])
         tb = tbl(drows, widths=widths)
         for ri in star_rows:

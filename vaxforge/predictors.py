@@ -74,8 +74,17 @@ def predict(peptides: list[str], host: Host, mhc_class: str, rank_weak: float) -
         local = netmhc_local.predict(peptides, alleles, mhc_class, rank_weak)
         if local:
             tool = "NetMHCpan" if mhc_class == "mhc_i" else "NetMHCIIpan"
+            # KAPSAMA DÜRÜSTLÜĞÜ: chunk'ların bir kısmı düşerse sonuç KISMİdir.
+            # Eskiden kısmi sonuç tam "GERÇEK" gibi etiketleniyordu; eksik
+            # peptitler epitop değil sanılıyordu (ölçülmemiş ≠ olumsuz bulgu).
+            diag = netmhc_local.last_diagnostic(mhc_class)
+            req, got = diag.get("requested", 0), diag.get("returned", 0)
+            suffix = ""
+            if req and got < req:
+                suffix = f" · KISMİ {got}/{req} peptit"
+            label = f"GERÇEK ({tool} yerel, {host.label} {mhc_class.upper()}){suffix}"
             for d in local.values():
-                d["method"] = f"GERÇEK ({tool} yerel, {host.label} {mhc_class.upper()})"
+                d["method"] = label
             return local
         # 2) IEDB API (çok-tür, gerçek)
         res = _from_iedb(peptides, alleles, mhc_class, rank_weak, host)
