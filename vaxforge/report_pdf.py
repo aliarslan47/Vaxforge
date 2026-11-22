@@ -424,6 +424,63 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
             el.append(Spacer(1, 3))
             el.append(Paragraph("⚠ " + t(lang, "ifn_note"), small))
 
+    # refs bir kez hesaplanır — hem Yöntemler tablosu hem Referanslar kullanır.
+    # SIRA (Ali, 2026-11-22): REFERANSLAR EN SONDA. Biyolojik kapsam/sınırlamalar
+    # eşiklerden ÖNCE; IEDB taraması tip-tabloların HEMEN ARDINDAN.
+    refs = meta.get("citations") or citations.for_report()
+
+    # -- IEDB literatür/bilinen-epitop taraması + validasyon recall'ü
+    im = meta.get("iedb_match")
+    if im:
+        sect(t(lang, "iedb_title"))
+        if not im.get("available"):
+            el.append(Paragraph(im.get("note", t(lang,"iedb_unavail")), small))
+        else:
+            el.append(Paragraph(
+                t(lang,"iedb_intro").format(src=im.get('source',''), n_val=im.get('n_validated',0),
+                                            n_weak=im.get('n_weak',0), tot=im.get('n_candidates','?')), small))
+            el.append(Paragraph(t(lang,"iedb_caveat"), small))
+            mrows = [["#", t(lang, "col_epitope"), t(lang, "col_type"), t(lang, "col_strength"),
+                      t(lang, "col_iedb_epi"), t(lang, "col_organism"), t(lang, "col_assay"), "Ref"]]
+            matched = [(i, p, p.metrics.get("iedb") or {})
+                       for i, p in enumerate(peptides, 1)
+                       if (p.metrics.get("iedb") or {}).get("matched") is True]
+            matched.sort(key=lambda t3: (0 if t3[2].get("evidence") == "validated" else 1,
+                                         -(t3[2].get("overlap") or 0)))
+            for i, p, ie in matched:
+                pmids = ie.get("pmids") or []
+                ref = ", ".join(pmids[:2])
+                if ie.get("iedb_id"):
+                    ref = (ref + f", IEDB {ie.get('iedb_id')}") if ref else f"IEDB {ie.get('iedb_id')}"
+                org = (ie.get("organisms") or ["—"])[0].split(" (")[0]   # uzun suş parantezini at
+                assay = "; ".join((ie.get("assay_evidence") or [])[:1]) or "—"
+                ev = ie.get("evidence")
+                strength = (t(lang, "strength_validated") if ev == "validated"
+                            else t(lang, "strength_weak")) + f" ({ie.get('overlap','')})"
+                mrows.append([str(i), P(p.seq), p.kind, P(strength),
+                              P(ie.get("epitope_seq", "")), P(org), P(assay), P(ref or "—")])
+            if len(mrows) > 1:
+                el.append(Spacer(1, 4))
+                el.append(tbl(mrows, widths=[0.6*cm, 2.4*cm, 0.9*cm, 1.9*cm, 2.5*cm, 2.8*cm, 2.2*cm, 2.2*cm]))
+            else:
+                el.append(Paragraph(f"<i>{t(lang,'iedb_none')}</i>", small))
+            bm = im.get("benchmark") or {}
+            if bm and bm.get("recall") is not None:
+                el.append(Spacer(1, 5))
+                el.append(Paragraph(t(lang,"iedb_val_title"), body))
+                el.append(Paragraph(
+                    t(lang,"iedb_val_text").format(k=bm.get("k",8)), small))
+                rex = bm.get("recall_exact")
+                rex_s = f"{round(rex*100,1)}%" if rex is not None else "—"
+                brows = [[t(lang,"col_known"), t(lang,"col_captured"), t(lang,"col_recall"), t(lang,"col_recall_exact"), t(lang,"col_pred"), t(lang,"col_pred_match"), t(lang,"col_matchrate")],
+                         [bm["n_known"], bm["n_known_hit"], f"{round(bm['recall']*100,1)}%", rex_s,
+                          bm["n_pred"], bm["n_pred_matched"],
+                          f"{round((bm['precision_like'] or 0)*100,1)}%"]]
+                el.append(tbl(brows))
+                if bm.get("top_ref_share") and bm.get("top_ref_share") >= 0.5:
+                    el.append(Paragraph(t(lang,"iedb_ref_dominance").format(
+                        share=round(bm['top_ref_share']*100), pmid=bm.get('top_ref') or '—'), small))
+
     # -- Aşı Konstruktu (MEV)
     mv = meta.get("mev")
     if mv:
@@ -716,61 +773,8 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
             el.append(Spacer(1, 3))
             el.append(Paragraph("⚠ " + t(lang, "ifn_note"), small))
 
-    # refs bir kez hesaplanır — hem Referanslar hem Yöntemler tablosu kullanır.
-    # SIRA (kullanıcı kuralı): Eşikler + Yöntemler DAİMA kaynaklardan SONRA gelir.
-    refs = meta.get("citations") or citations.for_report()
 
-    # -- IEDB literatür/bilinen-epitop taraması + validasyon recall'ü
-    im = meta.get("iedb_match")
-    if im:
-        sect(t(lang, "iedb_title"))
-        if not im.get("available"):
-            el.append(Paragraph(im.get("note", t(lang,"iedb_unavail")), small))
-        else:
-            el.append(Paragraph(
-                t(lang,"iedb_intro").format(src=im.get('source',''), n_val=im.get('n_validated',0),
-                                            n_weak=im.get('n_weak',0), tot=im.get('n_candidates','?')), small))
-            el.append(Paragraph(t(lang,"iedb_caveat"), small))
-            mrows = [["#", t(lang, "col_epitope"), t(lang, "col_type"), t(lang, "col_strength"),
-                      t(lang, "col_iedb_epi"), t(lang, "col_organism"), t(lang, "col_assay"), "Ref"]]
-            matched = [(i, p, p.metrics.get("iedb") or {})
-                       for i, p in enumerate(peptides, 1)
-                       if (p.metrics.get("iedb") or {}).get("matched") is True]
-            matched.sort(key=lambda t3: (0 if t3[2].get("evidence") == "validated" else 1,
-                                         -(t3[2].get("overlap") or 0)))
-            for i, p, ie in matched:
-                pmids = ie.get("pmids") or []
-                ref = ", ".join(pmids[:2])
-                if ie.get("iedb_id"):
-                    ref = (ref + f", IEDB {ie.get('iedb_id')}") if ref else f"IEDB {ie.get('iedb_id')}"
-                org = (ie.get("organisms") or ["—"])[0].split(" (")[0]   # uzun suş parantezini at
-                assay = "; ".join((ie.get("assay_evidence") or [])[:1]) or "—"
-                ev = ie.get("evidence")
-                strength = (t(lang, "strength_validated") if ev == "validated"
-                            else t(lang, "strength_weak")) + f" ({ie.get('overlap','')})"
-                mrows.append([str(i), P(p.seq), p.kind, P(strength),
-                              P(ie.get("epitope_seq", "")), P(org), P(assay), P(ref or "—")])
-            if len(mrows) > 1:
-                el.append(Spacer(1, 4))
-                el.append(tbl(mrows, widths=[0.6*cm, 2.4*cm, 0.9*cm, 1.9*cm, 2.5*cm, 2.8*cm, 2.2*cm, 2.2*cm]))
-            else:
-                el.append(Paragraph(f"<i>{t(lang,'iedb_none')}</i>", small))
-            bm = im.get("benchmark") or {}
-            if bm and bm.get("recall") is not None:
-                el.append(Spacer(1, 5))
-                el.append(Paragraph(t(lang,"iedb_val_title"), body))
-                el.append(Paragraph(
-                    t(lang,"iedb_val_text").format(k=bm.get("k",8)), small))
-                rex = bm.get("recall_exact")
-                rex_s = f"{round(rex*100,1)}%" if rex is not None else "—"
-                brows = [[t(lang,"col_known"), t(lang,"col_captured"), t(lang,"col_recall"), t(lang,"col_recall_exact"), t(lang,"col_pred"), t(lang,"col_pred_match"), t(lang,"col_matchrate")],
-                         [bm["n_known"], bm["n_known_hit"], f"{round(bm['recall']*100,1)}%", rex_s,
-                          bm["n_pred"], bm["n_pred_matched"],
-                          f"{round((bm['precision_like'] or 0)*100,1)}%"]]
-                el.append(tbl(brows))
-                if bm.get("top_ref_share") and bm.get("top_ref_share") >= 0.5:
-                    el.append(Paragraph(t(lang,"iedb_ref_dominance").format(
-                        share=round(bm['top_ref_share']*100), pmid=bm.get('top_ref') or '—'), small))
+
 
     # -- Popülasyon kapsamı (IEDB)
     popcov = meta.get("population_coverage") or {}
@@ -793,21 +797,20 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
             if len(prows) > 1:
                 el.append(Paragraph(f"<b>{he.get('label', hname)}</b>", body))
                 el.append(tbl(prows))
+    # -- Biyolojik kapsam ve dürüst sınırlamalar (konformasyonel B / konservasyon / mimikri)
+    sect(t(lang, "pdf_bio_limits_title"))
+    el.append(Paragraph("• "+t(lang,"pdf_bcell_caveat"), small))
+    cons = meta.get("conservation") or {}
+    if cons.get("computed"):
+        el.append(Paragraph("• "+t(lang,"pdf_cons_computed").format(
+            n=cons.get("n_strains", 0), c=cons.get("n_conserved", 0),
+            m=cons.get("min_percent", 80)), small))
+    else:
+        el.append(Paragraph("• "+t(lang,"pdf_cons_skipped"), small))
+    n_mim = sum(1 for p in peptides if p.metrics.get("self_mimicry"))
+    el.append(Paragraph("• "+t(lang,"pdf_mimicry_note").format(n=n_mim), small))
 
-    # -- Referanslar (tam atıflar)
-    sect(t(lang, "rep_references"))
-    for i, r in enumerate(refs, 1):
-        doi = r["doi"]
-        link = doi if doi.startswith("http") else f"https://doi.org/{doi}"
-        # Araç bu makinede YOK ise atıf satırı bunu söyler (HTML raporla aynı
-        # kural): yoksa kaynakça, koşmamış bir aracı koşmuş gibi gösterir.
-        absent = ("" if r.get("used") is not False
-                  else f' <font color="#a8601a"><b>[{t(lang,"tool_status_absent")}]</b></font>')
-        el.append(Paragraph(f'[{i}] {r["citation"]}{absent} '
-                            f'<font color="#1565c0">{link}</font>', small))
-        el.append(Spacer(1, 2))
-
-    # -- Kullanılan eşikler (tekrarlanabilirlik) — DAİMA kaynaklardan sonra
+    # -- Kullanılan eşikler (tekrarlanabilirlik) — biyolojik sınırlamalardan SONRA
     sect(t(lang, "rep_thresholds"))
     trows = [[t(lang,"col_step"), t(lang,"col_tool"), t(lang,"col_param"), t(lang,"col_value"), t(lang,"col_type")]]
     for r in meta.get("thresholds", []):
@@ -837,27 +840,27 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
             frows.append([P(k), P(v)])
         el.append(tbl(frows, widths=[4.4*cm, 9.8*cm]))
 
-    # -- Kullanılan yöntemler ve araçlar (özet tablo) — DAİMA kaynaklardan sonra
+    # -- Kullanılan yöntemler ve araçlar (özet tablo) — eşiklerden sonra, referanslardan ÖNCE
     sect(t(lang, "rep_methods"))
     mrows = [[t(lang,"col_step"), t(lang,"col_tool"), "Ref"]] + [[P(r["step"]), P(r["tool"]), f"[{i}]"]
                                           for i, r in enumerate(refs, 1)]
     el.append(tbl(mrows, widths=[5.5*cm, 8.1*cm, 1.2*cm]))
     el.append(Spacer(1, 6))
     el.append(Paragraph(t(lang,"pdf_methods_note"), small))
-
-    # -- Biyolojik kapsam ve dürüst sınırlamalar (konformasyonel B / konservasyon / mimikri)
-    sect(t(lang, "pdf_bio_limits_title"))
-    el.append(Paragraph("• "+t(lang,"pdf_bcell_caveat"), small))
-    cons = meta.get("conservation") or {}
-    if cons.get("computed"):
-        el.append(Paragraph("• "+t(lang,"pdf_cons_computed").format(
-            n=cons.get("n_strains", 0), c=cons.get("n_conserved", 0),
-            m=cons.get("min_percent", 80)), small))
-    else:
-        el.append(Paragraph("• "+t(lang,"pdf_cons_skipped"), small))
-    n_mim = sum(1 for p in peptides if p.metrics.get("self_mimicry"))
-    el.append(Paragraph("• "+t(lang,"pdf_mimicry_note").format(n=n_mim), small))
-
+    # -- Referanslar (tam atıflar) — RAPORUN EN SONU (Ali kuralı 2026-11-22).
+    # Yöntemler tablosundaki [n] numaraları buraya ileri atıf yapar; makale
+    # düzeninde olağan olan budur.
+    sect(t(lang, "rep_references"))
+    for i, r in enumerate(refs, 1):
+        doi = r["doi"]
+        link = doi if doi.startswith("http") else f"https://doi.org/{doi}"
+        # Araç bu makinede YOK ise atıf satırı bunu söyler (HTML raporla aynı
+        # kural): yoksa kaynakça, koşmamış bir aracı koşmuş gibi gösterir.
+        absent = ("" if r.get("used") is not False
+                  else f' <font color="#a8601a"><b>[{t(lang,"tool_status_absent")}]</b></font>')
+        el.append(Paragraph(f'[{i}] {r["citation"]}{absent} '
+                            f'<font color="#1565c0">{link}</font>', small))
+        el.append(Spacer(1, 2))
     doc.build(el)
     chart.unlink(missing_ok=True)
     for ic in _imm_charts:

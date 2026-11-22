@@ -75,6 +75,16 @@ rapor hatası 1 saatlik BoHV-1 koşusu değil, saniyeler sürüyor. (Bu koşunun
 simgeleri birebir aynı — tek fark, eskiden ortadan bölünmüş olan simgelerin
 artık bütün olması.)
 
+**Bölüm sırası (Ali, aynı gün, ikinci istek):** REFERANSLAR EN SONDA; biyolojik
+kapsam/sınırlamalar eşiklerden ÖNCE; IEDB taraması tip-tablolarının HEMEN
+ARDINDAN. Yeni sıra: Özet · En iyi adaylar · anchor motifi · tipe göre epitoplar ·
+**IEDB** · MEV · immünojenisite · yapı · klonlama · araç durumu · popülasyon ·
+**biyolojik kapsam** · **eşikler** · yöntemler · **referanslar**. HTML rapor da
+aynı sıraya çekildi (iki çıktı arasındaki fark denetlenmeli — bkz. 11. varyant).
+Not: eski kod yorumundaki "Eşikler + Yöntemler DAİMA kaynaklardan SONRA gelir"
+kuralı bu istekle değişti; yöntemler tablosundaki [n] artık ileri atıf yapıyor
+(makale düzeninde olağan).
+
 Testler: `tests/test_rapor_duzeni.py` (10 test) — sütun genişliği güvenceleri,
 IFN-γ üç değerliliği, gerçek PDF üretip her başlığın sayfa başında olduğunun ve
 numaraların atlamadığının okunması, `peptides.json` gidiş-dönüşü.
