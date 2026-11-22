@@ -18,14 +18,32 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import cm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.platypus import (Image, Paragraph, SimpleDocTemplate, Spacer,
-                                Table, TableStyle)
+from reportlab.platypus import (Image, PageBreak, Paragraph,
+                                SimpleDocTemplate, Spacer, Table, TableStyle)
 
 from . import citations
 from .i18n import t
 
 _FONT = "DejaVu"
 _FONT_B = "DejaVu-Bold"
+
+#: Sayfa kenar boşlukları (SimpleDocTemplate ile BİREBİR aynı olmak zorunda:
+#: tablo genişlikleri bu çerçeveye göre ölçülür).
+_MARGIN = 1.6 * cm
+_FRAME_W = A4[0] - 2 * _MARGIN
+
+#: Hücre iç boşluğu (pt). reportlab varsayılanı 6+6 pt = 0.42 cm idi; bu,
+#: ölçülen metin genişliğine eklenince 'BoLA-DRB3_01201' gibi BÖLÜNMEMESİ
+#: gereken simgeleri satır ortasından ikiye ayırıyordu (raporda allel adı
+#: '...0120' + '1' olarak iki satıra düşüyordu).
+_CELL_PAD = 2.2
+
+#: Bir sütun tek başına çerçevenin en çok bu kadarını alabilir.
+_MAX_COL_FRACTION = 0.45
+
+#: Metin bu karakterlerden SONRA satır sonuna girebilir — yani bir simgenin
+#: "bölünemez" en uzun parçası hesaplanırken bunlar ayırıcı sayılır.
+_SOFT_BREAK = " /,;|()"
 
 
 def _register_font() -> bool:
@@ -96,6 +114,80 @@ def _isotype_chart(curve: dict, path: Path, lang: str = "tr") -> bool:
     return True
 
 
+def _pdf_ifn_cell(b, lang: str = "tr") -> str:
+    """IFN-γ hücresi — ÜÇ DEĞERLİ. None = ÖLÇÜLMEDİ.
+
+    '✗' basmak yasak: IFNepitope2 modeli yalnız insan/fare içindir, başka bir
+    konakta metrik hiç hesaplanmaz ve '✗' okuyan kişi "IFN-γ indüklemiyor"
+    sonucuna varırdı (ölçüm yokluğu olumsuz bulgu değildir).
+    """
+    if b is None:
+        return "n/m" if lang == "en" else "ölç."
+    return "✓" if b else "✗"
+
+
+def _cell_text(c) -> str:
+    """Hücrenin ÖLÇÜLECEK düz metni (Paragraph/Flowable ise metnini çıkarır)."""
+    if isinstance(c, Paragraph):
+        return getattr(c, "text", "") or ""
+    return "" if c is None else str(c)
+
+
+def _longest_token(s: str) -> str:
+    """Satır sonuna bölünemeyen en uzun parça (bkz. _SOFT_BREAK)."""
+    best, cur = "", ""
+    for ch in s:
+        cur += ch
+        if ch in _SOFT_BREAK:
+            if len(cur) > len(best):
+                best = cur
+            cur = ""
+    return best if len(best) > len(cur) else cur
+
+
+def _min_widths(data, header: bool, fsize: float, hsize: float) -> list[float]:
+    """Sütun başına, hiçbir simgeyi ortadan BÖLMEYEN en küçük genişlik.
+
+    Başlık satırı kalın ve bir punto büyük olduğu için ayrı ölçülür: raporda
+    'iç içe girmiş' görünen başlıklar (ör. 'Bilinen epitop (benzersiz)' 3.6 cm,
+    sütun 2.5 cm) tam olarak bu ölçümün hiç yapılmamasından doğuyordu.
+    """
+    nc = max(len(r) for r in data)
+    mins = [0.0] * nc
+    for ri, row in enumerate(data):
+        bold = header and ri == 0
+        fn, fs = (_FONT_B, hsize) if bold else (_FONT, fsize)
+        for ci in range(nc):
+            txt = _cell_text(row[ci] if ci < len(row) else "")
+            tok = _longest_token(txt)
+            try:
+                w = pdfmetrics.stringWidth(tok, fn, fs)
+            except Exception:
+                w = fs * 0.6 * len(tok)
+            mins[ci] = max(mins[ci], w + 2 * _CELL_PAD)
+    return mins
+
+
+def _fit_widths(data, widths, header: bool, fsize: float, hsize: float) -> list[float]:
+    """Sütun genişliklerini çerçeveye ve içeriğe göre düzelt.
+
+    Üç güvence (yeni raporların DAİMA düzgün çıkması için):
+      1. Hiçbir sütun, bölünemez en uzun simgesinden dar kalmaz → başlık ya da
+         hücre metni komşu sütunun üstüne TAŞMAZ.
+      2. Toplam genişlik çerçeveyi (kenar boşlukları hariç sayfa) tam doldurur →
+         ne sağa taşar ne de yarım sayfa boş kalır.
+      3. Tek sütun çerçevenin %45'inden fazlasını yemez.
+    """
+    nc = max(len(r) for r in data)
+    mins = _min_widths(data, header, fsize, hsize)
+    cap = _FRAME_W * _MAX_COL_FRACTION
+    w = [float(x) for x in (widths or [])][:nc]
+    w += [_FRAME_W / nc] * (nc - len(w))
+    w = [max(wi, min(mi, cap)) for wi, mi in zip(w, mins)]
+    tot = sum(w) or 1.0
+    return [wi * _FRAME_W / tot for wi in w]
+
+
 def build(outdir: Path, peptides, meta: dict) -> Path:
     outdir = Path(outdir)
     lang = meta.get("lang", "tr")
@@ -109,19 +201,77 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
     mono = ParagraphStyle("mono", parent=body, fontName="Courier", fontSize=6, leading=7)
 
     doc = SimpleDocTemplate(str(out), pagesize=A4, topMargin=1.5 * cm,
-                            bottomMargin=1.5 * cm, leftMargin=1.6 * cm, rightMargin=1.6 * cm)
+                            bottomMargin=1.5 * cm,
+                            leftMargin=_MARGIN, rightMargin=_MARGIN)
     el = []
 
+    # Tablo hücre stilleri: BAŞLIK da dahil her hücre Paragraph'a sarılır.
+    # Eskiden başlıklar çıplak str idi; reportlab çıplak str'i sarmaz, hücre
+    # sınırından TAŞIRIR → komşu sütunun başlığıyla üst üste biniyordu.
+    _TBL_FS, _TBL_HS = 7.0, 7.0
+    # wordWrap="CJK" HER KARAKTERDE bölebilir: uzun peptit/DNA dizisi için
+    # gerekli, ama boşluklu metinde sayıyı ortadan ikiye ayırıyordu (raporda
+    # PMID '11163665' -> '1116366' + '5'). Bu yüzden iki stil: boşluk içeren
+    # hücre KELİME sınırında, boşluksuz hücre her yerde bölünür.
+    tcell = ParagraphStyle("tcell", parent=body, fontSize=_TBL_FS, leading=_TBL_FS + 1.6,
+                           wordWrap="CJK")
+    tcellw = ParagraphStyle("tcellw", parent=tcell, wordWrap=None)
+    thead = ParagraphStyle("thead", parent=tcellw, fontName=_FONT_B,
+                           fontSize=_TBL_HS, leading=_TBL_HS + 1.6,
+                           textColor=colors.white)
+
+    def _esc(s: str) -> str:
+        return (str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
+
     def tbl(data, widths=None, header=True):
-        t = Table(data, colWidths=widths, repeatRows=1 if header else 0)
-        style = [("FONTNAME", (0, 0), (-1, -1), _FONT), ("FONTSIZE", (0, 0), (-1, -1), 7),
+        data = [list(r) for r in data]
+        nc = max(len(r) for r in data)
+        for r in data:
+            r += [""] * (nc - len(r))
+        widths = _fit_widths(data, widths, header, _TBL_FS, _TBL_HS)
+        wrapped = []
+        for ri, row in enumerate(data):
+            cells = []
+            for c in row:
+                if hasattr(c, "wrapOn"):
+                    cells.append(c)
+                    continue
+                txt = "" if c is None else str(c)
+                st = (thead if (header and ri == 0)
+                      else (tcellw if " " in txt.strip() else tcell))
+                cells.append(Paragraph(_esc(txt), st))
+            wrapped.append(cells)
+        tb = Table(wrapped, colWidths=widths, repeatRows=1 if header else 0)
+        style = [("FONTNAME", (0, 0), (-1, -1), _FONT), ("FONTSIZE", (0, 0), (-1, -1), _TBL_FS),
                  ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#cccccc")),
-                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"), ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f6f6f6")])]
+                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                 ("LEFTPADDING", (0, 0), (-1, -1), _CELL_PAD),
+                 ("RIGHTPADDING", (0, 0), (-1, -1), _CELL_PAD),
+                 ("TOPPADDING", (0, 0), (-1, -1), 1.6),
+                 ("BOTTOMPADDING", (0, 0), (-1, -1), 1.6),
+                 ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f6f6f6")])]
         if header:
             style += [("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0b6b4f")),
-                      ("TEXTCOLOR", (0, 0), (-1, 0), colors.white), ("FONTNAME", (0, 0), (-1, 0), _FONT_B)]
-        t.setStyle(TableStyle(style))
-        return t
+                      ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                      ("FONTNAME", (0, 0), (-1, 0), _FONT_B)]
+        tb.setStyle(TableStyle(style))
+        return tb
+
+    # Bölüm başlıkları: HER BAŞLIK KENDİ SAYFASINDAN BAŞLAR (kullanıcı kuralı).
+    # Numara otomatik artar — eski elle yazılmış '2b/2c/2d' etiketleri bir bölüm
+    # atlandığında yanlış/atlamalı numara veriyordu.
+    _sec = {"n": 0}
+
+    def sect(title: str, first: bool = False):
+        _sec["n"] += 1
+        if not first:
+            el.append(PageBreak())
+        el.append(Paragraph(f"{_sec['n']}. {title}", h2))
+
+    def sub(title: str):
+        """Alt başlık — kendi sayfasını açmaz, ama tablosundan ayrı düşmez."""
+        el.append(Spacer(1, 6))
+        el.append(Paragraph(f"<b>{title}</b>", body))
 
     # -- Başlık
     el.append(Paragraph(t(lang,"rep_title"), h1))
@@ -133,7 +283,7 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
     el.append(Paragraph(t(lang,"rep_disclaimer"), small))
 
     # -- Özet
-    el.append(Paragraph("1. "+t(lang,"rep_summary"), h2))
+    sect(t(lang, "rep_summary"))
     el.append(tbl([[t(lang,"rep_sum_input"), t(lang,"rep_sum_discovery"), t(lang,"rep_sum_funnel"), t(lang,"rep_sum_epitope"), t(lang,"rep_sum_survivors")],
                    [meta.get("n_input", "?"), meta.get("n_discovery", "?"), meta.get("n_funnel", "?"),
                     meta.get("n_epitope", "?"), meta.get("n_survivors", "?")]]))
@@ -146,11 +296,12 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
         el.append(Image(str(chart), width=15 * cm, height=6.6 * cm))
 
     # -- En iyi adaylar (hücreler Paragraph ile sarılır → taşma yok, uzun metin kaydırılır)
-    el.append(Paragraph("2. "+t(lang,"pdf_top"), h2))
-    cell = ParagraphStyle("cell", parent=body, fontSize=6.5, leading=8, wordWrap="CJK")
+    sect(t(lang, "pdf_top"))
 
     def P(s):
-        return Paragraph(str(s).replace("&", "&amp;").replace("<", "&lt;"), cell)
+        """Hücre metni. Sarma/kaçırma artık tbl() içinde, hücrenin içeriğine
+        göre seçilen stille yapılıyor; burada yalnız metne çevirilir."""
+        return "" if s is None else str(s)
 
     rows = [["#", t(lang,"col_epitope"), t(lang,"col_type"), "Score" if lang=="en" else "Skor", "CDS", t(lang,"col_source"), "Locus" if lang=="en" else "Lokus", t(lang,"col_allele")]]
     for i, p in enumerate(peptides[:15], 1):
@@ -163,7 +314,7 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
     # -- MHC anchor/cep motifi (yorum)
     mhci = [p for p in peptides if p.kind == "MHC-I" and p.metrics.get("anchor_residues")][:10]
     if mhci:
-        el.append(Paragraph("2b. "+t(lang,"pdf_anchor_title"), h2))
+        sect(t(lang, "pdf_anchor_title"))
         el.append(Paragraph(t(lang,"pdf_anchor_text"), small))
         def _anchor_full(m):
             # 'N/N' (tüm anchor'lar cebe uyuyor) = önemli → yıldız
@@ -195,12 +346,12 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
     from . import evaluate
     tt = evaluate.type_tables(peptides, meta, top_n=15)
     total = {k: sum(1 for p in peptides if p.kind == k) for k in ("MHC-I", "MHC-II", "B")}
-    el.append(Paragraph("2c. "+t(lang,"rep_bytype"), h2))
+    sect(t(lang, "rep_bytype"))
     el.append(Paragraph(
         t(lang,"tt_intro_pdf"), small))
 
     def _yn(b):
-        return "✓" if b else "✗"
+        return _pdf_ifn_cell(b, lang)
 
     def _haz(state, value=None):
         """Tehlike sütunu: durumun kendisi (bkz. report.py hazard()).
@@ -269,6 +420,9 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
         for ri in star_rows:
             tb.setStyle(TableStyle([("BACKGROUND", (0, ri), (-1, ri), colors.HexColor("#e7f7ee"))]))
         el.append(tb)
+        if kind == "MHC-II" and any(r["ifn_ok"] is None for r in rows):
+            el.append(Spacer(1, 3))
+            el.append(Paragraph("⚠ " + t(lang, "ifn_note"), small))
 
     # -- Aşı Konstruktu (MEV)
     mv = meta.get("mev")
@@ -283,8 +437,7 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
             return "—" if v is None else (yes if v else no)
 
         nb = mv["n_by_kind"]
-        el.append(Paragraph(("2d. Vaccine Construct (MEV)" if is_en
-                             else "2d. Aşı Konstruktu (MEV)"), h2))
+        sect("Vaccine Construct (MEV)" if is_en else "Aşı Konstruktu (MEV)")
         el.append(Paragraph(
             (f"β-defensin adjuvant + EAAAK/AAY/GPGPG/KK linkers · "
              f"CTL={nb['MHC-I']}, HTL={nb['MHC-II']}, LBL={nb['B']} · "
@@ -317,12 +470,72 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
         ]
         el.append(tbl(mrows, widths=[5.5*cm, 8.7*cm]))
 
+        # Alerjenite ATFI — "Allergen" satırı tek başına YANILTICI: eşleşmenin
+        # konstruktun NERESİNDEN doğduğunu söylemeden okuyan kişi epitopların
+        # alerjen olduğu sonucuna varır. Oysa bu koşuda üç eşleşmenin üçü de
+        # linker/epitop BİRLEŞME YERİNDE doğdu (epitopların hepsi temiz) ve
+        # linker değiştirilerek giderilebilir. Bkz. mev.allergen_attribution.
+        hits = al.get("matches") or []
+        if hits:
+            sub("Allergenicity attribution (FAO/WHO 6-mer)" if is_en
+                else "Alerjenite atfı (FAO/WHO 6-mer)")
+            reg_tr = {"junction": "birleşme yeri", "linker": "linker",
+                      "adjuvant": "adjuvan", "epitope": "epitop", "other": "diğer"}
+            hrows = [[("6-mer" if is_en else "6-mer"), ("Pos." if is_en else "Konum"),
+                      ("Region" if is_en else "Bölge"), ("Parts" if is_en else "Parçalar"),
+                      ("Matched allergen" if is_en else "Benzediği alerjen")]]
+            for h in hits:
+                reg = h.get("region", "other")
+                hrows.append([P(h.get("kmer", "")), str(h.get("start", "")),
+                              reg if is_en else reg_tr.get(reg, reg),
+                              P(h.get("detail", "—") or "—"), P(h.get("source", "—") or "—")])
+            el.append(tbl(hrows, widths=[2.0*cm, 1.4*cm, 2.4*cm, 4.2*cm, 4.2*cm]))
+            by = al.get("by_region") or {}
+            if al.get("from_epitope"):
+                verdict = ("At least one match lies INSIDE an epitope: the candidate filter "
+                           "missed it — drop that epitope from the construct." if is_en
+                           else "En az bir eşleşme bir EPİTOBUN İÇİNDE: aday filtresi kaçırmış — "
+                           "o epitop konstruktan çıkarılmalı.")
+            elif al.get("fixable_by_linker"):
+                verdict = ("All matches arise at linker/epitope junctions — no epitope is itself "
+                           "allergenic; changing the linker (or the order of epitopes) removes them."
+                           if is_en else
+                           "Eşleşmelerin tümü linker/epitop birleşme yerinde doğuyor — hiçbir "
+                           "epitop kendiliğinden alerjen DEĞİL; linker (ya da epitop sırası) "
+                           "değiştirilerek giderilebilir.")
+            else:
+                verdict = ("Matches lie in the host-derived adjuvant; this is expected and is not "
+                           "a property of the selected epitopes." if is_en else
+                           "Eşleşmeler konak kaynaklı adjuvanda; bu BEKLENEN bir durumdur ve "
+                           "seçilen epitopların bir özelliği değildir.")
+            el.append(Spacer(1, 2))
+            el.append(Paragraph(
+                ("Regions: " if is_en else "Bölgeler: ")
+                + ", ".join(f"{(k if is_en else reg_tr.get(k, k))}={v}" for k, v in by.items())
+                + " · " + verdict, small))
+
+        # Düşük karmaşıklık nedeniyle KONSTRUKTA KONMAYAN epitoplar — sessizce
+        # düşürülmezler, gerekçesiyle yazılırlar (bkz. complexity.py).
+        exc = mv.get("excluded_low_complexity") or []
+        if exc:
+            sub("⚠ " + t(lang, "lc_title"))
+            el.append(Paragraph(t(lang, "lc_intro"), small))
+            erows = [[t(lang, "col_epitope"), t(lang, "col_type"), t(lang, "col_source"),
+                      "%rank", ("Score" if is_en else "Skor"),
+                      ("Reason" if is_en else "Gerekçe")]]
+            for e in exc[:20]:
+                erows.append([P(e.get("seq", "")), e.get("kind", ""), P(e.get("source", "—")),
+                              "—" if e.get("rank") is None else f"{e['rank']:.3f}",
+                              "—" if e.get("candidacy") is None else f"{e['candidacy']:.3f}",
+                              P(e.get("reason", ""))])
+            el.append(tbl(erows, widths=[3.2*cm, 1.2*cm, 2.4*cm, 1.3*cm, 1.3*cm, 5.0*cm]))
+
     # -- İmmünojenisite (ImmForge — in silico eleme; DÜRÜST etiketli)
     imm = meta.get("immunogenicity")
     if imm and imm.get("per_host"):
         is_en = lang == "en"
-        el.append(Paragraph(("2e. Immunogenicity — in silico screen (ImmForge)" if is_en
-                             else "2e. İmmünojenisite — in silico eleme (ImmForge)"), h2))
+        sect("Immunogenicity — in silico screen (ImmForge)" if is_en
+             else "İmmünojenisite — in silico eleme (ImmForge)")
         el.append(Paragraph(
             ("Mechanistic engine PREDICTION — not in vivo efficacy, NOT validated. Only the kinetic "
              "shape was validated on peptide-vaccine data; the verdict/isotype/profile are operational "
@@ -365,6 +578,144 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
                 el.append(Image(str(icurve), width=13 * cm, height=4.7 * cm))
                 _imm_charts.append(icurve)
 
+    # -- Yapısal değerlendirme (ESMFold/pLDDT) — PDF'te HİÇ YOKTU.
+    # HTML raporda vardı, PDF'te yoktu: pLDDT 47.7 ("çok düşük — düzensiz
+    # model") olan bir koşuda PDF, yapıdan türeyen hiçbir sonucun güvenini
+    # göstermiyordu. Rapor eksikliği de bir dürüstlük kusurudur.
+    st = meta.get("structure")
+    if st:
+        is_en = lang == "en"
+        sect("Structural validation — ESMFold" if is_en
+             else "Yapısal doğrulama — ESMFold")
+        el.append(Paragraph(
+            ("ESMFold PREDICTION via ESMAtlas API — not an experimental structure. "
+             "pLDDT>70 confident, <50 disordered. Conformational-B is DiscoTope-LIKE "
+             "(RSA+Parker), not the official DiscoTope." if is_en else
+             "ESMAtlas API üzerinden ESMFold ÖNGÖRÜSÜ — deneysel yapı değil. pLDDT>70 "
+             "güvenilir, <50 düzensiz. Konformasyonel-B, DiscoTope-BENZERİ (RSA+Parker); "
+             "resmi DiscoTope değil."), small))
+        if not st.get("available"):
+            el.append(Paragraph(st.get("note") or ("Structure not predicted." if is_en
+                                                   else "Yapı öngörülmedi."), small))
+        else:
+            surf = st.get("surface") or {}
+            cb = st.get("conformational_b") or {}
+            cl = st.get("plddt_confidence") or {}
+            thr = st.get("plddt_threshold", 70.0)
+            lbl = cl.get("label_en" if is_en else "label_tr", "")
+            if cl and not cl.get("reliable", True):
+                el.append(Spacer(1, 3))
+                el.append(Paragraph(
+                    f"<b>⚠ pLDDT {st.get('plddt_mean','—')} &lt; {thr} — {lbl}.</b> "
+                    + ("Everything read OFF this model is low-confidence too: the surface % "
+                       "(RSA) and the conformational B-cell patches below. This is EXPECTED "
+                       "for a MEV — the construct is a linker-joined chimera, not a natural "
+                       "folding unit — so a low pLDDT is not by itself a defect, but the "
+                       "surface/conformational results cannot carry the weight of a "
+                       "measurement." if is_en else
+                       "Bu modelden OKUNAN her şey de düşük güvenlidir: aşağıdaki yüzey % "
+                       "(RSA) ve konformasyonel B-hücre yamaları. Bu, MEV için BEKLENEN "
+                       "durumdur — konstrükt linkerlarla birleştirilmiş yapay bir kimera, "
+                       "doğal bir katlanma birimi değil; yani düşük pLDDT tek başına kusur "
+                       "değil, ama yüzey/konformasyonel sonuçlar ölçüm ağırlığı taşımaz."),
+                    small))
+            tag = "" if cl.get("reliable", True) else (" (low confidence)" if is_en
+                                                      else " (düşük güven)")
+            srows = [[("Property" if is_en else "Özellik"), ("Value" if is_en else "Değer")],
+                     [("Source" if is_en else "Kaynak"), P(st.get("source", "—"))],
+                     [("Tool" if is_en else "Araç"), P(st.get("tool", "—"))],
+                     [("Residues" if is_en else "Kalıntı"), str(st.get("n_res", "—"))],
+                     ["pLDDT (mean/min)" if is_en else "pLDDT (ort/min)",
+                      P(f"{st.get('plddt_mean','—')} / {st.get('plddt_min','—')}"
+                        + (f" — {lbl}" if lbl else ""))],
+                     [("Surface %" if is_en else "Yüzey %"),
+                      f"{surf.get('percent_surface','—')}%{tag}"],
+                     [("Conformational B patches" if is_en else "Konformasyonel B yaması"),
+                      f"{cb.get('n_patches','—')}{tag}"]]
+            el.append(tbl(srows, widths=[5.5*cm, 8.7*cm]))
+            patches = cb.get("patches") or []
+            if patches:
+                sub("Surface B-cell patches" if is_en else "Yüzey B-hücre yamaları")
+                prows = [[("Range" if is_en else "Aralık"), ("Len" if is_en else "Uzunluk"),
+                          ("Peptide" if is_en else "Peptit"), ("Score" if is_en else "Skor"),
+                          "pLDDT", ("Confidence" if is_en else "Güven")]]
+                lvl_tr = {"very_high": "çok yüksek", "confident": "güvenilir",
+                          "low": "düşük", "disordered": "düzensiz",
+                          "unknown": "bilinmiyor"}
+                for q in patches[:12]:
+                    _pl = q.get("plddt_mean")
+                    lv = str(q.get("plddt_confidence", "—"))
+                    prows.append([f"{q['start']}–{q['end']}", str(q["length"]),
+                                  P(q["peptide"]), str(q["mean_score"]),
+                                  "—" if _pl is None else str(_pl),
+                                  ("⚠ " if q.get("low_confidence") else "")
+                                  + (lv if is_en else lvl_tr.get(lv, lv))])
+                el.append(tbl(prows, widths=[1.8*cm, 1.4*cm, 4.4*cm, 1.6*cm, 1.6*cm, 3.0*cm]))
+
+    # -- In-siliko klonlama (HTML'de vardı, PDF'te yoktu)
+    cl_ = meta.get("cloning")
+    if cl_ and cl_.get("available"):
+        is_en = lang == "en"
+        sect("In-silico cloning" if is_en else "In-siliko klonlama")
+        crows = [[("Property" if is_en else "Özellik"), ("Value" if is_en else "Değer")],
+                 [("Host" if is_en else "Konak"), P(cl_.get("host", "—"))],
+                 [("Method" if is_en else "Yöntem"), P(cl_.get("method", "—"))],
+                 [("Insert" if is_en else "İnsert"),
+                  f"{cl_.get('dna_len_bp','—')} bp / {cl_.get('protein_len','—')} aa"],
+                 ["GC %", str(cl_.get("gc_percent", "—"))],
+                 ["CAI", f"{cl_.get('cai','—')} (baseline {cl_.get('cai_baseline','—')})"],
+                 [("Vector / tag" if is_en else "Vektör / etiket"),
+                  P(f"{cl_.get('suggested_vector','—')} · {cl_.get('tag','—')}")],
+                 [("Internal restriction sites" if is_en else "İç kesim bölgeleri"),
+                  P("; ".join(f"{k}:{v}" for k, v in
+                              (cl_.get("restriction_sites") or {}).items()) or "—")]]
+        el.append(tbl(crows, widths=[5.5*cm, 8.7*cm]))
+        if cl_.get("note"):
+            el.append(Spacer(1, 3))
+            el.append(Paragraph(cl_["note"], small))
+
+    # -- Araç durumu (21 araç) — PDF'te HİÇ YOKTU. Bir aracın kurulu olmadığı
+    # ya da doğrulama koşusunun düştüğü, PDF'i okuyan kişiye görünmüyordu.
+    ts = meta.get("tool_status") or {}
+    tsum = meta.get("tool_status_summary") or {}
+    if ts:
+        is_en = lang == "en"
+        sect("Tool status" if is_en else "Araç durumu")
+        el.append(Paragraph(
+            (f"{tsum.get('available','?')}/{tsum.get('total','?')} tools present "
+             f"({tsum.get('verified','?')} verified by a probe run, "
+             f"{tsum.get('shallow','?')} file/import check only). A missing tool is "
+             "separated into 'not installed' and 'present but its verification run "
+             "failed' — the second can be a transient load error, and calling it "
+             "'absent' would be just as misleading as claiming it ran." if is_en else
+             f"{tsum.get('available','?')}/{tsum.get('total','?')} araç yerinde "
+             f"({tsum.get('verified','?')}'ü sonda koşusuyla doğrulandı, "
+             f"{tsum.get('shallow','?')} tanesi yalnız dosya/import denetimi). Eksiklik iki "
+             "türe ayrılır: 'kurulu değil' ve 'dosya var ama doğrulama koşusu düştü' — "
+             "ikincisi geçici yük hatası olabilir; ona 'araç yok' demek, çalıştığını "
+             "iddia etmek kadar yanıltıcıdır."), small))
+        el.append(Spacer(1, 3))
+        tr_chk = {"verified": "sonda koşusu", "shallow": "dosya/import"}
+        trows2 = [[("Tool" if is_en else "Araç"), ("State" if is_en else "Durum"),
+                   ("Check" if is_en else "Denetim"), ("Note" if is_en else "Not")]]
+        for key, v in ts.items():
+            okk = bool(v.get("available"))
+            fk = v.get("fail_kind")
+            state = (("present" if is_en else "var") if okk else
+                     {"missing": ("not installed" if is_en else "kurulu değil"),
+                      "verify_failed": ("verify failed" if is_en else "doğrulama düştü"),
+                      "probe_error": ("probe error" if is_en else "sonda hatası")}
+                     .get(fk, ("missing" if is_en else "yok")))
+            chk = v.get("check", "—")
+            trows2.append([P(v.get("label_en" if is_en else "label", key)), state,
+                           chk if is_en else tr_chk.get(chk, chk),
+                           P(v.get("note") or "—")])
+        el.append(tbl(trows2, widths=[4.6*cm, 2.4*cm, 2.2*cm, 5.6*cm]))
+        # Kurulu AMA bu koşuda uygulanamayan araç: IFN-γ (konak modeli yok).
+        if any(r["ifn_ok"] is None for r in (tt.get("MHC-II") or [])):
+            el.append(Spacer(1, 3))
+            el.append(Paragraph("⚠ " + t(lang, "ifn_note"), small))
+
     # refs bir kez hesaplanır — hem Referanslar hem Yöntemler tablosu kullanır.
     # SIRA (kullanıcı kuralı): Eşikler + Yöntemler DAİMA kaynaklardan SONRA gelir.
     refs = meta.get("citations") or citations.for_report()
@@ -372,7 +723,7 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
     # -- IEDB literatür/bilinen-epitop taraması + validasyon recall'ü
     im = meta.get("iedb_match")
     if im:
-        el.append(Paragraph("3. "+t(lang,"iedb_title"), h2))
+        sect(t(lang, "iedb_title"))
         if not im.get("available"):
             el.append(Paragraph(im.get("note", t(lang,"iedb_unavail")), small))
         else:
@@ -424,7 +775,7 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
     # -- Popülasyon kapsamı (IEDB)
     popcov = meta.get("population_coverage") or {}
     if popcov:
-        el.append(Paragraph("4. "+t(lang,"pop_title"), h2))
+        sect(t(lang, "pop_title"))
         el.append(Paragraph(t(lang,"pop_text_pdf"), small))
         areas = popcov.get("areas", [])
         for hname, he in popcov.get("hosts", {}).items():
@@ -444,23 +795,50 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
                 el.append(tbl(prows))
 
     # -- Referanslar (tam atıflar)
-    el.append(Paragraph("5. "+t(lang,"rep_references"), h2))
+    sect(t(lang, "rep_references"))
     for i, r in enumerate(refs, 1):
         doi = r["doi"]
         link = doi if doi.startswith("http") else f"https://doi.org/{doi}"
-        el.append(Paragraph(f'[{i}] {r["citation"]} <font color="#1565c0">{link}</font>', small))
+        # Araç bu makinede YOK ise atıf satırı bunu söyler (HTML raporla aynı
+        # kural): yoksa kaynakça, koşmamış bir aracı koşmuş gibi gösterir.
+        absent = ("" if r.get("used") is not False
+                  else f' <font color="#a8601a"><b>[{t(lang,"tool_status_absent")}]</b></font>')
+        el.append(Paragraph(f'[{i}] {r["citation"]}{absent} '
+                            f'<font color="#1565c0">{link}</font>', small))
         el.append(Spacer(1, 2))
 
     # -- Kullanılan eşikler (tekrarlanabilirlik) — DAİMA kaynaklardan sonra
-    el.append(Paragraph("6. "+t(lang,"rep_thresholds"), h2))
+    sect(t(lang, "rep_thresholds"))
     trows = [[t(lang,"col_step"), t(lang,"col_tool"), t(lang,"col_param"), t(lang,"col_value"), t(lang,"col_type")]]
     for r in meta.get("thresholds", []):
         trows.append([P(r["step"]), P(r["tool"]), P(r["param"]), P(f"{r['value']} {r['unit']}"),
                       t(lang,"type_hard") if r["hard_filter"] else t(lang,"type_score")])
     el.append(tbl(trows, widths=[2.8*cm, 3.6*cm, 3.4*cm, 3.2*cm, 1.8*cm]))
 
+    # Eşik tablosu CONFIG NİYETİNİ gösterir; profile göre bir adım hiç
+    # uygulanmamış olabilir (ör. virüste lokalizasyon elemesi yapılmaz, ama
+    # tabloda 'sert' yazar). Bu koşuda FİİLEN kullanılan yöntemler:
+    fm = meta.get("funnel_methods") or {}
+    if fm:
+        is_en = lang == "en"
+        el.append(Spacer(1, 4))
+        el.append(Paragraph(
+            ("The table above is the CONFIGURED intent. Depending on the pathogen "
+             "profile a step may not have been applied at all in this run (for a "
+             "virus, for instance, there is no localization filter even though the "
+             "row says 'hard'). What was actually used in this run:" if is_en else
+             "Yukarıdaki tablo YAPILANDIRILMIŞ niyeti gösterir. Patojen profiline "
+             "göre bir adım bu koşuda hiç uygulanmamış olabilir (ör. virüste "
+             "lokalizasyon elemesi yapılmaz, satırda 'sert' yazsa bile). Bu koşuda "
+             "FİİLEN kullanılan yöntemler:"), small))
+        frows = [[("Step" if is_en else "Adım"), ("Method actually used" if is_en
+                                                  else "Bu koşuda kullanılan yöntem")]]
+        for k, v in fm.items():
+            frows.append([P(k), P(v)])
+        el.append(tbl(frows, widths=[4.4*cm, 9.8*cm]))
+
     # -- Kullanılan yöntemler ve araçlar (özet tablo) — DAİMA kaynaklardan sonra
-    el.append(Paragraph("7. "+t(lang,"rep_methods"), h2))
+    sect(t(lang, "rep_methods"))
     mrows = [[t(lang,"col_step"), t(lang,"col_tool"), "Ref"]] + [[P(r["step"]), P(r["tool"]), f"[{i}]"]
                                           for i, r in enumerate(refs, 1)]
     el.append(tbl(mrows, widths=[5.5*cm, 8.1*cm, 1.2*cm]))
@@ -468,8 +846,7 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
     el.append(Paragraph(t(lang,"pdf_methods_note"), small))
 
     # -- Biyolojik kapsam ve dürüst sınırlamalar (konformasyonel B / konservasyon / mimikri)
-    el.append(Spacer(1, 6))
-    el.append(Paragraph("<b>"+t(lang,"pdf_bio_limits_title")+"</b>", small))
+    sect(t(lang, "pdf_bio_limits_title"))
     el.append(Paragraph("• "+t(lang,"pdf_bcell_caveat"), small))
     cons = meta.get("conservation") or {}
     if cons.get("computed"):

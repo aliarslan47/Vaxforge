@@ -154,6 +154,14 @@ def write_package(outdir: Path, peptides: list[Peptide],
     except Exception as e:
         (outdir / "xlsx_error.txt").write_text(f"Excel üretilemedi: {e}")
 
+    # Peptit dökümü — raporu KOŞUYU TEKRARLAMADAN yeniden üretebilmek için
+    # (bkz. peptide_io; scripts/rebuild_report.py bunu okur).
+    try:
+        from . import peptide_io
+        paths["peptides"] = peptide_io.dump(peptides, outdir / peptide_io.FILENAME)
+    except Exception as e:
+        (outdir / "peptides_error.txt").write_text(f"peptides.json üretilemedi: {e}")
+
     # JSON (tam koşum)
     run_meta = dict(run_meta)
     run_meta["candidates"] = df.to_dict(orient="records")
@@ -196,6 +204,10 @@ def _type_tables_html(peptides, meta) -> str:
         "B": f"{_badge('#2e7d32')}{t(lang,'tt_bcell')} <span class='mono'>({t(lang,'tt_bepi_desc')})</span>"}
 
     def ok(b):
+        """ÜÇ DEĞERLİ: None = ölçülmedi. '✗' basmak ölçüm yokluğunu olumsuz
+        bulguya çevirirdi (bkz. evaluate.type_tables IFN-γ notu)."""
+        if b is None:
+            return f'<span class="warn">{t(lang,"ifn_unmeasured")}</span>'
         return '<span class="pass">✔</span>' if b else '<span class="fail">✗</span>'
 
     def hazard(state, lang_=lang, value=None):
@@ -259,6 +271,8 @@ def _type_tables_html(peptides, meta) -> str:
                         f'<td>{nz(r["antigenicity"])}</td>{haz}<td>{ok(r["ifn_ok"])}</td>'
                         f'<td>–</td><td>{lit}</td></tr>')
         out.append(f"<table>{head}{trs}</table>")
+        if kind == "MHC-II" and any(r["ifn_ok"] is None for r in rows):
+            out.append(f'<p class="warn" style="font-size:.82rem">⚠ {t(lang,"ifn_note")}</p>')
     return "".join(out)
 
 

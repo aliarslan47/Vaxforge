@@ -4,14 +4,80 @@
 > bilimsel ayrıntı `benchmark/` altında, faz günlüğü `ROADMAP.md`'de.
 
 **Son güncelleme:** 2026-11-22
-**Son commit:** `bd746cb` — poly-Ala: %rank ölçek hatası + düşük karmaşıklık ölçütü
-**Bu turda:** konservasyon (%100 hatası + virüs suş çekme + hizalama kayması),
-konstrükt alerjenitesi atfı, pLDDT güven yayılımı, tool_status retry — aşağıda.
+**Son commit:** `c756f48` — konservasyon + alerjenite atfı + pLDDT + tool_status
+**Bu turda (beşinci):** PDF rapor düzeni (her başlık kendi sayfasında, iç içe
+girmiş tablo başlıkları, satır ortasından bölünen allel/PMID), IFN-γ'nın
+"ölçülmedi"yi "✗" sayması, PDF'te hiç olmayan üç bölüm, raporu koşu
+tekrarlanmadan yeniden üretme — aşağıda.
 **Faz:** makale yazımı / son rötuş. Pipeline tamam, benchmark tamam, taslak hazır.
 **Araç durumu:** 21 araçtan 20'si kurulu. DeepLoc-2.1 ve NetCTL-1.2 **akıştan
 tamamen çıkarıldı** (kullanıcı kararı 2026-11-22): ikisi de hiç koşmuyordu, adları
 hiçbir katmanda geçmiyor. Lokalizasyon = PSORTb (bakteri) / etiketli heuristik;
 antijen işleme = IEDB processing API (tek omurga).
+
+## 2026-11-22 (beşinci tur) — rapor kusurları (Ali'nin PDF incelemesi)
+
+Ali, arayüzden başlattığı koşunun PDF'ini (`run_2026-11-22T20-34-48`) okuyup üç
+şey istedi: her başlık kendi sayfasından başlasın, iç içe girmiş tablo başlıkları
+düzeltilsin, raporun hataları bulunup kaldırılsın — **koşu tekrarlanmadan**.
+Rapor `report_pdf.build()`'den yeniden üretildi; hat hiç çağrılmadı.
+
+**Ölçüm (eski PDF, pypdf ile metin konumları):** tablo başlıklarında **2 gerçek
+çakışma** — 'Kaynak antijen' başlığı komşu sütunun başlığının üstüne s1'de
+13.7 pt, s2'de 2.4 pt biniyordu. Yeni PDF'te **0**.
+
+Bulunan ve düzeltilen kusurlar:
+
+1. **Her bölüm kendi sayfasında değildi** (9 sayfaya 15 bölüm sıkışmıştı; başlık
+   sayfa dibinde kalıp tablosu bir sonraki sayfada açılıyordu). `sect()` artık
+   `PageBreak` + **otomatik numara** veriyor; elle yazılan `2b/2c/2d/2e`
+   etiketleri kalktı (bir bölüm atlandığında numara atlıyordu). 18 sayfa, 15
+   bölüm, numaralar kesintisiz.
+2. **Tablo başlıkları çıplak `str` idi.** reportlab çıplak metni hücreye
+   sarmaz, sınırdan taşırır → komşu başlığın üstüne biner. Artık BAŞLIK DA
+   dahil her hücre `Paragraph`; ayrıca hücre boşluğu 6+6 pt'den 2.2 pt'ye indi.
+3. **Sütun genişlikleri içeriğe göre ölçülmüyordu.** `_min_widths`/`_fit_widths`:
+   hiçbir sütun, bölünemez en uzun simgesinden dar kalamaz; toplam genişlik
+   çerçeveyi tam doldurur; tek sütun çerçevenin %45'inden fazlasını yemez.
+4. **Satır ortasından bölünen simgeler.** `wordWrap="CJK"` her karakterde
+   bölüyordu: allel `BoLA-DRB3_0120`+`1`, PMID `1116366`+`5`, dizi
+   `PAPRVTVYVDPPA`+`YP`. Artık boşluklu hücre KELİME sınırında, boşluksuz
+   (peptit/DNA) hücre her yerde bölünüyor + (3) genişliği garanti ediyor.
+5. **IFN-γ: ölçüm yokluğu olumsuz bulgu olarak basılıyordu.** `ifngamma.model_host`
+   yalnız insan/fare için model döndürür; konak sığır olduğundan metrik HİÇ
+   ölçülmedi. Rapor her HTL satırına `✗` yazıyordu ("indüklemiyor" diye okunur)
+   ve ★ ölçütü `is True` istediği için **209 HTL epitobunun hiçbiri ★ alamıyordu**
+   (tabloda tek yıldız yoktu). Artık üç değerli: `ifn_ok ∈ {True, False, None}`,
+   hücre `ölç.`, altında açıklama notu, ★ yalnız ÖLÇÜLÜP negatif çıkınca engellenir.
+   Düzeltmeden sonra gösterilen 16 HTL adayının 13'ü ★ alıyor. (Dürüstlük
+   kusurunun 10. varyantı.)
+6. **PDF'te hiç olmayan üç bölüm** (HTML'de vardı): yapısal değerlendirme
+   (ESMFold/pLDDT — bu koşuda pLDDT 47.7 "çok düşük, düzensiz model"; yüzey % ve
+   7 konformasyonel yama artık "düşük güven" etiketli ve yama başına pLDDT var),
+   in-siliko klonlama, araç durumu (21 araç + "kurulu değil"/"doğrulama düştü"
+   ayrımı). Eksik bölüm de bir dürüstlük kusuru: PDF'i okuyan kişi pLDDT'yi hiç
+   görmüyordu.
+7. **MEV alerjenitesi gerekçesiz "Allergen" yazıyordu.** Artık atıf tablosu:
+   üç 6-mer eşleşmesinin üçü de linker/epitop **birleşme yerinde** doğuyor
+   (`AAAKSK`/`AAKSKL` ← EAAAK+SKLGAARGY, `AAYTPA` ← AAY+TPAPRVTV), hiçbir epitop
+   kendiliğinden alerjen değil, linker değişikliğiyle giderilebilir. Düşük
+   karmaşıklık nedeniyle dışlanan 20 epitop da gerekçesiyle tabloda.
+8. **Kaynakçada kurulu olmayan araç işaretsizdi** (HTML `[ARAÇ YOK]` yazıyordu,
+   PDF yazmıyordu) — artık ikisi aynı.
+
+**Raporu koşu tekrarlanmadan üretme** (bu turun kalıcı kazancı): `peptide_io`
+her koşuda `peptides.json` yazıyor (rapor `Peptide` nesnelerinden üretiliyor,
+`run.json` yalnız CSV sütunlarını taşıyordu), `scripts/rebuild_report.py` ise
+`run.json` + `peptides.json`'dan HTML+PDF'i yeniden üretiyor. Bundan sonra bir
+rapor hatası 1 saatlik BoHV-1 koşusu değil, saniyeler sürüyor. (Bu koşunun
+`peptides.json`'u, dosya eklenmeden önce üretildiği için `candidates.csv` +
+`candidates_full.xlsx`'ten geri kuruldu; doğrulama: eski ve yeni PDF'in veri
+simgeleri birebir aynı — tek fark, eskiden ortadan bölünmüş olan simgelerin
+artık bütün olması.)
+
+Testler: `tests/test_rapor_duzeni.py` (10 test) — sütun genişliği güvenceleri,
+IFN-γ üç değerliliği, gerçek PDF üretip her başlığın sayfa başında olduğunun ve
+numaraların atlamadığının okunması, `peptides.json` gidiş-dönüşü.
 
 ## 2026-11-22 (dördüncü tur) — kalan dört biyolojik ölçüt + bir kayma hatası
 

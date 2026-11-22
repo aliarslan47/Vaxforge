@@ -143,8 +143,15 @@ def type_tables(peptides, meta: dict, top_n: int = 15) -> dict:
             # homopolimerik peptit konstrükte hiç konmuyor (mev._pick dışlar).
             # Eskiden böyle bir ölçüt yoktu; `AAAAARAA` gibi bir peptit bağlanma
             # eşiğini geçtiği için seçilmiş gibi görünebiliyordu.
+            # IFN-γ ÜÇ DEĞERLİ: IFNepitope2 modeli yalnız insan/fare için var
+            # (ifngamma.model_host). Sığır gibi bir konakta metrik HİÇ
+            # ÖLÇÜLMEZ (None). Eski kural `is True` istediği için ölçüm
+            # yokluğu "indükleyici değil" sayılıyordu: BoHV-1 koşusunda 209
+            # HTL epitobunun HİÇBİRİ ★ alamadı, tabloda hepsi '✗' yazıyordu.
+            # Ölçülmemiş değer olumsuz bulgu değildir → yalnız ÖLÇÜLDÜ ve
+            # NEGATİF çıktıysa ★ engellenir.
             star = antigenic(p) and (p.passed if kind == "B" else strong(p)) and (
-                m.get("ifn_gamma_inducer") is True if kind == "MHC-II" else True
+                m.get("ifn_gamma_inducer") is not False if kind == "MHC-II" else True
             ) and not m.get("low_complexity")
             rows.append({
                 "star": bool(star), "epitope": p.seq, "kind": kind,
@@ -176,7 +183,11 @@ def type_tables(peptides, meta: dict, top_n: int = 15) -> dict:
                 "immunogenicity": _num(m.get("immunogenicity")),
                 "processing": _num(m.get("processing_norm")),
                 "bcell": _num(m.get("bcell_score")),
-                "ifn_ok": (m.get("ifn_gamma_inducer") is True),
+                # True / False / None(=ölçülmedi, bkz. yukarıdaki ★ notu).
+                # Rapor None'ı '✗' DEĞİL, 'ölçülmedi' olarak basmak zorundadır.
+                "ifn_ok": (None if m.get("ifn_gamma_inducer") is None
+                           else bool(m.get("ifn_gamma_inducer"))),
+                "ifn_host": m.get("ifn_gamma_host"),
                 "iedb": matched(p),
             })
         tables[kind] = rows

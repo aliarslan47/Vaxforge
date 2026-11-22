@@ -124,6 +124,16 @@ STRINGS: dict[str, dict[str, str]] = {
     "haz_toxic":          {"tr": "TOKSİK", "en": "TOXIC"},
     "haz_ood":            {"tr": "? alan dışı", "en": "? out of domain"},
     "haz_unknown":        {"tr": "ölçülmedi", "en": "not measured"},
+    # IFN-γ ölçülmediğinde (IFNepitope2 modeli yalnız insan/fare) hücre '✗'
+    # DEĞİL bunu yazar: ölçüm yokluğu olumsuz bulgu değildir.
+    "ifn_unmeasured":     {"tr": "ölçülmedi", "en": "not measured"},
+    "ifn_note":           {"tr": "IFN-γ indükleme ÖLÇÜLMEDİ: IFNepitope2 modeli yalnız insan ve "
+                                 "fare için eğitilmiştir, bu koşunun konağı için model yok. Sütundaki "
+                                 "'ölçülmedi' olumsuz bulgu DEĞİLDİR ve ★ ölçütünü engellemez.",
+                           "en": "IFN-γ induction was NOT MEASURED: the IFNepitope2 model is trained "
+                                 "only for human and mouse, and no model exists for this run's host. "
+                                 "'not measured' in that column is NOT a negative finding and does "
+                                 "not block the ★ criterion."},
     "col_immuno":         {"tr": "İmmüno.", "en": "Immuno."},
     "col_proc":           {"tr": "İşleme", "en": "Processing"},
     "col_cons":           {"tr": "Kons.", "en": "Cons."},
