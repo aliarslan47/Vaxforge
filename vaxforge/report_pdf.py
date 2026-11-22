@@ -21,7 +21,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import (Image, PageBreak, Paragraph,
                                 SimpleDocTemplate, Spacer, Table, TableStyle)
 
-from . import citations
+from . import citations, correlate, mhc_motif
 from .i18n import t
 
 _FONT = "DejaVu"
@@ -282,6 +282,32 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
     el.append(Spacer(1, 6))
     el.append(Paragraph(t(lang,"rep_disclaimer"), small))
 
+    # -- İMMÜN KORELAT UYARILARI (ZORUNLU — özetten ÖNCE okunmalı)
+    # Organizma, profilden değil girdiden çözülür: profil ('bacteria') organizmayı
+    # söylemez, korelat ise organizmaya bağlıdır.
+    _corr_org = (meta.get("organism")
+                 or correlate.detect_from_input(meta.get("input_path"),
+                                                extra=str(meta.get("input", ""))))
+    _caveats = correlate.caveats(_corr_org)
+    if _caveats:
+        sect(t(lang, "corr_title"))
+        el.append(Paragraph(t(lang, "corr_intro"), small))
+        if any(c.severity == "critical" for c in _caveats):
+            el.append(Spacer(1, 4))
+            el.append(Paragraph(f"<b>{t(lang, 'corr_critical')}</b>", small))
+        for c in _caveats:
+            el.append(Spacer(1, 6))
+            _sev = {"critical": "#b00020", "major": "#9a6700"}.get(c.severity, "#444")
+            el.append(Paragraph(
+                f'<font color="{_sev}"><b>[{c.severity.upper()}] {c.title(lang)}</b></font>',
+                small))
+            el.append(Paragraph(c.text(lang), small))
+            if c.blocks_claim:
+                el.append(Paragraph(
+                    f"<i>{t(lang, 'corr_blocks')} \u201c{c.blocks_claim}\u201d</i>", small))
+            for _cit in c.citations:
+                el.append(Paragraph(f"&nbsp;&nbsp;• {_cit}", small))
+
     # -- Özet
     sect(t(lang, "rep_summary"))
     el.append(tbl([[t(lang,"rep_sum_input"), t(lang,"rep_sum_discovery"), t(lang,"rep_sum_funnel"), t(lang,"rep_sum_epitope"), t(lang,"rep_sum_survivors")],
@@ -312,7 +338,10 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
     el.append(tbl(rows, widths=[0.7*cm, 3*cm, 1.2*cm, 1.1*cm, 3.2*cm, 1.6*cm, 2.6*cm, 3.0*cm]))
 
     # -- MHC anchor/cep motifi (yorum)
-    mhci = [p for p in peptides if p.kind == "MHC-I" and p.metrics.get("anchor_residues")][:10]
+    # MHC-II de dâhil: anchor'lar her iki sınıfta da allele özgü ölçülüyor.
+    _anchor_src = [p for p in peptides
+                   if p.kind in ("MHC-I", "MHC-II") and p.metrics.get("anchor_residues")]
+    mhci = _anchor_src[:10]
     if mhci:
         sect(t(lang, "pdf_anchor_title"))
         el.append(Paragraph(t(lang,"pdf_anchor_text"), small))
@@ -324,7 +353,8 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
             except Exception:
                 return False
 
-        arows = [["★", t(lang, "col_epitope"), t(lang, "col_allele"), t(lang, "col_anchors"),
+        arows = [["★", t(lang, "col_epitope"), t(lang, "col_allele"),
+                  t(lang, "col_anchor_pos"), t(lang, "col_anchors"),
                   t(lang, "col_pocket"), t(lang, "col_match2")]]
         astar = []
         for p in mhci:
@@ -336,11 +366,20 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
             if full:
                 astar.append(len(arows))
             arows.append(["★" if full else "", P(p.seq), P(str(p.metrics.get("best_allele", "—"))),
+                          P(str(p.metrics.get("anchor_positions", "—"))),
                           P(anch), P(motif), am])
-        atb = tbl(arows, widths=[0.6*cm, 2.5*cm, 2.6*cm, 2.4*cm, 5.0*cm, 1.1*cm])
+        atb = tbl(arows, widths=[0.5*cm, 2.3*cm, 2.3*cm, 1.6*cm, 2.1*cm, 4.3*cm, 1.0*cm])
         for ri in astar:
             atb.setStyle(TableStyle([("BACKGROUND", (0, ri), (-1, ri), colors.HexColor("#e7f7ee"))]))
         el.append(atb)
+        # TABLONUN ALTI: anchor'lar allele özgü olduğundan, hangi TÜRÜN hangi
+        # alleline göre bakıldığı yazılmak ZORUNDADIR; yoksa tablo yorumlanamaz.
+        basis = mhc_motif.basis_lines(_anchor_src)
+        if basis:
+            el.append(Paragraph(f"<b>{t(lang, 'pdf_anchor_basis')}</b>", small))
+            for b in basis:
+                el.append(Paragraph(f"• {b}", small))
+            el.append(Paragraph(t(lang, "pdf_anchor_basis_note"), small))
 
     # -- Aday epitoplar TİPE GÖRE sıralı tablolar (literatür stili: CTL/HTL/B)
     from . import evaluate
@@ -480,6 +519,59 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
                 if bm.get("top_ref_share") and bm.get("top_ref_share") >= 0.5:
                     el.append(Paragraph(t(lang,"iedb_ref_dominance").format(
                         share=round(bm['top_ref_share']*100), pmid=bm.get('top_ref') or '—'), small))
+
+    # -- KÜRATÖRLÜ DOĞRULAMA SETİ (organizmaya özgü; IEDB boş olduğunda)
+    # IEDB bazı organizmalarda pratikte boştur (Leptospira: ~16 kayıt) →
+    # IEDB tabanlı recall o organizmada ANLAMSIZDIR. Payda burada açıkça
+    # yazılır ve KONAĞA GÖRE ayrılır.
+    _cv = meta.get("curated_validation") or {}
+    if _cv:
+        sect(t(lang, "cv_title"))
+        el.append(Paragraph(f"<b>{t(lang, 'cv_why')}</b> {_cv.get('why', '')}", small))
+        el.append(Paragraph(f"<b>{t(lang, 'cv_scope')}</b> {_cv.get('scope_note', '')}",
+                            small))
+        el.append(Spacer(1, 4))
+        el.append(tbl([[t(lang, "cv_n_total"), t(lang, "cv_n_pos"),
+                        t(lang, "cv_n_neg"), t(lang, "cv_matched"),
+                        t(lang, "cv_version")],
+                       [_cv.get("n_total", 0), _cv.get("n_positive", 0),
+                        _cv.get("n_negative", 0),
+                        f"{_cv.get('n_matched', 0)}/{_cv.get('n_candidates', 0)}",
+                        f"v{_cv.get('version')} ({_cv.get('compiled')})"]]))
+        # Payda konağa göre
+        _hc = _cv.get("host_coverage") or {}
+        if _hc:
+            el.append(Spacer(1, 4))
+            el.append(Paragraph(f"<b>{t(lang, 'cv_by_host')}</b>", small))
+            _hrows = [[t(lang, "cv_host"), t(lang, "cv_n_total"),
+                       t(lang, "cv_n_pos"), t(lang, "cv_n_neg")]]
+            for _h, _d in sorted(_hc.items(), key=lambda kv: -kv[1].get("n_total", 0)):
+                _hrows.append([_h, _d.get("n_total", 0), _d.get("n_positive", 0),
+                               _d.get("n_negative", 0)])
+            el.append(tbl(_hrows, widths=[4.0*cm, 3.0*cm, 3.0*cm, 3.0*cm]))
+        # Eşleşmeler
+        _hits = _cv.get("hits") or []
+        if _hits:
+            el.append(Spacer(1, 4))
+            _mrows = [[t(lang, "cv_candidate"), t(lang, "cv_epitope"),
+                       "Protein", t(lang, "cv_match_type"), t(lang, "cv_label"),
+                       t(lang, "cv_host"), "PMID"]]
+            for _hit in _hits[:15]:
+                _mrows.append([P(_hit["candidate"]), P(_hit["name"]),
+                               P(_hit["protein"]), P(_hit["match_type"]),
+                               P(_hit["label"]), P(_hit["host_serum"]),
+                               P(_hit["pmid"])])
+            el.append(tbl(_mrows, widths=[2.6*cm, 2.2*cm, 2.4*cm, 2.0*cm,
+                                          1.8*cm, 2.6*cm, 1.4*cm]))
+        else:
+            el.append(Paragraph(t(lang, "cv_no_match"), small))
+        _miss = _cv.get("missing_sequences") or {}
+        if _miss:
+            el.append(Spacer(1, 4))
+            el.append(Paragraph(f"<b>{t(lang, 'cv_missing')}</b>", small))
+            for _v in _miss.values():
+                el.append(Paragraph(f"&nbsp;&nbsp;• {_v}", small))
+        el.append(Paragraph(f"PMID: {', '.join(_cv.get('pmids', []))}", small))
 
     # -- Aşı Konstruktu (MEV)
     mv = meta.get("mev")

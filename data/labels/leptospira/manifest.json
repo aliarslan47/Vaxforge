@@ -1,0 +1,286 @@
+{
+  "generated": "2026-11-23",
+  "out_dir": "/home/ali/repos/Vaxforge/data/labels/leptospira",
+  "readout_warning": "Kaynakların çoğu TANIMA ölçer, KORUMA ölçmez; Leptospira'nın doğrulanmış korelatı anti-LPS aglütine eden IgG'dir.",
+  "n_files_downloaded": 12,
+  "sources": [
+    {
+      "key": "wunder_2021_immunity_correlates",
+      "status": "indirildi",
+      "detail": "4/4 dosya",
+      "pmid": "33522488",
+      "pmcid": "PMC7837694",
+      "doi": "10.7554/eLife.64166",
+      "publisher": "elife",
+      "readout": "ÇAPRAZ-KORUYUCU bağışıklıkla ilişkili proteome array hedefleri (hamster + fare); korumaya en yakın etiket",
+      "scale": "154 protein hedefi; ayrıca 41 hedefin tür-arası kimliği",
+      "citation": "Wunder EA Jr, ve ark. A live attenuated-vaccine model confers cross-protective immunity against different species of the Leptospira genus. eLife. 2021;10:e64166.",
+      "note": "EN DEĞERLİ KAYNAK: etiket 'tanıma' değil, çapraz-KORUMA ile ilişkilendirilmiş repertuvar. Yine de koruma korelatı DEĞİL, korelasyondur.",
+      "available_in_pmc": [
+        "elife-64166-fig1-data1.xls",
+        "elife-64166-fig2-data1.xls",
+        "elife-64166-fig3-data1.xls",
+        "elife-64166-fig4-data1.xls",
+        "elife-64166-fig5-data1.xls",
+        "elife-64166-supp1.docx",
+        "elife-64166-supp2.docx",
+        "elife-64166-supp3.docx",
+        "elife-64166-supp4.xlsx",
+        "elife-64166-transrepform.docx"
+      ],
+      "files": [
+        {
+          "want": "supp4",
+          "why": "bağışıklık korelatı olarak belirlenen 154 protein hedefinin TAM listesi — ana etiket",
+          "status": "indirildi",
+          "detail": "40126 bayt, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "path": "/home/ali/repos/Vaxforge/data/labels/leptospira/wunder_2021_immunity_correlates/elife-64166-supp4-v1.xlsx",
+          "size": 40126,
+          "caption": "Complete list of 154 protein targets identified by the proteome array as correlates of immunity for the attenuated-vaccine model.",
+          "urls_tried": [
+            "https://cdn.elifesciences.org/articles/64166/elife-64166-supp4-v1.xlsx"
+          ]
+        },
+        {
+          "want": "fig4-data1",
+          "why": "proteome array HAM verisi (nicel sinyal)",
+          "status": "indirildi",
+          "detail": "601600 bayt, application/vnd.ms-excel",
+          "path": "/home/ali/repos/Vaxforge/data/labels/leptospira/wunder_2021_immunity_correlates/elife-64166-fig4-data1-v1.xls",
+          "size": 601600,
+          "caption": "Raw data of proteome array experiments in hamster and mouse.",
+          "urls_tried": [
+            "https://cdn.elifesciences.org/articles/64166/elife-64166-fig4-data1-v1.xls"
+          ]
+        },
+        {
+          "want": "fig5-data1",
+          "why": "41 seçili hedefin Leptospira türleri arasındaki amino asit kimliği (korunmuşluk)",
+          "status": "indirildi",
+          "detail": "440832 bayt, application/vnd.ms-excel",
+          "path": "/home/ali/repos/Vaxforge/data/labels/leptospira/wunder_2021_immunity_correlates/elife-64166-fig5-data1-v1.xls",
+          "size": 440832,
+          "caption": "Raw data of amino acid identity of 41 selected protein targets among different Leptospira species.",
+          "urls_tried": [
+            "https://cdn.elifesciences.org/articles/64166/elife-64166-fig5-data1-v1.xls"
+          ]
+        },
+        {
+          "want": "fig3-data1",
+          "why": "MAT ve pasif transfer ham verisi (titre-koruma ilişkisini sınamak için)",
+          "status": "indirildi",
+          "detail": "36352 bayt, application/vnd.ms-excel",
+          "path": "/home/ali/repos/Vaxforge/data/labels/leptospira/wunder_2021_immunity_correlates/elife-64166-fig3-data1-v1.xls",
+          "size": 36352,
+          "caption": "Raw data for microscopic agglutination test (MAT) and passive transfer experiments in hamster and mouse, and ELISA data in mouse.",
+          "urls_tried": [
+            "https://cdn.elifesciences.org/articles/64166/elife-64166-fig3-data1-v1.xls"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "lessa_aquino_2017_severity",
+      "status": "indirildi",
+      "detail": "3/3 dosya",
+      "pmid": "28141801",
+      "pmcid": "PMC5302828",
+      "doi": "10.1371/journal.pntd.0005349",
+      "publisher": "plos",
+      "readout": "insan hasta serumu IgG/IgM reaktivitesi; HAFİF vs ŞİDDETLİ",
+      "scale": "proteom ölçekli mikroarray; akut + konvalesan faz",
+      "citation": "Lessa-Aquino C, ve ark. Distinct antibody responses of patients with mild and severe leptospirosis determined by whole proteome microarray analysis. PLoS Negl Trop Dis. 2017;11(1):e0005349.",
+      "note": "Şiddet katmanı, 'yüksek antikor = iyi' varsayımını sınamak için kritik: şiddetli hastalarda reaktivite daha yüksek olabilir.",
+      "available_in_pmc": [
+        "pntd.0005349.s001.tif",
+        "pntd.0005349.s002.tif",
+        "pntd.0005349.s003.tif",
+        "pntd.0005349.s004.docx",
+        "pntd.0005349.s005.docx",
+        "pntd.0005349.s006.docx",
+        "pntd.0005349.s007.docx",
+        "pntd.0005349.s008.docx"
+      ],
+      "files": [
+        {
+          "want": "s005",
+          "why": "akut faz serotanısal antijenler (hafif/şiddetli)",
+          "status": "indirildi",
+          "detail": "17515 bayt, application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "path": "/home/ali/repos/Vaxforge/data/labels/leptospira/lessa_aquino_2017_severity/journal.pntd.0005349.s005&type=supplementary",
+          "size": 17515,
+          "caption": "Acute phase serodiagnostic antigens identified in patients with mild and severe leptospirosis. (DOCX)",
+          "urls_tried": [
+            "https://journals.plos.org/plosntds/article/file?id=10.1371/journal.pntd.0005349.s005&type=supplementary"
+          ]
+        },
+        {
+          "want": "s006",
+          "why": "konvalesan faz serotanısal antijenler",
+          "status": "indirildi",
+          "detail": "26805 bayt, application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "path": "/home/ali/repos/Vaxforge/data/labels/leptospira/lessa_aquino_2017_severity/journal.pntd.0005349.s006&type=supplementary",
+          "size": 26805,
+          "caption": "Convalescent phase serodiagnostic antigens identified in patients with mild and severe leptospirosis. (DOCX)",
+          "urls_tried": [
+            "https://journals.plos.org/plosntds/article/file?id=10.1371/journal.pntd.0005349.s006&type=supplementary"
+          ]
+        },
+        {
+          "want": "s004",
+          "why": "mikroarray'de TEMSİL EDİLMEYEN proteinler — paydayı bilmek için zorunlu",
+          "status": "indirildi",
+          "detail": "49132 bayt, application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "path": "/home/ali/repos/Vaxforge/data/labels/leptospira/lessa_aquino_2017_severity/journal.pntd.0005349.s004&type=supplementary",
+          "size": 49132,
+          "caption": "Proteins not represented on the microarrays. (DOCX)",
+          "urls_tried": [
+            "https://journals.plos.org/plosntds/article/file?id=10.1371/journal.pntd.0005349.s004&type=supplementary"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "lessa_aquino_2013_seroreactive",
+      "status": "indirildi",
+      "detail": "5/5 dosya",
+      "pmid": "24132137",
+      "pmcid": "PMC3798601",
+      "doi": "10.1371/journal.pntd.0002499",
+      "publisher": "plos",
+      "readout": "insan hasta serumu IgG/IgM reaktivitesi (protein mikroarray)",
+      "scale": "~2700 protein ifade edildi; reaktif alt küme",
+      "citation": "Lessa-Aquino C, ve ark. Identification of seroreactive proteins of Leptospira interrogans serovar Copenhageni using a high-density protein microarray approach. PLoS Negl Trop Dis. 2013;7(10):e2499.",
+      "note": "Tam açık erişim (PLoS).",
+      "available_in_pmc": [
+        "pntd.0002499.s001.tif",
+        "pntd.0002499.s002.tif",
+        "pntd.0002499.s003.tif",
+        "pntd.0002499.s004.tif",
+        "pntd.0002499.s005.docx",
+        "pntd.0002499.s006.docx",
+        "pntd.0002499.s007.doc",
+        "pntd.0002499.s008.docx",
+        "pntd.0002499.s009.doc"
+      ],
+      "files": [
+        {
+          "want": "s005",
+          "why": "reaktif antijen listesi / ek tablo",
+          "status": "indirildi",
+          "detail": "16976 bayt, application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "path": "/home/ali/repos/Vaxforge/data/labels/leptospira/lessa_aquino_2013_seroreactive/journal.pntd.0002499.s005&type=supplementary",
+          "size": 16976,
+          "caption": "List of protein features used for selecting ORFs that would compose the array. (DOCX)",
+          "urls_tried": [
+            "https://journals.plos.org/plosntds/article/file?id=10.1371/journal.pntd.0002499.s005&type=supplementary"
+          ]
+        },
+        {
+          "want": "s006",
+          "why": "ek tablo",
+          "status": "indirildi",
+          "detail": "18425 bayt, application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "path": "/home/ali/repos/Vaxforge/data/labels/leptospira/lessa_aquino_2013_seroreactive/journal.pntd.0002499.s006&type=supplementary",
+          "size": 18425,
+          "caption": "Clinical characteristics of the leptospirosis patients providing sera for the protein microarray evaluation. (DOCX)",
+          "urls_tried": [
+            "https://journals.plos.org/plosntds/article/file?id=10.1371/journal.pntd.0002499.s006&type=supplementary"
+          ]
+        },
+        {
+          "want": "s007",
+          "why": "ek tablo",
+          "status": "indirildi",
+          "detail": "83968 bayt, application/msword",
+          "path": "/home/ali/repos/Vaxforge/data/labels/leptospira/lessa_aquino_2013_seroreactive/journal.pntd.0002499.s007&type=supplementary",
+          "size": 83968,
+          "caption": "List of seroreactive antigens. (DOC)",
+          "urls_tried": [
+            "https://journals.plos.org/plosntds/article/file?id=10.1371/journal.pntd.0002499.s007&type=supplementary"
+          ]
+        },
+        {
+          "want": "s008",
+          "why": "ek tablo",
+          "status": "indirildi",
+          "detail": "20588 bayt, application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "path": "/home/ali/repos/Vaxforge/data/labels/leptospira/lessa_aquino_2013_seroreactive/journal.pntd.0002499.s008&type=supplementary",
+          "size": 20588,
+          "caption": "Reactivity signals of patients' acute serum against the antigens LipL32, LigA Repeats7–13, LigB Repeats7–12 in the protein microarray according to patient characteristics. (DOCX)",
+          "urls_tried": [
+            "https://journals.plos.org/plosntds/article/file?id=10.1371/journal.pntd.0002499.s008&type=supplementary"
+          ]
+        },
+        {
+          "want": "s009",
+          "why": "ek tablo",
+          "status": "indirildi",
+          "detail": "29696 bayt, application/msword",
+          "path": "/home/ali/repos/Vaxforge/data/labels/leptospira/lessa_aquino_2013_seroreactive/journal.pntd.0002499.s009&type=supplementary",
+          "size": 29696,
+          "caption": "Accuracy of the differentially reactive antigens after immunostrips probing. (DOC)",
+          "urls_tried": [
+            "https://journals.plos.org/plosntds/article/file?id=10.1371/journal.pntd.0002499.s009&type=supplementary"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "lessa_aquino_2015_predictive",
+      "status": "erisilemez",
+      "detail": "0/1 dosya",
+      "pmid": "25358092",
+      "pmcid": "PMC4286151",
+      "doi": "10.1021/pr500718t",
+      "publisher": "acs",
+      "readout": "serore­aktiviteyi ÖNGÖREN proteomik özellikler",
+      "scale": "3359 ORF = proteomun ~%91'i; 191 reaktif antijen (~%5)",
+      "citation": "Lessa-Aquino C, ve ark. Proteomic features predict seroreactivity against leptospiral antigens in leptospirosis patients. J Proteome Res. 2015;14(2):549-56.",
+      "note": "ACS yayıncısı otomatik indirmeyi engelliyor (403 bekleniyor) -> 'erisilemez' raporlanır, veri UYDURULMAZ. Sayılar makalenin kendisinden okunmalıdır.",
+      "available_in_pmc": [
+        "pr500718t_si_001.pdf"
+      ],
+      "files": [
+        {
+          "want": "si_001",
+          "why": "destekleyici bilgi (PDF)",
+          "status": "erisilemez",
+          "detail": "HTTP 403",
+          "path": null,
+          "size": null,
+          "caption": "pr500718t_si_001.pdf",
+          "urls_tried": [
+            "https://pubs.acs.org/doi/suppl/10.1021/pr500718t/suppl_file/pr500718t_si_001.pdf"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "deveson_lucas_2014_bovine_ifng",
+      "status": "erisilemez",
+      "detail": "PMC kaydı yok (açık erişim değil)",
+      "pmid": "24418243",
+      "pmcid": "",
+      "doi": "10.1016/j.vetmic.2013.12.016",
+      "publisher": "elsevier",
+      "readout": "aşılanmış SIĞIR hücrelerinden IFN-γ geri çağrımı (Th1)",
+      "scale": "238 rekombinant protein; PROTEİN düzeyi (peptit değil)",
+      "citation": "Deveson Lucas DS, ve ark. Recombinant Leptospira borgpetersenii serovar Hardjo proteins elicit interferon-gamma from cattle vaccinated against leptospirosis. Vet Microbiol. 2014;169(3-4):163-70.",
+      "note": "TEK protein-ölçekli T-hücre etiketi ve alanın en iyi doğrulanmış protein korelatına (sığır Hardjo Th1) bağlı. PMC'de YOK, Elsevier kapalı -> 'erisilemez'. Bu kaynak gerekiyorsa kurumsal erişimle elle indirilmeli.",
+      "available_in_pmc": [],
+      "files": [
+        {
+          "want": "—",
+          "why": "ek tablo (açık erişim değil)",
+          "status": "erisilemez",
+          "detail": "PMC kaydı yok (açık erişim değil)",
+          "path": null,
+          "size": null,
+          "caption": "",
+          "urls_tried": []
+        }
+      ]
+    }
+  ]
+}

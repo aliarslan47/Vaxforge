@@ -177,6 +177,23 @@ def get_config() -> dict:
     }
 
 
+def _correlate_card(meta: dict) -> dict | None:
+    """Koşu kartı için korelat uyarı özeti (ayrıntı run.json'da)."""
+    c = meta.get("correlate") or {}
+    if not c:
+        return None
+    return {
+        "organism": c.get("resolved"),
+        "mandatory": bool(c.get("mandatory")),
+        "n_critical": c.get("n_critical", 0),
+        "n_caveats": c.get("n_caveats", 0),
+        # En kritik uyarının başlığı: kartta tek satırda gösterilir.
+        "headline": next((x.get("title") for x in (c.get("caveats") or [])
+                          if x.get("severity") == "critical"), None),
+        "blocked_claims": c.get("blocked_claims", []),
+    }
+
+
 def _run_summary(run_dir: Path, meta: dict) -> dict:
     """outputs/<run> için kart-özeti (liste görünümü)."""
     cands = meta.get("candidates") or []
@@ -194,6 +211,10 @@ def _run_summary(run_dir: Path, meta: dict) -> dict:
         "has_pdf": (run_dir / "report.pdf").exists(),
         "has_html": (run_dir / "report.html").exists(),
         "has_xlsx": (run_dir / "candidates_full.xlsx").exists(),
+        # Korelat uyarıları koşu kartında da görünür: raporu açmadan da
+        # "bu organizmada ölçülen nicelik korumayı temsil etmiyor" bilgisi
+        # kaybolmasın. Ayrıntı run.json -> correlate içinde.
+        "correlate": _correlate_card(meta),
     }
 
 

@@ -44,3 +44,9 @@ benchmark/*.docx
 # Araç/lint önbellekleri
 .pytest_cache/
 .ruff_cache/
+
+# Yayıncıdan indirilen ek dosyalar (Leptospira etiket kaynakları).
+# Telif yayıncıya aittir ve dosyalar GÜVENİLMEYEN VERİDİR → repoya konmaz.
+# Yeniden üretmek için: python3 scripts/fetch_lepto_labels.py
+# İzlenen tek dosya manifest.json (hangi kaynak indi/erişilemedi kaydı).
+data/labels/*/*/

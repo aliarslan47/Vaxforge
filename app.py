@@ -15,7 +15,7 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
-from vaxforge import netmhc_local
+from vaxforge import correlate, netmhc_local
 from vaxforge.i18n import t
 from vaxforge.config_loader import ThresholdConfig
 from vaxforge.detect import detect
@@ -258,6 +258,32 @@ if not det.confident:
     st.warning("Tanıma düşük güvenle yapıldı — sonuçları elle doğrulayın.")
 for note in det.notes:
     st.write("•", note)
+
+# --- İMMÜN KORELAT UYARILARI ------------------------------------------------
+# Bu pipeline epitop ÖNGÖRÜSÜ üretir; bir aşının işe yarayıp yaramadığını ise o
+# patojenin KORUMA KORELATI belirler. Bazı organizmalarda korelat, protein
+# tabanlı bir pipeline'ın yapısal olarak göremeyeceği bir moleküle bağlıdır
+# (ör. Leptospira'da LPS). Bu blok ORGANİZMAYA göre ve her zaman gösterilir.
+_corr_org = correlate.detect_from_input(input_path, extra=input_name)
+_caveats = correlate.caveats(_corr_org)
+if _caveats:
+    _crit = [c for c in _caveats if c.severity == "critical"]
+    _hdr = (f"⚠️ {len(_crit)} KRİTİK korelat uyarısı — "
+            f"{_corr_org or 'genel'}") if _crit else "ℹ️ Korelat notları"
+    with st.expander(_hdr, expanded=bool(_crit)):
+        if _crit:
+            st.error("Bu organizmada ölçtüğümüz nicelik (immünojenisite / "
+                     "antikor tanıması) hedef niceliğin (KORUMA) güvenilir "
+                     "vekili değildir; belgelenmiş durumlarda TERS İŞARETLİDİR. "
+                     "Aşağıdaki uyarılar raporun zorunlu bölümüdür.")
+        for c in _caveats:
+            _box = {"critical": st.error, "major": st.warning}.get(c.severity, st.info)
+            _box(f"**{c.title(lang)}**\n\n{c.text(lang)}")
+            if c.blocks_claim:
+                st.caption(f"Bu uyarı şu iddiayı GEÇERSİZ kılar: "
+                           f"\u201c{c.blocks_claim}\u201d")
+            for _cit in c.citations:
+                st.caption(f"• {_cit}")
 
 # --- Planlanan adımlar ------------------------------------------------------
 _sec("3", t(lang,"sec_plan"))

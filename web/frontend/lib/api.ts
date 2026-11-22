@@ -88,6 +88,16 @@ export interface RunSummary {
   has_pdf: boolean;
   has_html: boolean;
   has_xlsx: boolean;
+  /** İmmün korelat uyarıları: bu organizmada ölçülen nicelik korumayı
+   *  temsil etmiyorsa koşu kartında da görünür. Ayrıntı run.json -> correlate. */
+  correlate?: {
+    organism: string | null;
+    mandatory: boolean;
+    n_critical: number;
+    n_caveats: number;
+    headline: string | null;
+    blocked_claims: string[];
+  } | null;
 }
 export interface Candidate {
   [key: string]: string | number;

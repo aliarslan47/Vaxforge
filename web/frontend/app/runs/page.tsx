@@ -121,6 +121,14 @@ export default function RunsPage() {
                       {r.molecule}
                     </span>
                   </div>
+                  {r.correlate?.mandatory && (
+                    <div className="mt-3 rounded border border-amber-500/40 bg-amber-500/10 px-2 py-1.5 text-[11px] leading-snug text-amber-200">
+                      <span className="font-semibold">
+                        {r.correlate.n_critical} {lang === "tr" ? "kritik korelat uyarısı" : "critical correlate caveat(s)"}
+                      </span>
+                      {r.correlate.headline && <span> — {r.correlate.headline}</span>}
+                    </div>
+                  )}
                   <div className="mt-3 flex gap-1.5">
                     {r.has_pdf && <span className="rounded border border-line px-1.5 py-0.5 text-[10px] font-medium text-fg-faint">PDF</span>}
                     {r.has_xlsx && <span className="rounded border border-line px-1.5 py-0.5 text-[10px] font-medium text-fg-faint">XLSX</span>}

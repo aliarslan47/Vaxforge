@@ -15,9 +15,9 @@ from __future__ import annotations
 from datetime import datetime
 from pathlib import Path
 
-from . import (citations, cluster, conservation, diagnostics, discovery, epitope,
-               funnel, iedb_match, ingest, mev, mimicry, population, report,
-               scoring, survival, tool_status)
+from . import (citations, cluster, conservation, correlate, diagnostics,
+               discovery, epitope, funnel, iedb_match, ingest, mev, mimicry,
+               population, report, scoring, survival, tool_status)
 from .config_loader import ThresholdConfig, flatten_for_report
 from .detect import Detection
 from .hosts import HostRegistry
@@ -50,6 +50,10 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
     meta = {
         "timestamp": datetime.now().isoformat(timespec="seconds"),
         "input": det.filename, "profile": profile,
+        # Organizma, profilden ('bacteria') çıkmaz; korelat uyarıları ise
+        # ORGANİZMAYA bağlıdır. Girdi adı + başlıklarından çözülür.
+        "input_path": str(path),
+        "organism": correlate.detect_from_input(str(path), extra=det.filename),
         "hosts": [{"name": h.name, "label": h.label, "source": h.source,
                    "n_mhc_i": len(h.mhc_i), "n_mhc_ii": len(h.mhc_ii),
                    "predictors": h.predictors} for h in hosts],
@@ -318,6 +322,47 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
     yield _ev("iedb", "running", "Aday peptitler IEDB'de (bilinen epitoplar/literatür) taranıyor…")
     im_summary = iedb_match.annotate_candidates(peptides, taxon_iri=organism_taxon)
     meta["iedb_match"] = im_summary
+
+    # 6d-ii) ORGANİZMAYA ÖZGÜ KÜRATÖRLÜ DOĞRULAMA SETİ.
+    # IEDB bazı organizmalarda pratikte boştur (Leptospira: ~16 kayıt, biri
+    # insan HSP60 çapraz-reaktivitesi) → IEDB tabanlı recall o organizmada
+    # ANLAMSIZDIR. Böyle durumda hakemli literatürden küratörlenmiş set
+    # kullanılır ve PAYDA raporda açıkça yazılır. Payda konağa göre ayrılır:
+    # insan serumuyla doğrulanmış bir epitobu fare taramasında kaçırmak
+    # başarısızlık değildir.
+    if meta.get("organism") == "leptospira":
+        from . import lepto_validation as _lv
+        _hits: list[dict] = []
+        for _p in peptides:
+            for _vp, _mt in _lv.find_overlaps(_p.seq):
+                _hits.append({"candidate": _p.seq, "epitope": _vp.seq,
+                              "name": _vp.name, "protein": _vp.protein,
+                              "label": _vp.label, "match_type": _mt,
+                              "readout": _vp.readout, "host_serum": _vp.host_serum,
+                              "pmid": _vp.pmid, "doi": _vp.doi})
+                _p.metrics.setdefault("lepto_validation", []).append(
+                    f"{_vp.name} ({_mt}, {_vp.label})")
+                _p.methods["lepto_validation"] = _lv.METHOD
+        _vsum = _lv.summary()
+        meta["curated_validation"] = {
+            "organism": "leptospira",
+            "method": _lv.METHOD,
+            "version": _lv.VERSION,
+            "compiled": _lv.COMPILED,
+            "why": ("IEDB bu organizmada pratikte boş olduğu için recall "
+                    "payda olarak kullanılamaz; bu set hakemli literatürden "
+                    "küratörlenmiştir."),
+            "scope_note": _vsum["scope_note"],
+            "n_total": _vsum["n_total"],
+            "n_positive": _vsum["n_positive"],
+            "n_negative": _vsum["n_negative"],
+            "host_coverage": _vsum["host_coverage"],
+            "pmids": _vsum["pmids"],
+            "missing_sequences": _vsum["missing_sequences"],
+            "n_candidates": len(peptides),
+            "n_matched": len({h["candidate"] for h in _hits}),
+            "hits": _hits,
+        }
     if im_summary.get("available"):
         bm = im_summary.get("benchmark") or {}
         rec = f" · recall={bm['recall']}" if bm.get("recall") is not None else ""

@@ -76,6 +76,18 @@ def _bcell(pr: ProteinRecord, tool: ResolvedTool, top: int = 5,
     return out
 
 
+def _host_label(hosts: list[Host], name: str) -> str:
+    """Konak adını okunur TÜR etiketine çevirir ('bovine' -> 'Sığır (Bos taurus, BoLA)').
+
+    Anchor pozisyonları allele, alleller de konağa özgü olduğundan rapor
+    tablosunun altında hangi TÜRE göre bakıldığı yazılmak zorundadır.
+    """
+    for h in hosts or []:
+        if h.name == name:
+            return getattr(h, "label", None) or name
+    return name or "?"
+
+
 def _mhc(pr: ProteinRecord, hosts: list[Host], mhc_class: str, kind_label: str,
          lengths: list[int], rank_strong: float, rank_weak: float,
          per_host: dict[str, dict[str, dict]], top: int = 6,
@@ -130,8 +142,11 @@ def _mhc(pr: ProteinRecord, hosts: list[Host], mhc_class: str, kind_label: str,
             p.metrics["immunogenicity"] = raw
             p.metrics["immunogenicity_norm"] = immunogenicity.score_norm(raw)
             p.methods["immunogenicity"] = immunogenicity.METHOD
-            # MHC yarığı anchor motifi (SALT YORUMLAMA — sıralamayı etkilemez)
-            mhc_motif.annotate(p, best_allele, "mhc_i")
+            # MHC yarığı anchor motifi (SALT YORUMLAMA — sıralamayı etkilemez).
+            # Anchor pozisyonları ALLELE ÖZGÜDÜR; hangi türün hangi allelinde
+            # ölçüldüğü anchor_basis alanına yazılır ve raporda tablonun altına
+            # basılır (2026-11-22).
+            mhc_motif.annotate(p, best_allele, "mhc_i", host=_host_label(hosts, best_host))
             # Antijen işleme: peptidin C-terminaline denk gelen 9-mer'in kesim+TAP'ı
             # Normalizasyon omurganın KENDİSİNDEN gelir: bir omurganın cle'si 0-1
             # olasılık, IEDB'nin proteasome_score'u log-ölçekli — sabit bir
@@ -144,6 +159,12 @@ def _mhc(pr: ProteinRecord, hosts: list[Host], mhc_class: str, kind_label: str,
                     p.metrics["processing_norm"] = proc_backend.processing_norm(
                         ct["cle"], ct["tap"])
                     p.methods["processing"] = proc_backend.METHOD
+        else:
+            # MHC-II: anchor pozisyonları da allele özgüdür (P1/P4/P6/P9 çekirdek
+            # cepleri ama çekirdek ofseti allele ve peptide göre kayar). Ölçüm
+            # NetMHCIIpan varsa yapılır; yoksa annotate() hiçbir şey yazmaz
+            # (varsayılan pozisyon UYDURULMAZ).
+            mhc_motif.annotate(p, best_allele, "mhc_ii", host=_host_label(hosts, best_host))
         p.passed = best_rank <= rank_weak
         p.notes.append("güçlü" if best_rank <= rank_strong else "zayıf")
         out.append(p)

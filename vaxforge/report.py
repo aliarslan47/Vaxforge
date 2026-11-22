@@ -15,6 +15,7 @@ from pathlib import Path
 
 import pandas as pd
 
+from . import correlate
 from .i18n import method_label, t
 from .models import Peptide
 
@@ -52,6 +53,10 @@ def _candidates_df(peptides: list[Peptide], lang: str = "tr") -> pd.DataFrame:
             "allele_anchor_motif": ";".join(f"{k}∈{{{','.join(v)}}}" for k, v in
                                             (p.metrics.get("allele_anchor_motif") or {}).items()),
             "anchor_match": p.metrics.get("anchor_match"),
+            # Anchor pozisyonları ALLELE ÖZGÜ ölçülür; hangi tür/allele göre
+            # bakıldığı olmadan anchor sütunları yorumlanamaz (2026-11-22).
+            "anchor_positions": p.metrics.get("anchor_positions"),
+            "anchor_basis": p.metrics.get("anchor_basis"),
             "allergen": p.metrics.get("allergen"),
             "toxicity": p.metrics.get("toxicity"),
             "iedb_match": _iedb_cell(p, "type"),
@@ -165,6 +170,21 @@ def write_package(outdir: Path, peptides: list[Peptide],
     # JSON (tam koşum)
     run_meta = dict(run_meta)
     run_meta["candidates"] = df.to_dict(orient="records")
+    # Korelat uyarıları JSON'a da makine-okunur yazılır: aşağı akış bir araç
+    # bu raporu okuyup "koruyucu aday" iddiası kurmaya kalkarsa, hangi
+    # iddianın geçersiz olduğunu buradan görebilir.
+    _corr_org = (run_meta.get("organism")
+                 or correlate.detect_from_input(run_meta.get("input_path"),
+                                                extra=str(run_meta.get("input", ""))))
+    run_meta["correlate"] = {
+        **correlate.summary(_corr_org),
+        "caveats": [
+            {"id": c.id, "severity": c.severity, "title": c.title(lang),
+             "text": c.text(lang), "blocks_claim": c.blocks_claim,
+             "citations": list(c.citations)}
+            for c in correlate.caveats(_corr_org)
+        ],
+    }
     p_json = outdir / "run.json"
     p_json.write_text(json.dumps(run_meta, indent=2, ensure_ascii=False, default=str))
     paths["json"] = p_json
@@ -849,6 +869,96 @@ def _methods_section(meta: dict) -> str:
     )
 
 
+def _correlate_section(meta: dict) -> str:
+    """İMMÜN KORELAT UYARILARI — organizmaya bağlı, ZORUNLU bölüm.
+
+    Bu pipeline epitop ÖNGÖRÜSÜ üretir; korumayı belirleyen ise patojenin
+    KORELATIDIR. Bazı organizmalarda korelat protein tabanlı bir pipeline'ın
+    göremeyeceği bir moleküle bağlıdır (Leptospira'da LPS). Bu bölüm her
+    organizmada yazılır; hiçbir koşulda sessiz kalınmaz.
+    """
+    lang = meta.get("lang", "tr")
+    org = (meta.get("organism")
+           or correlate.detect_from_input(meta.get("input_path"),
+                                          extra=str(meta.get("input", ""))))
+    cavs = correlate.caveats(org)
+    if not cavs:
+        return ""
+    colors = {"critical": "#b00020", "major": "#9a6700", "info": "#555"}
+    bg = {"critical": "#fdecef", "major": "#fff8e6", "info": "#f5f5f5"}
+    blocks = []
+    if any(c.severity == "critical" for c in cavs):
+        blocks.append(f'<div class="warn"><b>{t(lang, "corr_critical")}</b></div>')
+    for c in cavs:
+        cits = "".join(f"<li>{x}</li>" for x in c.citations)
+        claim = (f'<p><i>{t(lang, "corr_blocks")} &ldquo;{c.blocks_claim}&rdquo;</i></p>'
+                 if c.blocks_claim else "")
+        blocks.append(
+            f'<div style="border-left:4px solid {colors.get(c.severity, "#555")};'
+            f'background:{bg.get(c.severity, "#f5f5f5")};padding:.5rem .8rem;'
+            f'margin:.5rem 0;border-radius:4px">'
+            f'<p style="margin:.1rem 0"><b style="color:{colors.get(c.severity, "#555")}">'
+            f'[{c.severity.upper()}]</b> <b>{c.title(lang)}</b></p>'
+            f'<p>{c.text(lang)}</p>{claim}'
+            + (f'<ul class="mono">{cits}</ul>' if cits else "")
+            + '</div>')
+    return (f'<h2>{t(lang, "corr_title")}</h2>'
+            f'<p>{t(lang, "corr_intro")}</p>' + "".join(blocks))
+
+
+def _curated_validation_section(meta: dict) -> str:
+    """Organizmaya özgü küratörlü doğrulama seti (IEDB boş olduğunda)."""
+    cv = meta.get("curated_validation") or {}
+    if not cv:
+        return ""
+    lang = meta.get("lang", "tr")
+    tr = lang != "en"
+    hc = cv.get("host_coverage") or {}
+    host_rows = "".join(
+        f"<tr><td>{h}</td><td>{d.get('n_total', 0)}</td>"
+        f"<td>{d.get('n_positive', 0)}</td><td>{d.get('n_negative', 0)}</td></tr>"
+        for h, d in sorted(hc.items(), key=lambda kv: -kv[1].get("n_total", 0)))
+    hit_rows = "".join(
+        f"<tr><td class='mono'>{h['candidate']}</td><td>{h['name']}</td>"
+        f"<td>{h['protein']}</td><td>{h['match_type']}</td><td>{h['label']}</td>"
+        f"<td>{h['host_serum']}</td>"
+        f"<td><a href='https://doi.org/{h['doi']}'>{h['pmid']}</a></td></tr>"
+        for h in (cv.get("hits") or []))
+    miss = "".join(f"<li>{v}</li>" for v in (cv.get("missing_sequences") or {}).values())
+    ttl = ("Küratörlü doğrulama seti (organizmaya özgü)" if tr
+           else "Curated validation set (organism-specific)")
+    return f"""<h2>{ttl}</h2>
+<div class="warn"><b>{'Neden' if tr else 'Why'}:</b> {cv.get('why', '')}</div>
+<p><b>{'Kapsam' if tr else 'Scope'}:</b> {cv.get('scope_note', '')}</p>
+<p>{'Set' if tr else 'Set'}: <b>{cv.get('n_total', 0)}</b> {'peptit' if tr else 'peptides'}
+({cv.get('n_positive', 0)} {'pozitif' if tr else 'positive'},
+{cv.get('n_negative', 0)} {'negatif' if tr else 'negative'}) ·
+{'sürüm' if tr else 'version'} {cv.get('version')} ({cv.get('compiled')}) ·
+{'yöntem' if tr else 'method'}: <code>{cv.get('method', '')}</code></p>
+<p>{'Eşleşen aday' if tr else 'Matched candidates'}:
+<b>{cv.get('n_matched', 0)}</b> / {cv.get('n_candidates', 0)}</p>
+<p><b>{'Payda konağa göre' if tr else 'Denominator by host'}</b> —
+{'insan serumuyla doğrulanmış bir epitobu fare taramasında kaçırmak başarısızlık değildir'
+ if tr else 'missing a human-serum-validated epitope in a mouse scan is not a failure'}:</p>
+<table><tr><th>{'Konak' if tr else 'Host'}</th><th>{'Toplam' if tr else 'Total'}</th>
+<th>{'Pozitif' if tr else 'Positive'}</th><th>{'Negatif' if tr else 'Negative'}</th></tr>
+{host_rows}</table>
+{"<p><b>" + ('Eşleşmeler' if tr else 'Matches') + "</b></p><table><tr><th>"
+ + ('Aday' if tr else 'Candidate') + "</th><th>" + ('Epitop' if tr else 'Epitope')
+ + "</th><th>" + ('Protein' if tr else 'Protein') + "</th><th>"
+ + ('Tip' if tr else 'Type') + "</th><th>" + ('Etiket' if tr else 'Label')
+ + "</th><th>" + ('Konak' if tr else 'Host') + "</th><th>PMID</th></tr>"
+ + hit_rows + "</table>" if hit_rows else
+ "<p><i>" + ('Hiçbir aday bu setle eşleşmedi. Set küçük olduğu için bu bir '
+             'başarısızlık göstergesi DEĞİLDİR.' if tr else
+             'No candidate matched this set. Given its small size this is NOT '
+             'an indicator of failure.') + "</i></p>"}
+{"<p><b>" + ('Dizisi yayınlanmadığı için sete alınamayanlar' if tr else
+             'Excluded because sequences were not published') + "</b></p><ul>"
+ + miss + "</ul>" if miss else ""}
+<p class="mono">PMID: {', '.join(cv.get('pmids', []))}</p>"""
+
+
 def _html(df: pd.DataFrame, meta: dict, peptides=None) -> str:
     lang = meta.get("lang", "tr")
     thr_rows = "".join(
@@ -873,6 +983,8 @@ def _html(df: pd.DataFrame, meta: dict, peptides=None) -> str:
         f'{r["doi"]}</a></li>'
         for r in meta.get("citations", [])
     )
+    correlate_html = _correlate_section(meta)
+    curated_html = _curated_validation_section(meta)
     iedb_html = _iedb_section(meta, peptides)
     mev_html = _mev_section(meta)
     immuno_html = _immuno_section(meta)
@@ -930,6 +1042,8 @@ summary{{cursor:pointer;font-size:.95rem}}</style></head><body>
 {t(lang,'rep_profile')}: <code>{meta.get('profile','')}</code></p>
 <div class="warn"><b>Not/Note:</b> {t(lang,'rep_disclaimer')}</div>
 
+{correlate_html}
+
 <h2>{t(lang,'rep_summary')}</h2>
 <table><tr><th>{t(lang,'rep_sum_input')}</th><th>{t(lang,'rep_sum_discovery')}</th><th>{t(lang,'rep_sum_funnel')}</th>
 <th>{t(lang,'rep_sum_epitope')}</th><th>{t(lang,'rep_sum_survivors')}</th></tr>
@@ -946,6 +1060,7 @@ summary{{cursor:pointer;font-size:.95rem}}</style></head><body>
 {_type_tables_html(peptides or [], meta)}
 
 {iedb_html}
+{curated_html}
 
 {mev_html}
 {structure_html}

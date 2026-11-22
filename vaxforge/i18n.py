@@ -244,12 +244,71 @@ STRINGS: dict[str, dict[str, str]] = {
                            "en": "Top candidate peptides (with CDS source + locus)"},
     "pdf_anchor_title":   {"tr": "MHC yarığı anchor/cep motifi (yorum — sıralamayı etkilemez)",
                            "en": "MHC groove anchor/pocket motif (interpretive — does not affect ranking)"},
-    "pdf_anchor_text":    {"tr": "Peptidin anchor kalıntıları (P2, C-terminal PΩ) ve o allelin NetMHCpan "
-                                 "taramasından AMPİRİK çıkarılan cep tercihi. Bağlanma uyumu %rank'ta zaten "
-                                 "puanlanır; bu tablo yalnız yorum içindir.",
-                           "en": "The peptide's anchor residues (P2, C-terminal PΩ) and the allele's pocket "
-                                 "preference derived EMPIRICALLY from a NetMHCpan scan. Binding fit is "
-                                 "already scored via %rank; this table is interpretation only."},
+    "pdf_anchor_text":    {"tr": "Peptidin anchor kalıntıları ve o allelin cep tercihi; ikisi de NetMHCpan "
+                                 "taramasından AMPİRİK çıkarılır. ANCHOR POZİSYONLARI ALLELE ÖZGÜDÜR: hangi "
+                                 "pozisyonun anchor olduğunu yarığı astarlayan polimorfik kalıntıların "
+                                 "oluşturduğu cepler belirler (P2→B, PΩ→F, ayrıca P3→D, P5→E cebi). Bu yüzden "
+                                 "pozisyonlar sabit varsayılmaz, her allel için tek tek ölçülür. Bağlanma "
+                                 "uyumu %rank'ta zaten puanlanır; bu tablo yalnız yorum içindir.",
+                           "en": "The peptide's anchor residues and the allele's pocket preference, both derived "
+                                 "EMPIRICALLY from a NetMHCpan scan. ANCHOR POSITIONS ARE ALLELE-SPECIFIC: which "
+                                 "position acts as an anchor is set by the pockets formed by the polymorphic "
+                                 "groove-lining residues (P2→B, PΩ→F, and also P3→D, P5→E). Positions are "
+                                 "therefore not assumed fixed but measured per allele. Binding fit is already "
+                                 "scored via %rank; this table is interpretation only."},
+    "cv_title":           {"tr": "Küratörlü doğrulama seti (organizmaya özgü)",
+                           "en": "Curated validation set (organism-specific)"},
+    "cv_why":             {"tr": "Neden:", "en": "Why:"},
+    "cv_scope":           {"tr": "Kapsam:", "en": "Scope:"},
+    "cv_n_total":         {"tr": "Peptit", "en": "Peptides"},
+    "cv_n_pos":           {"tr": "Pozitif", "en": "Positive"},
+    "cv_n_neg":           {"tr": "Negatif", "en": "Negative"},
+    "cv_matched":         {"tr": "Eşleşen aday", "en": "Matched"},
+    "cv_version":         {"tr": "Sürüm", "en": "Version"},
+    "cv_by_host":         {"tr": "Payda KONAĞA GÖRE — insan serumuyla doğrulanmış bir epitobu "
+                                 "fare taramasında kaçırmak başarısızlık değildir:",
+                           "en": "Denominator BY HOST — missing a human-serum-validated epitope in a "
+                                 "mouse scan is not a failure:"},
+    "cv_host":            {"tr": "Konak", "en": "Host"},
+    "cv_candidate":       {"tr": "Aday", "en": "Candidate"},
+    "cv_epitope":         {"tr": "Epitop", "en": "Epitope"},
+    "cv_match_type":      {"tr": "Eşleşme", "en": "Match"},
+    "cv_label":           {"tr": "Etiket", "en": "Label"},
+    "cv_no_match":        {"tr": "Hiçbir aday bu setle eşleşmedi. Set küçük olduğu için bu bir "
+                                 "başarısızlık göstergesi DEĞİLDİR.",
+                           "en": "No candidate matched this set. Given its small size this is NOT an "
+                                 "indicator of failure."},
+    "cv_missing":         {"tr": "Dizisi yayınlanmadığı için sete alınamayanlar:",
+                           "en": "Excluded because their sequences were not published:"},
+    "corr_title":         {"tr": "İMMÜN KORELAT UYARILARI — bu rapor neyi ÖLÇMEZ",
+                           "en": "IMMUNE CORRELATE CAVEATS — what this report does NOT measure"},
+    "corr_intro":         {"tr": "Bu pipeline epitop/antijen ÖNGÖRÜSÜ üretir. Bir aşının işe yarayıp "
+                                 "yaramadığını ise o patojenin KORUMA KORELATI belirler; ikisi her "
+                                 "organizmada aynı şey değildir. Bu bölüm, bu organizmada ölçülen "
+                                 "niceliğin korumayı ne kadar temsil ettiğini ve hangi iddiaların "
+                                 "kurulmaması gerektiğini bildirir. Atıflar her uyarının altındadır.",
+                           "en": "This pipeline produces an epitope/antigen PREDICTION. Whether a vaccine "
+                                 "works is determined by the pathogen's CORRELATE OF PROTECTION; the two "
+                                 "are not the same in every organism. This section states how well the "
+                                 "measured quantity represents protection in this organism and which "
+                                 "claims must not be made. Citations follow each caveat."},
+    "corr_critical":      {"tr": "KRİTİK: ölçülen nicelik (immünojenisite / antikor tanıması) korumanın "
+                                 "güvenilir vekili DEĞİLDİR; belgelenmiş durumlarda ters işaretlidir.",
+                           "en": "CRITICAL: the measured quantity (immunogenicity / antibody recognition) is "
+                                 "NOT a reliable proxy for protection; in documented cases its sign is inverted."},
+    "corr_blocks":        {"tr": "Bu uyarı şu iddiayı geçersiz kılar:",
+                           "en": "This caveat invalidates the claim:"},
+    "corr_none":          {"tr": "Bu organizma için kayıtlı özel korelat uyarısı yok; yalnız genel not geçerli.",
+                           "en": "No organism-specific correlate caveat is on record; only the general note applies."},
+    "pdf_anchor_basis":   {"tr": "Anchor pozisyonları şu tür(ler) ve allel(ler)e göre belirlendi:",
+                           "en": "Anchor positions were determined for the following species and allele(s):"},
+    "pdf_anchor_basis_note": {"tr": "Anchor'lar allele özgü olduğundan bu tablo, hangi konağın hangi alleline "
+                                    "göre hesaplandığı bilinmeden yorumlanamaz. Aynı konakta bile farklı "
+                                    "alleller farklı pozisyonları anchor olarak kullanır.",
+                              "en": "Because anchors are allele-specific, this table cannot be interpreted "
+                                    "without knowing which host's allele it was computed for. Even within one "
+                                    "host, different alleles use different positions as anchors."},
+    "col_anchor_pos":     {"tr": "Anchor poz.", "en": "Anchor pos."},
     "pdf_methods_note":   {"tr": "GPU gerektiren yapısal adımlar (AlphaFold peptit-MHC, moleküler dinamik) "
                                  "bu prototipte çıkarılmıştır; odak aday-belirlemedir.",
                            "en": "GPU-dependent structural steps (AlphaFold peptide-MHC, molecular dynamics) "
