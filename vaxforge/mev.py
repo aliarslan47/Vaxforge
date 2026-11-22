@@ -264,11 +264,60 @@ def _human_similarity(seq: str) -> dict:
             "similar": pid >= 35.0}
 
 
-def characterize(seq: str, cassette: str | None = None) -> dict:
+def allergen_attribution(seq: str, components: list[dict] | None) -> list[dict]:
+    """Konstrüktteki alerjen 6-mer eşleşmelerini BÖLGELERE atfet.
+
+    NEDEN (2026-11-22): adaylarda `require_non_allergen` SERT filtre, yani her
+    epitop FAO/WHO ölçütüne göre temiz. Buna rağmen BİRLEŞTİRİLMİŞ konstrükt
+    alerjen çıkabiliyor ve rapor bunu hiçbir uyarıya çevirmiyordu. Eşleşmenin
+    NEREDEN doğduğu kararı değiştirir:
+
+      * `junction`  — epitop/linker birleşme yerinde doğan YENİ 6-mer. Epitoplar
+                      temiz, suçlu dizilim. **Linker değiştirilerek giderilebilir.**
+      * `linker`    — linker dizisinin kendisi eşleşiyor (aynı çözüm).
+      * `adjuvant`  — β-defensin konak kökenlidir, eşleşme BEKLENİR; eleme
+                      gerekçesi değil, not.
+      * `epitope`   — epitobun kendi içinde; aday filtresi kaçırmış demektir,
+                      o epitop konstrüktten çıkarılmalı.
+
+    Döner: [{kmer, start, source, region, detail}]. Eşleşme yoksa boş liste.
+    """
+    hits = allergen.matches(seq)
+    if not hits:
+        return []
+    # Parça sınırlarını kur (components sırayla birleştirilmiştir).
+    spans = []
+    off = 0
+    for c in (components or []):
+        seg = sequtils.sanitize(c.get("seq", ""))
+        spans.append((off, off + len(seg), c.get("role", "?"), c.get("source", "")))
+        off += len(seg)
+    out = []
+    for h in hits:
+        a, b = h["start"], h["start"] + len(h["kmer"])
+        touched = [(r, src) for (s0, s1, r, src) in spans if s0 < b and a < s1]
+        if not touched:
+            region, detail = "bilinmiyor", "parça haritası yok"
+        elif len({r for r, _ in touched}) == 1 and len(touched) == 1:
+            role = touched[0][0]
+            region = ("adjuvant" if role == "adjuvant"
+                      else "linker" if role == "linker"
+                      else "epitope")
+            detail = f"{role}" + (f" ({touched[0][1]})" if touched[0][1] else "")
+        else:
+            region = "junction"
+            detail = " + ".join(r for r, _ in touched)
+        out.append({**h, "region": region, "detail": detail})
+    return out
+
+
+def characterize(seq: str, cassette: str | None = None,
+                 components: list[dict] | None = None) -> dict:
     """Konstrukt için özellik tablosu (kullanıcı tablosuyla aynı satırlar).
 
     `cassette` verilirse insan-homoloji kontrolü adjuvan hariç kaset üzerinde
     yapılır (adjuvan insan-kökenli olabilir; self-benzerlik yorumu yanıltmasın).
+    `components` verilirse alerjen 6-mer eşleşmeleri bölgelere atfedilir.
     """
     s = sequtils.sanitize(seq)
     pp = sequtils.protparam(s)
@@ -289,11 +338,14 @@ def characterize(seq: str, cassette: str | None = None) -> dict:
         ag, ag_method = sequtils.antigenicity_proxy(s), "fizikokimyasal proxy"
         ag_flag = ag >= 0.4
 
-    # Alerjenite (FAO/WHO 6-mer)
+    # Alerjenite (FAO/WHO 6-mer) — eşleşmeler bölgelere ATFEDİLİR, çünkü
+    # birleşme yerinde doğan eşleşme linker değiştirilerek giderilebilir.
+    al_hits: list[dict] = []
     if allergen.available():
         al = allergen.predict([s]).get(s, {})
         allergenic = bool(al.get("allergen"))
         al_method = "FAO/WHO 6-mer"
+        al_hits = allergen_attribution(s, components)
     else:
         allergenic, al_method = None, "yok"
 
@@ -317,7 +369,19 @@ def characterize(seq: str, cassette: str | None = None) -> dict:
         "gravy": pp.get("gravy"),
         "aromaticity": pp.get("aromaticity"),
         "antigenicity": {"score": ag, "antigenic": ag_flag, "method": ag_method},
-        "allergen": {"allergenic": allergenic, "method": al_method},
+        "allergen": {
+            "allergenic": allergenic, "method": al_method,
+            "matches": al_hits,
+            "n_matches": len(al_hits),
+            # Eyleme dönüşür özet: eşleşmelerin hangisi linker/birleşme
+            # kaynaklı (linker değiştirilebilir), hangisi epitop kaynaklı
+            # (epitop konstrüktten çıkarılmalı), hangisi adjuvan (beklenen).
+            "by_region": {r: sum(1 for h in al_hits if h["region"] == r)
+                          for r in {h["region"] for h in al_hits}},
+            "fixable_by_linker": any(h["region"] in ("junction", "linker")
+                                     for h in al_hits),
+            "from_epitope": any(h["region"] == "epitope" for h in al_hits),
+        },
         "toxicity": {"toxic": toxic, "method": tx_method},
         # İçsel düzensizlik (metapredict); araç yoksa None.
         "disorder": (
@@ -364,7 +428,7 @@ def run(
 ) -> dict:
     """İnşa + karakterizasyon; rapora hazır tek sözlük döner."""
     mev = build_construct(peptides, adjuvant, top_i, top_ii, top_b)
-    props = characterize(mev.seq, cassette=mev.cassette)
+    props = characterize(mev.seq, cassette=mev.cassette, components=mev.components)
     # Atıflar: sabit linker/karakterizasyon + SEÇİLEN adjuvanın kendi atfı
     # (literatür daima kullanılan bileşenle eşleşir — β-defensin sabit değil).
     cites = list(CITATION_KEYS)

@@ -358,7 +358,8 @@ def _mev_section(meta: dict) -> str:
         ("Aliphatic index", p["aliphatic_index"]),
         ("GRAVY", p["gravy"]),
         ("Antigenicity", f"{ag['score']} ({yn(ag['antigenic'],'Antigenic' if is_en else 'Antijenik','Non' )}) · {ag['method']}"),
-        ("Allergenicity", yn(al["allergenic"], "Allergen", "Non-allergen") + f" · {al['method']}"),
+        ("Allergenicity", yn(al["allergenic"], "Allergen", "Non-allergen") + f" · {al['method']}"
+         + (f" · {al['n_matches']} 6-mer" if al.get("n_matches") else "")),
         ("Toxicity", yn(tx["toxic"], "Toxic", "Non-toxic") + f" · {tx['method']}"),
         ("Human proteome similarity" if is_en else "İnsan proteomu benzerliği",
          ("No similarity" if is_en else "Benzerlik yok") if hs.get("available") and not hs.get("similar")
@@ -396,6 +397,53 @@ def _mev_section(meta: dict) -> str:
             f"<table><tr><th>{t(lang,'col_epitope')}</th><th>{'Type' if is_en else 'Tip'}</th>"
             f"<th>{t(lang,'col_source')}</th><th>%rank</th>"
             f"<th>{'Reason' if is_en else 'Gerekçe'}</th></tr>{erows}</table>")
+    # KONSTRÜKT ALERJENİTESİ — uyarı kutusu. Adaylarda sert filtre olduğu için
+    # her epitop temizdir; konstrükt yine alerjen çıkıyorsa eşleşme birleşme
+    # yerinde doğmuş olabilir ve LİNKER DEĞİŞTİRİLEREK giderilebilir. Eskiden
+    # bu satır tabloda tek kelimeydi ("Allergen") ve eyleme dönüşmüyordu.
+    al_html = ""
+    if al.get("allergenic") and al.get("matches"):
+        reg_lbl = {"junction": ("birleşme yeri (epitop/linker)", "junction (epitope/linker)"),
+                   "linker": ("linker dizisi", "linker sequence"),
+                   "adjuvant": ("adjuvan (β-defensin, konak kökenli — beklenir)",
+                                "adjuvant (β-defensin, host-derived — expected)"),
+                   "epitope": ("EPİTOBUN KENDİSİ — aday filtresi kaçırmış",
+                               "THE EPITOPE ITSELF — candidate filter missed it"),
+                   "bilinmiyor": ("bilinmiyor", "unknown")}
+        arows = "".join(
+            f'<tr><td class="mono">{h["kmer"]}</td><td>{h["start"] + 1}</td>'
+            f'<td>{reg_lbl.get(h["region"], (h["region"], h["region"]))[1 if is_en else 0]}</td>'
+            f'<td class="mono">{h["detail"]}</td>'
+            f'<td class="mono">{h.get("source", "")}</td></tr>' for h in al["matches"])
+        if al.get("from_epitope"):
+            verdict = ("At least one match lies INSIDE an epitope: that epitope should be "
+                       "dropped from the construct (the candidate-level filter missed it)."
+                       if is_en else
+                       "En az bir eşleşme bir EPİTOBUN İÇİNDE: o epitop konstrüktten "
+                       "çıkarılmalı (aday düzeyi filtre kaçırmış).")
+            vcls = "fail"
+        elif al.get("fixable_by_linker"):
+            verdict = ("All matches arise at linkers or at epitope/linker junctions — the "
+                       "epitopes themselves are clean. This is fixable by changing the "
+                       "linker or the epitope order; it is not a property of the antigens."
+                       if is_en else
+                       "Eşleşmelerin tamamı linkerlarda ya da epitop/linker birleşme "
+                       "yerlerinde doğuyor — epitopların kendisi temiz. Linker ya da epitop "
+                       "sırası değiştirilerek giderilebilir; antijenlerin özelliği değil.")
+            vcls = "warn"
+        else:
+            verdict = ("Matches come from the adjuvant, which is host-derived; expected, "
+                       "not a filtering criterion." if is_en else
+                       "Eşleşmeler konak kökenli adjuvandan geliyor; beklenen durum, "
+                       "eleme ölçütü değil.")
+            vcls = "warn"
+        al_html = (
+            f"<h3>⚠ {'Construct allergenicity (FAO/WHO 6-mer)' if is_en else 'Konstrükt alerjenitesi (FAO/WHO 6-mer)'}"
+            f" <span class='mono'>— {al['n_matches']}</span></h3>"
+            f"<p style='font-size:.85rem'><span class='{vcls}'>{verdict}</span></p>"
+            f"<table><tr><th>6-mer</th><th>{'Position' if is_en else 'Konum'}</th>"
+            f"<th>{'Origin' if is_en else 'Köken'}</th><th>{'Parts' if is_en else 'Parçalar'}</th>"
+            f"<th>{'Matched allergen' if is_en else 'Eşleşen alerjen'}</th></tr>{arows}</table>")
     return (
         f"<h2>🧩 {ttl}</h2>"
         f"<p style='font-size:.85rem'>{comp} · {len_lbl}: <b>{len(mv['sequence'])} aa</b> "
@@ -404,7 +452,7 @@ def _mev_section(meta: dict) -> str:
         f"<p class='mono'>{mv['sequence']}</p></details>"
         f"<table><tr><th>{t(lang,'col_param') if False else ('Property' if is_en else 'Özellik')}</th>"
         f"<th>{'Value' if is_en else 'Değer'}</th></tr>{trows}</table>"
-        f"{exc_html}"
+        f"{al_html}{exc_html}"
     )
 
 
@@ -469,28 +517,65 @@ def _structure_section(meta: dict) -> str:
             "ESMAtlas API üzerinden ESMFold ÖNGÖRÜSÜ — deneysel yapı değil. pLDDT>70 "
             "güvenilir, <50 düzensiz. Konformasyonel-B, DiscoTope-BENZERİ (RSA+Parker); "
             "resmi DiscoTope değil.")
+    # pLDDT GÜVEN BANNER'I: eşik altındaysa yapıdan TÜREYEN sonuçlar (RSA/yüzey,
+    # konformasyonel B) "düşük güven" etiketi taşır. MEV linkerlarla birleşmiş
+    # yapay bir kimera olduğundan düşük pLDDT BEKLENEN durumdur — kusur değil;
+    # banner bunu da yazar, yoksa sayı "kötü sonuç" gibi okunuyor.
+    cl = st.get("plddt_confidence") or {}
+    thr = st.get("plddt_threshold", 70.0)
+    banner = ""
+    if cl and not cl.get("reliable", True):
+        lbl = cl.get("label_en" if is_en else "label_tr", "")
+        banner = (
+            f"<p style='font-size:.85rem'><span class='warn'><b>⚠ pLDDT "
+            f"{st.get('plddt_mean','—')} &lt; {thr} — {lbl}.</b></span> "
+            + ("Everything read OFF this model is therefore low-confidence too: "
+               "surface % (RSA) and the conformational B-cell patches below. "
+               "Note this is EXPECTED for a MEV: the construct is a linker-joined "
+               "chimera, not a natural folding unit, so a low pLDDT is not by itself "
+               "a defect — but it means the surface/conformational results cannot "
+               "carry the weight of a measurement." if is_en else
+               "Dolayısıyla bu modelden OKUNAN her şey de düşük güvenlidir: "
+               "aşağıdaki yüzey % (RSA) ve konformasyonel B-hücre yamaları. "
+               "Bunun MEV için BEKLENEN olduğunu da not edelim: konstrükt "
+               "linkerlarla birleştirilmiş yapay bir kimera, doğal bir katlanma "
+               "birimi değil; yani düşük pLDDT tek başına kusur değil — ama "
+               "yüzey/konformasyonel sonuçların ölçüm ağırlığı taşımadığı anlamına "
+               "geliyor.") + "</p>")
+    lc_tag = ("" if cl.get("reliable", True) else
+              (" <span class='warn mono'>(low confidence)</span>" if is_en
+               else " <span class='warn mono'>(düşük güven)</span>"))
     rows = [
         (("Source" if is_en else "Kaynak"), st.get("source", "—")),
         (("Residues" if is_en else "Kalıntı"), st.get("n_res", "—")),
-        ("pLDDT (mean/min)", f"{st.get('plddt_mean','—')} / {st.get('plddt_min','—')}"),
-        (("Surface %" if is_en else "Yüzey %"), f"{surf.get('percent_surface','—')}%"),
+        ("pLDDT (mean/min)",
+         f"{st.get('plddt_mean','—')} / {st.get('plddt_min','—')}"
+         + (f" — {cl.get('label_en' if is_en else 'label_tr','')}" if cl else "")),
+        (("Surface %" if is_en else "Yüzey %"),
+         f"{surf.get('percent_surface','—')}%{lc_tag}"),
         (("Conformational B patches" if is_en else "Konformasyonel B yaması"),
-         cb.get("n_patches", "—")),
+         f"{cb.get('n_patches', '—')}{lc_tag}"),
     ]
     trs = "".join(f"<tr><td>{k}</td><td>{v}</td></tr>" for k, v in rows)
     patch_html = ""
     for p in (cb.get("patches") or [])[:6]:
+        # Her yamanın KENDİ pLDDT'si: güven dizi boyunca eşit dağılmaz, bir yama
+        # güvenilir bölgede, başkası düzensiz bölgede olabilir.
+        _pl = p.get("plddt_mean")
+        _flag = (" <span class='warn'>⚠</span>" if p.get("low_confidence") else "")
         patch_html += (f"<tr><td>{p['start']}–{p['end']}</td><td>{p['length']}</td>"
-                       f"<td class='mono'>{p['peptide']}</td><td>{p['mean_score']}</td></tr>")
+                       f"<td class='mono'>{p['peptide']}</td><td>{p['mean_score']}</td>"
+                       f"<td>{'—' if _pl is None else _pl}{_flag}</td></tr>")
     if patch_html:
         ph = ("<p style='margin-top:.6rem'><b>Surface B-cell patches</b></p>" if is_en
               else "<p style='margin-top:.6rem'><b>Yüzey B-hücre yamaları</b></p>")
-        hh = (["Range", "Len", "Peptide", "Score"] if is_en else ["Aralık", "Uzunluk", "Peptit", "Skor"])
+        hh = (["Range", "Len", "Peptide", "Score", "pLDDT"] if is_en
+              else ["Aralık", "Uzunluk", "Peptit", "Skor", "pLDDT"])
         patch_html = ph + "<table><tr>" + "".join(f"<th>{h}</th>" for h in hh) + f"</tr>{patch_html}</table>"
     return (
         f"<h2>🧬 {ttl}</h2>"
         f"<p style='font-size:.8rem;background:#eef6ff;border:1px solid #9cc3e6;padding:.5rem;border-radius:6px'>ℹ {disc}</p>"
-        f"<table>{trs}</table>{patch_html}"
+        f"{banner}<table>{trs}</table>{patch_html}"
     )
 
 
@@ -633,8 +718,22 @@ def _tool_status_section(meta: dict) -> str:
                 f"padding:.45rem;border-radius:6px'>✓ {t(lang, 'tool_status_ok')} "
                 f"[{count}]</p>")
     else:
+        # EKSİKLİĞİN TÜRÜ: "kurulu değil" kalıcı; "doğrulama koşusu düştü"
+        # geçici yük hatası olabilir (bir kez retry edilip yine düştü). İkisini
+        # aynı etiketle göstermek, çalışan bir aracı yokmuş gibi raporluyordu.
+        sfx = "_en" if lang == "en" else ""
+        vf = set(summ.get("verify_failed" + sfx) or [])
+        pe = set(summ.get("probe_error" + sfx) or [])
+        st_vf = ("file present, verification run FAILED (may be transient load)"
+                 if lang == "en" else
+                 "dosya var, DOĞRULAMA KOŞUSU DÜŞTÜ (geçici yük olabilir)")
+        st_pe = ("probe error" if lang == "en" else "kontrol hatası")
         rows = "".join(
-            f"<tr><td>{lbl}</td><td><b>{t(lang, 'tool_status_absent')}</b></td></tr>"
+            f"<tr><td>{lbl}</td><td>"
+            + (f"<span class='warn'><b>{st_vf}</b></span>" if lbl in vf
+               else f"<span class='warn'>{st_pe}</span>" if lbl in pe
+               else f"<b>{t(lang, 'tool_status_absent')}</b>")
+            + "</td></tr>"
             for lbl in miss)
         body = (
             "<p style='font-size:.8rem;background:#fff6e5;border:1px solid #e0b25c;"

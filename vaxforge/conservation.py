@@ -35,6 +35,11 @@ _CACHE_DIR = _TOOLS / "db" / ".strain_cache"
 
 _AA = "ACDEFGHIKLMNPQRSTVWY"
 
+#: Bir adaya konservasyon YÜZDESİ yazmak için gereken en az ortolog sayısı.
+#: 1 ortolog = iki dizi arası kimlik; bu "suşlar arası korunmuşluk" değildir ve
+#: geniş koruma iddiasını taşımaz. Altında kalırsa değer DÜRÜSTÇE None.
+MIN_ORTHOLOGS = 2
+
 
 def _diamond_bin() -> str | None:
     local = _TOOLS / "diamond"
@@ -119,21 +124,59 @@ def _best_orthologs(proteins: list[ProteinRecord], dmnd: str) -> dict[str, str]:
     return {q: v[0] for q, v in best.items()}
 
 
-def _identity_vector(cand: str, ortholog: str, aligner) -> list[int] | None:
-    """Aday her kalıntısı ortologda aynı mı? (1/0). Hizalama başarısızsa None."""
+def _aligned_pairs(cand: str, ortholog: str, aligner):
+    """(aday_indeksi, ortolog_karakteri) çiftleri — GERÇEK aday koordinatlarıyla.
+
+    DİKKAT, ESKİ HATA (2026-11-22'de testle bulundu): hizalama `local` modda,
+    yani `aln[0]` yalnız HİZALANAN parçayı içerir. Eski kod bu parçayı sayarken
+    sayaca 0'dan başlıyordu, bu yüzden hizalama adayın 1. kalıntısından
+    başlamadığı her durumda konservasyon profili KAYIYORDU. Ölçülen örnek:
+    `MKVLAAG…` ↔ `AKVLAAG…` (yalnız 1. kalıntı farklı) → yerel hizalama
+    indeks 1'den başlıyor, profil bir sola kayıyor; gerçek uyuşmazlık (poz. 0)
+    "korunmuş", gerçek eşleşme (son poz.) "korunmamış" okunuyordu. Profil
+    `epitope_conservation`'ı besliyor, o da adaylık puanına giriyor — yani kayma
+    doğrudan epitop sıralamasını bozuyordu. N-ucu farklı (ör. sinyal peptidi)
+    yüzey antijenlerinde kayma büyük olabilir.
+
+    Çözüm: Biopython'un hizalama koordinatlarını kullan (`aln.indices`; yoksa
+    `aln.aligned` bloklarından türet), kolon saymayı bırak.
+    """
     s = sanitize(cand)
     try:
         aln = aligner.align(s, ortholog)[0]
     except Exception:
         return None
-    a, b = aln[0], aln[1]  # aday-hizalı, ortolog-hizalı
+    pairs: list[tuple[int, str]] = []
+    try:
+        idx = aln.indices                    # 2×N: satır0 = aday indeksi (-1 boşluk)
+        for qi, ti in zip(idx[0], idx[1]):
+            qi, ti = int(qi), int(ti)
+            if qi >= 0:
+                pairs.append((qi, ortholog[ti] if ti >= 0 else "-"))
+        return pairs
+    except Exception:
+        pass
+    try:
+        qblocks, tblocks = aln.aligned        # [[(q0,q1)…], [(t0,t1)…]]
+    except Exception:
+        return None
+    for (q0, q1), (t0, t1) in zip(qblocks, tblocks):
+        for k in range(int(q1) - int(q0)):
+            qi, ti = int(q0) + k, int(t0) + k
+            pairs.append((qi, ortholog[ti] if ti < len(ortholog) else "-"))
+    return pairs
+
+
+def _identity_vector(cand: str, ortholog: str, aligner) -> list[int] | None:
+    """Aday her kalıntısı ortologda aynı mı? (1/0). Hizalama başarısızsa None."""
+    s = sanitize(cand)
+    pairs = _aligned_pairs(s, ortholog, aligner)
+    if pairs is None:
+        return None
     vec = [0] * len(s)
-    ci = 0
-    for x, y in zip(a, b):
-        if x != "-":
-            if y != "-" and x == y:
-                vec[ci] = 1
-            ci += 1
+    for qi, ch in pairs:
+        if 0 <= qi < len(s) and ch == s[qi]:
+            vec[qi] = 1
     return vec
 
 
@@ -189,13 +232,38 @@ def run(proteins: list[ProteinRecord], strain_paths: list[str] | None,
         hits = _best_orthologs(proteins, dmnd)
         per_strain_hits.append((seqs, hits))
 
+    # 2b) AYNI GENOMU İKİ KEZ SAYMA. Otomatik suş çekme girdinin KENDİ
+    # assembly'sini (ya da ondan türetilmiş bir kaydı) getirebiliyor; o zaman
+    # her ortolog adayla bire bir aynı olur ve "korunmuş" sayısı yalancı
+    # şişer — oysa aynı dizi suş-arası değişkenlik hakkında hiçbir şey söylemez.
+    # Bir suşun bulunan ortologlarının TAMAMI (>= 3 tanesi) aday dizisiyle
+    # birebir aynıysa o suş kıyaslamadan çıkarılır ve raporda adı geçer.
+    identical_strains: list[int] = []
+    by_id = {pr.id: sanitize(pr.seq) for pr in proteins}
+    kept: list[tuple[dict, dict]] = []
+    for idx, (seqs, hits) in enumerate(per_strain_hits):
+        found = [(q, s) for q, s in hits.items() if s in seqs and q in by_id]
+        all_same = bool(found) and all(seqs[s] == by_id[q] for q, s in found)
+        if all_same and len(found) >= 3:
+            identical_strains.append(idx)
+            continue
+        kept.append((seqs, hits))
+    if kept:
+        per_strain_hits = kept
+        n_strains = len(kept)
+
     conserved_counts = 0
+    n_unmeasured = 0
     for pr in proteins:
         cand = sanitize(pr.seq)
         L = len(cand)
-        # kendi suşu her kalıntıda 'aynı' (taban 1); ortologlar eklenir
-        agree = [1] * L      # her pozisyonda kaç suşta aynı (kendi dahil)
-        total = [1] * L      # her pozisyonda kaç suş kıyaslandı (kendi dahil)
+        # KENDİ SUŞU SAYILMAZ. Eskiden `agree`/`total` 1'den başlıyordu (aday
+        # kendi kendisiyle her pozisyonda aynı), bu yüzden HİÇ ortolog
+        # bulunamadığında profil baştan sona 1.0 ve conservation_percent 100.0
+        # çıkıyordu — ölçüm yokluğu "mükemmel korunmuş" gibi raporlanıyordu.
+        # Konservasyon = ORTOLOGLARIN aday kalıntısıyla aynı olan oranı.
+        agree = [0] * L
+        total = [0] * L
         aligned_cols: list[list[str]] = []
         n_orthologs = 0
         for seqs, hits in per_strain_hits:
@@ -212,40 +280,54 @@ def run(proteins: list[ProteinRecord], strain_paths: list[str] | None,
             # entropi için hizalı ortolog karakterlerini kolonlara yaz
             aligned_cols.append(_aligned_ortholog_chars(cand, seqs[sid], aligner))
 
-        profile = [round(agree[i] / total[i], 3) for i in range(L)]
-        pct = round(100 * sum(profile) / L, 1) if L else None
-        entropy = _col_entropy(cand, aligned_cols) if aligned_cols else None
-        mean_ent = round(sum(entropy) / len(entropy), 3) if entropy else None
+        # EN AZ `MIN_ORTHOLOGS` ortolog şart: tek karşılaştırma suş-ARASI
+        # korunmuşluk değil, iki dizi arası kimliktir; aşı adayını "geniş
+        # koruma sağlar" diye sıralamaya yetmez. Yetmezse DÜRÜSTÇE ölçülmemiş.
+        if L and n_orthologs >= MIN_ORTHOLOGS:
+            profile = [round(agree[i] / total[i], 3) if total[i] else 0.0
+                       for i in range(L)]
+            pct = round(100 * sum(profile) / L, 1)
+            entropy = _col_entropy(cand, aligned_cols) if aligned_cols else None
+            mean_ent = round(sum(entropy) / len(entropy), 3) if entropy else None
+            method = (f"GERÇEK (diamond ortolog + BLOSUM62 hizalama, "
+                      f"{n_orthologs}/{n_strains} suşta ortolog)")
+        else:
+            profile, pct, mean_ent = None, None, None
+            n_unmeasured += 1
+            method = (f"ölçülemedi — {n_orthologs} ortolog bulundu, en az "
+                      f"{MIN_ORTHOLOGS} gerekli ({n_strains} suş tarandı)")
 
         pr.annotations["conservation_percent"] = pct
         pr.annotations["conservation_profile"] = profile
         pr.annotations["conservation_entropy_mean"] = mean_ent
         pr.annotations["conservation_n_orthologs"] = n_orthologs
-        pr.annotations["method_conservation"] = (
-            f"GERÇEK (diamond ortolog + BLOSUM62 hizalama, {n_orthologs}/{n_strains} suş)"
-            if n_orthologs else f"ortolog bulunamadı ({n_strains} suşta)")
+        pr.annotations["conservation_min_orthologs"] = MIN_ORTHOLOGS
+        pr.annotations["method_conservation"] = method
         if pct is not None and pct >= min_percent:
             conserved_counts += 1
 
     return list(proteins), {
         "computed": True, "n_strains": n_strains,
         "n_conserved": conserved_counts, "min_percent": min_percent,
+        "n_unmeasured": n_unmeasured, "min_orthologs": MIN_ORTHOLOGS,
+        "n_identical_strains": len(identical_strains),
+        "identical_strains": identical_strains,
     }
 
 
 def _aligned_ortholog_chars(cand: str, ortholog: str, aligner) -> list[str]:
-    """Aday her kalıntısına denk gelen ortolog karakteri ('-' = boşluk/ortolog yok)."""
+    """Aday her kalıntısına denk gelen ortolog karakteri ('-' = boşluk/ortolog yok).
+
+    Aynı kayma hatası buradaydı (bkz. `_aligned_pairs`): kolon sayımı yerine
+    gerçek hizalama koordinatları kullanılır, yoksa entropi kolonları da
+    kaymış kalıntılardan hesaplanıyordu.
+    """
     s = sanitize(cand)
     out = ["-"] * len(s)
-    try:
-        aln = aligner.align(s, ortholog)[0]
-    except Exception:
+    pairs = _aligned_pairs(s, ortholog, aligner)
+    if pairs is None:
         return out
-    a, b = aln[0], aln[1]
-    ci = 0
-    for x, y in zip(a, b):
-        if x != "-":
-            if ci < len(out):
-                out[ci] = y
-            ci += 1
+    for qi, ch in pairs:
+        if 0 <= qi < len(out):
+            out[qi] = ch
     return out

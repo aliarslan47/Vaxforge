@@ -4,13 +4,105 @@
 > bilimsel ayrıntı `benchmark/` altında, faz günlüğü `ROADMAP.md`'de.
 
 **Son güncelleme:** 2026-11-22
-**Son commit:** `d261efe` — MHC-II sessiz düşüşü, tehlike sütunu polaritesi, plan donması
-**Bekleyen:** düşük karmaşıklık + %rank ölçeği düzeltmesi (bu tur, aşağıda)
+**Son commit:** `bd746cb` — poly-Ala: %rank ölçek hatası + düşük karmaşıklık ölçütü
+**Bu turda:** konservasyon (%100 hatası + virüs suş çekme + hizalama kayması),
+konstrükt alerjenitesi atfı, pLDDT güven yayılımı, tool_status retry — aşağıda.
 **Faz:** makale yazımı / son rötuş. Pipeline tamam, benchmark tamam, taslak hazır.
 **Araç durumu:** 21 araçtan 20'si kurulu. DeepLoc-2.1 ve NetCTL-1.2 **akıştan
 tamamen çıkarıldı** (kullanıcı kararı 2026-11-22): ikisi de hiç koşmuyordu, adları
 hiçbir katmanda geçmiyor. Lokalizasyon = PSORTb (bakteri) / etiketli heuristik;
 antijen işleme = IEDB processing API (tek omurga).
+
+## 2026-11-22 (dördüncü tur) — kalan dört biyolojik ölçüt + bir kayma hatası
+
+Ali'nin emri: "diğerleri biyolojik olarak anlamlı şekilde çözülmeden yeni run
+benim emrim dışında yapılmayacak." Dördü de çözüldü, koşu YAPILMADI.
+
+### 1. Konservasyon: %100 nereden geliyordu
+
+**Kök neden ikiydi.** (a) `conservation.run` `agree`/`total` sayaçlarını 1'den
+başlatıyordu — aday kendi kendisiyle her pozisyonda aynı. HİÇ ortolog
+bulunamadığında profil baştan sona 1.0 ve `conservation_percent` tam 100.0
+çıkıyordu: **ölçüm yokluğu "mükemmel korunmuş" diye raporlanıyordu.**
+(b) Otomatik suş çekme virüslerde çalışmıyordu: `genome/taxon/.../dataset_report`
+(assembly uç noktası) BoHV-1 için **tek** kayıt döndürüyor (`GCF_008777455.1`,
+referansın kendisi) — ölçüldü. Yani "3 suş çek" isteği 1 suş getiriyordu.
+
+**Düzeltme:**
+- Konservasyon artık ORTOLOGLARIN oranı; aday kendisi paya/paydaya girmiyor.
+- `MIN_ORTHOLOGS = 2`: tek ortolog "suşlar arası korunmuşluk" değil, iki dizi
+  arası kimliktir → altında kalırsa değer **None** ve yöntem etiketi
+  "ölçülemedi — n ortolog bulundu, en az 2 gerekli".
+- Aynı genomu iki kez sayma koruması: bir suşun bulunan ortologlarının tamamı
+  (>=3) adayla birebir aynıysa o suş kıyaslamadan çıkarılır ve raporda geçer.
+- `strain_fetch`: VİRÜS DALI eklendi. `virus/taxon/{taxid}/dataset_report`
+  (BoHV-1: 854 kayıt, 71'i tam proteom) + E-utilities `fasta_cds_aa` ile protein
+  indirme; parça kayıtlar (protein_count < 50) dışlanır. Datasets'in virüs
+  indirme ucu protein FASTA vermiyor (denendi, zip yalnız data_report içeriyor).
+- `ingest.accession_from_file`: girdinin kendi accession'ı (BoHV-1: `JX898220`)
+  çekimden DIŞLANIR. Suş sayısı 3 → 5.
+
+**Doğrulandı (gerçek NCBI + gerçek diamond, 25 aday protein, 5 izolat:**
+BoHV-1.2b/CHN/SZ01/2022, PVNRTGVU/VBT/2023/0761, BC01, BJ202406,
+**BHV-1/TR 1305**): konservasyon %83.4-100.0 aralığı, ortalama %97.8, tam %100
+çıkan yalnız 3/25. Yani bileşen artık gerçekten ayırt ediyor.
+
+### 2. Konservasyon profili KAYIYORDU (testle bulunan yeni hata)
+
+Hizalayıcı `local` modda; `aln[0]` yalnız HİZALANAN parçayı içeriyor, ama eski
+kod kolonları sayarken sayaca 0'dan başlıyordu. Hizalama adayın 1. kalıntısından
+başlamadığı her durumda **profil kayıyordu**: `MKVLAAG…` ↔ `AKVLAAG…` örneğinde
+gerçek uyuşmazlık (poz. 0) "korunmuş", gerçek eşleşme (son poz.) "korunmamış"
+okunuyordu. Profil `epitope_conservation`'ı besliyor, o da adaylık puanına
+giriyor — kayma doğrudan epitop sıralamasını bozuyordu.
+
+**Ölçülen yaygınlık:** 74 gerçek hizalamanın **12'si (%16)** adayın 0.
+kalıntısından başlamıyor; kayma **23-100 kalıntı** (ortalama 51). O proteinlerde
+epitop-penceresi konservasyonu tamamen alakasız pozisyonları okuyordu.
+**Düzeltme:** kolon sayımı bırakıldı, Biopython hizalama koordinatları
+(`aln.indices`, yedek `aln.aligned`) kullanılıyor (`_aligned_pairs`).
+
+### 3. MEV'in kendi alerjenitesi artık eyleme dönüşür uyarı
+
+Adaylarda `require_non_allergen` SERT filtre, yani her epitop temiz; buna karşın
+birleştirilmiş konstrükt FAO/WHO 6-mer ölçütüne göre alerjen çıkıyordu ve rapor
+bunu tek kelimeye ("Allergen") indiriyordu. `allergen.matches()` artık TÜM
+eşleşmeleri konumuyla veriyor, `allergen._kmer_sources()` hangi alerjene
+benzediğini söylüyor (142.320 6-mer → kaynak eşlemesi), `mev.allergen_attribution`
+her eşleşmeyi bölgeye atfediyor:
+
+  * `junction` — epitop/linker birleşme yerinde doğan YENİ 6-mer → **linker
+    değiştirilerek giderilebilir**, antijenlerin özelliği değil.
+  * `linker` — linker dizisinin kendisi (aynı çözüm).
+  * `adjuvant` — β-defensin konak kökenli, eşleşme BEKLENİR (not, eleme değil).
+  * `epitope` — epitobun içinde → aday filtresi kaçırmış, o epitop çıkarılmalı.
+
+Rapora uyarı kutusu + tablo (6-mer / konum / köken / parçalar / eşleşen alerjen)
+ve karar cümlesi geldi. **Test sırasında planlanmamış bir bulgu:** standart
+`EAAAK` adjuvan linker'ı ardından E ile başlayan bir epitop gelince `EAAAKE`
+alerjen 6-mer'i doğuyor (kaynak Q8J1L4, *Trichophyton schoenleinii*).
+
+### 4. pLDDT güveni alt sonuçlara YAYILIYOR
+
+MEV pLDDT ortalaması 55.6, eşik 70 — altında. Rapor bu sayıyı diğer satırlar
+gibi yazıyordu, oysa yapıdan TÜREYEN her şey (RSA/yüzey yüzdesi, konformasyonel
+B-hücre yamaları) o modelin güvenine bağlı. `structure.confidence()` +
+`structure.region_plddt()` eklendi: rapora uyarı banner'ı, yüzey/konformasyonel
+satırlara "(düşük güven)" etiketi, her B yamasına KENDİ ortalama pLDDT'si ve
+eşik altındaysa ⚠. Banner ayrıca MEV'in linkerlarla birleşmiş yapay bir kimera
+olduğunu, yani düşük pLDDT'nin BEKLENEN olduğunu — kusur olmadığını — yazıyor.
+
+### 5. `tool_status` yük altında yanlış "ARAÇ YOK" demiyor
+
+`verify()` aracı gerçekten koşturduğu için geçici bir kaynak hatasıyla da
+düşebiliyordu (ölçülmüştü: 9 paralel netMHCIIpan + pytest altında ToxinPred2).
+Artık bir kez RETRY var (`_verify_with_retry`) ve eksikliğin TÜRÜ ayrı:
+`missing` (dosya yok, kalıcı) / `verify_failed` (dosya var, doğrulama koşusu
+düştü — geçici olabilir) / `probe_error`. Rapor üçünü ayrı yazıyor; "dürüstlük
+tek yönlü değil, 'var' demek kadar 'yok' demek de yanlış olabilir."
+
+**Testler:** `tests/test_biyolojik_olcutler.py` (14 test) + tüm paket **75/75**.
+**Koşu YAPILMADI.**
 
 ## 2026-11-22 (üçüncü tur) — poly-Ala epitopları: iki ölçek hatası + eksik ölçüt
 

@@ -98,6 +98,28 @@ def taxon_from_file(path: str | Path, det: Detection | None = None) -> str | Non
     return None
 
 
+def accession_from_file(path: str | Path, det: Detection | None = None) -> str | None:
+    """GenBank kaydının accession'ı (ör. 'JX898220') — suş çekiminde DIŞLAMAK için.
+
+    NEDEN: otomatik suş çekme (strain_fetch) girdinin KENDİ kaydını da
+    getirebilir; o zaman "suş" aday dizisiyle birebir aynı olur ve konservasyon
+    suş-arası değişkenlik hakkında hiçbir şey ölçmediği halde yüksek çıkar.
+    Bulunamazsa None (dışlama yapılmaz, conservation'daki aynı-genom koruması
+    ikinci savunma hattıdır).
+    """
+    molecule = getattr(det, "molecule", None) if det is not None else None
+    if det is not None and molecule != "genbank":
+        return None
+    try:
+        with _open(path) as fh:
+            for rec in SeqIO.parse(fh, "genbank"):
+                acc = (rec.id or rec.name or "").strip()
+                return acc.split(".")[0] or None
+    except Exception:
+        return None
+    return None
+
+
 def _read_genbank(path) -> list[ProteinRecord]:
     """GenBank CDS'lerini protein olarak alır; gen/lokus/konum doğrudan gelir.
 

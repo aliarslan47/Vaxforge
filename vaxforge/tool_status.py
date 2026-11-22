@@ -16,6 +16,8 @@ girdiye bağlıdır ve pipeline onları kendi yerinde dürüstçe etiketler.
 """
 from __future__ import annotations
 
+import time
+
 # citation'daki `tool` metnine karşılık gelen modül adı -> görünen etiket.
 # Yalnız parametresiz available() sunan, dışa bağımlı araçlar.
 _PROBES: list[tuple[str, str, str]] = [
@@ -47,6 +49,29 @@ _PROBES: list[tuple[str, str, str]] = [
 ]
 
 
+#: `verify()` düşerse bu kadar bekleyip BİR kez daha denenir (geçici yük hatası).
+_RETRY_DELAY = 2.0
+
+
+def _verify_with_retry(mod) -> tuple[bool, str]:
+    """`mod.verify()` — düşerse bir kez daha dener. Dönüş: (ok, son hata adı).
+
+    Geçici kaynak darlığı (paralel araç koşuları, bellek baskısı) verify'ı
+    düşürebiliyor; tek deneme bunu kalıcı "ARAÇ YOK" diye rapora yazıyordu.
+    """
+    last = ""
+    for attempt in (1, 2):
+        try:
+            if bool(mod.verify()):
+                return True, ""
+            last = "verify() False döndü"
+        except Exception as e:                       # noqa: BLE001
+            last = type(e).__name__
+        if attempt == 1:
+            time.sleep(_RETRY_DELAY)
+    return False, last
+
+
 def collect() -> dict[str, dict]:
     """{modül: {label, available, note}} — her araç için tek gerçek kontrol.
 
@@ -71,12 +96,43 @@ def collect() -> dict[str, dict]:
             # alanı raporun hangi kontrolün yapıldığını söylemesini sağlar;
             # "shallow" bir GARANTİ DEĞİLDİR, sadece dosya var demektir.
             if hasattr(mod, "verify"):
-                entry["available"] = bool(mod.verify())
+                # YÜK ALTINDA YANLIŞ "ARAÇ YOK" (2026-11-22): `verify()` aracı
+                # gerçekten koşturduğu için GEÇİCİ bir hatayla da düşebilir.
+                # Ölçüldü: 9 paralel netMHCIIpan + pytest koşarken ToxinPred2'nin
+                # verify'ı düştü ve araç rapora kalıcı "eksik" yazıldı; tek başına
+                # `verify() -> True`. Dürüstlük tek yönlü değil — "var" demek
+                # kadar "yok" demek de yanlış olabilir, ve eksik sanılan araç
+                # ÖLÇÜLMEMİŞ sonucu olumsuz bulgu gibi gösterir.
+                # Bu yüzden: bir kez RETRY, ve "dosya yok" ile "verify düştü"
+                # AYRI kaydedilir (ikincisi geçici olabilir, raporda öyle görünür).
+                ok, err = _verify_with_retry(mod)
+                entry["available"] = ok
                 entry["check"] = "verified"
+                if not ok:
+                    # Dosya hiç yok mu, yoksa dosya var ama koşmadı mı?
+                    shallow = None
+                    if hasattr(mod, "available"):
+                        try:
+                            shallow = bool(mod.available())
+                        except Exception:            # noqa: BLE001
+                            shallow = None
+                    if shallow is False:
+                        entry["note"] = "dosya yok (kurulu değil)"
+                        entry["fail_kind"] = "missing"
+                    else:
+                        entry["note"] = (
+                            f"dosya var ama doğrulama koşusu düştü"
+                            + (f" ({err})" if err else "")
+                            + " — geçici yük hatası olabilir")
+                        entry["fail_kind"] = "verify_failed"
+                        entry["retried"] = True
             else:
                 entry["available"] = bool(mod.available())
+                if not entry["available"]:
+                    entry["fail_kind"] = "missing"
         except Exception as e:                       # noqa: BLE001
             entry["note"] = f"kontrol hatası: {type(e).__name__}"
+            entry["fail_kind"] = "probe_error"
         out[mod_name] = entry
     return out
 
@@ -106,7 +162,20 @@ def summarize(status: dict[str, dict] | None) -> dict:
                 "missing_labels": [], "missing_labels_en": []}
     miss = missing(status, "tr")
     verified = sum(1 for v in status.values() if v.get("check") == "verified")
+    # EKSİKLİĞİN TÜRÜ AYRI RAPORLANIR: "kurulu değil" kalıcı bir olgu,
+    # "doğrulama koşusu düştü" ise geçici yük hatası olabilir (bir kez retry
+    # edildi ve yine düştü). İkisini aynı listede göstermek, çalışan bir aracı
+    # kalıcı yokmuş gibi raporluyordu.
+    def _k(kind, lang):
+        return sorted(_lbl(v, lang) for v in status.values()
+                      if not v.get("available") and v.get("fail_kind") == kind)
     return {"total": len(status), "available": len(status) - len(miss),
             "missing": len(miss), "missing_labels": miss,
             "missing_labels_en": missing(status, "en"),
-            "verified": verified, "shallow": len(status) - verified}
+            "verified": verified, "shallow": len(status) - verified,
+            "not_installed": _k("missing", "tr"),
+            "not_installed_en": _k("missing", "en"),
+            "verify_failed": _k("verify_failed", "tr"),
+            "verify_failed_en": _k("verify_failed", "en"),
+            "probe_error": _k("probe_error", "tr"),
+            "probe_error_en": _k("probe_error", "en")}

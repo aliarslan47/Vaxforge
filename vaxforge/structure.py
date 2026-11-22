@@ -82,3 +82,54 @@ def predict(seq: str, timeout: int = 300) -> dict | None:
         "plddt_min": round(min(plddt), 1),
         "plddt_per_res": [round(x, 1) for x in plddt],
     }
+
+
+# ── pLDDT güven yayılımı ───────────────────────────────────────────────────
+# NEDEN (2026-11-22): BoHV-1 MEV'inin pLDDT ortalaması 55.6 ölçüldü, yani
+# "güvenilir" eşiğinin (70) ALTINDA. Rapor bu sayıyı diğer satırlar gibi
+# yazıyordu; oysa YAPIDAN TÜRETİLEN her sonuç (RSA/yüzey yüzdesi, konformasyonel
+# B-hücre yamaları) o yapının güvenine BAĞLIDIR. Düşük pLDDT'li bir modelden
+# okunan "yüzey epitobu" ölçülmüş bir bulgu gibi görünüyordu.
+#
+# ÖNEMLİ BAĞLAM: MEV, linkerlarla birleştirilmiş yapay bir kimeradır; parçaları
+# doğal bir katlanma birimi DEĞİL. Böyle bir dizide düşük pLDDT BEKLENEN
+# durumdur, bir kusur değil. Bu yüzden rapor "kötü" demez: ilgili alt sonuçları
+# "düşük güven" diye işaretler ve nedenini yazar.
+
+#: ESMFold ölçeği: >70 güvenilir, 50-70 düşük, <50 düzensiz.
+PLDDT_CONFIDENT = 70.0
+PLDDT_DISORDERED = 50.0
+
+
+def confidence(plddt_mean: float | None) -> dict:
+    """Ortalama pLDDT → {level, reliable, label_tr, label_en}."""
+    if plddt_mean is None:
+        return {"level": "unknown", "reliable": False,
+                "label_tr": "ölçülmedi", "label_en": "not measured"}
+    v = float(plddt_mean)
+    if v >= 90:
+        return {"level": "very_high", "reliable": True,
+                "label_tr": "çok yüksek güven", "label_en": "very high confidence"}
+    if v >= PLDDT_CONFIDENT:
+        return {"level": "confident", "reliable": True,
+                "label_tr": "güvenilir", "label_en": "confident"}
+    if v >= PLDDT_DISORDERED:
+        return {"level": "low", "reliable": False,
+                "label_tr": "DÜŞÜK güven (eşik 70'in altında)",
+                "label_en": "LOW confidence (below the 70 threshold)"}
+    return {"level": "disordered", "reliable": False,
+            "label_tr": "ÇOK DÜŞÜK — düzensiz model",
+            "label_en": "VERY LOW — disordered model"}
+
+
+def region_plddt(plddt_per_res: list[float] | None,
+                 start: int, end: int) -> float | None:
+    """[start, end] (1-TABANLI, iki uç dahil) aralığının ortalama pLDDT'si."""
+    if not plddt_per_res:
+        return None
+    a = max(0, int(start) - 1)
+    b = min(len(plddt_per_res), int(end))
+    if b <= a:
+        return None
+    win = plddt_per_res[a:b]
+    return round(sum(win) / len(win), 1)

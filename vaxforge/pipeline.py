@@ -154,12 +154,21 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
             if strain_fetch.available(organism_taxon):
                 yield _ev("conservation", "running",
                           "Suş verisi yok — NCBI Datasets'ten otomatik suş çekiliyor…")
-                fetched = strain_fetch.fetch_strains(organism_taxon, n=3)
+                # n=3 -> 5: tek ortolog "suşlar arası korunmuşluk" sayılmıyor
+                # (conservation.MIN_ORTHOLOGS), bu yüzden bir kısmı ortolog
+                # vermese bile ölçüm ayakta kalacak kadar suş istenir.
+                # profile=virus: assembly uç noktası virüslerde YALNIZ referansı
+                # döndürüyor (ölçüldü: BoHV-1'de 1 kayıt) -> izolat yolu.
+                fetched = strain_fetch.fetch_strains(
+                    organism_taxon, n=5, profile=profile,
+                    exclude_accession=ingest.accession_from_file(path, det))
                 if fetched.get("ok"):
                     strain_paths = fetched["paths"]
                     auto_strain_note = fetched["note"]
                     meta["conservation_auto_strains"] = {
-                        "accessions": fetched["accessions"], "note": fetched["note"]}
+                        "accessions": fetched["accessions"],
+                        "isolates": fetched.get("isolates") or [],
+                        "note": fetched["note"]}
                 else:
                     meta["conservation_auto_strains"] = {"accessions": [], "note": fetched.get("note")}
         except Exception as e:
@@ -360,18 +369,38 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
                     rsa_list = rsa_mod.rsa_from_pdb(pred["pdb"])
                     surf = rsa_mod.surface_summary(rsa_list) if rsa_list else {}
                     conf = bcell_conf.predict(mev_seq_st, rsa_list) if rsa_list else None
+                    # pLDDT GÜVENİ ALT SONUÇLARA YAYILIR: RSA/yüzey ve
+                    # konformasyonel B yamaları bu yapıdan okunuyor; model
+                    # güvenilmezse o sonuçlar da güvenilmezdir (structure.py).
+                    # Her yamanın KENDİ ortalama pLDDT'si de işaretlenir, çünkü
+                    # güven dizi boyunca eşit dağılmaz.
+                    conf_level = structure.confidence(pred["plddt_mean"])
+                    per_res = pred.get("plddt_per_res")
+                    if conf and conf.get("patches"):
+                        for _pt in conf["patches"]:
+                            _pl = structure.region_plddt(
+                                per_res, _pt.get("start", 0), _pt.get("end", 0))
+                            _pt["plddt_mean"] = _pl
+                            _pt["plddt_confidence"] = structure.confidence(_pl)["level"]
+                            _pt["low_confidence"] = (
+                                _pl is not None and _pl < structure.PLDDT_CONFIDENT)
                     st = {
                         "available": True, "source": "MEV konstrukt",
                         "tool": "ESMFold (ESMAtlas API) — öngörü, deneysel değil",
                         "n_res": pred["n_res"], "plddt_mean": pred["plddt_mean"],
                         "plddt_min": pred["plddt_min"], "surface": surf,
                         "conformational_b": conf,
+                        "plddt_confidence": conf_level,
+                        "plddt_threshold": structure.PLDDT_CONFIDENT,
+                        # Yapıya DAYANAN sonuçlar güvenilir mi? (RSA, konf. B)
+                        "derived_reliable": conf_level["reliable"],
                     }
             meta["structure"] = st or {"available": False, "note": note}
             if st:
                 cb = st.get("conformational_b") or {}
                 yield _ev("structure", "done",
-                          f"MEV yapısı: pLDDT {st['plddt_mean']} (min {st['plddt_min']}) · "
+                          f"MEV yapısı: pLDDT {st['plddt_mean']} "
+                          f"[{st['plddt_confidence']['label_tr']}] (min {st['plddt_min']}) · "
                           f"yüzey %{st['surface'].get('percent_surface', '—')} · "
                           f"konformasyonel B yaması {cb.get('n_patches', 0)}", st)
             else:
