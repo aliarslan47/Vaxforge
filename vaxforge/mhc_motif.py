@@ -127,7 +127,7 @@ def scan_positions(allele: str, mhc_class: str = "mhc_i") -> dict | None:
         return None
 
     acc: dict[int, dict[str, list[tuple[str, float]]]] = {}
-    for (bg, pos, aa), pep in zip(meta, peps):
+    for (bg, pos, aa), pep in zip(meta, peps, strict=True):
         d = res.get(pep)
         if d:
             acc.setdefault(pos, {}).setdefault(bg, []).append((aa, d["rank"]))
@@ -211,7 +211,6 @@ def anchor_positions(mhc_class: str, peplen: int,
     if allele:
         prof = allele_profile(allele, mhc_class)
         if prof:
-            L = prof["scan_len"]
             out: list[int] = []
             for lbl, info in prof["anchors"].items():
                 p = peplen if lbl == "PΩ" else info["pos"]

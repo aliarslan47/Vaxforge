@@ -13,8 +13,7 @@ from __future__ import annotations
 import json
 import os
 import sys
-import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 BENCH = Path(__file__).resolve().parent
@@ -23,7 +22,7 @@ STATUS = BENCH / "STATUS.md"
 
 
 def _now() -> str:
-    return datetime.now(timezone.utc).astimezone().strftime("%Y-%m-%d %H:%M:%S")
+    return datetime.now(UTC).astimezone().strftime("%Y-%m-%d %H:%M:%S")
 
 
 def log_event(event: str, detail: str = "", phase: str = "") -> None:

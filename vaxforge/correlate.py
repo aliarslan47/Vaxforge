@@ -414,7 +414,7 @@ def detect_from_input(path: str | None = None, extra: str | None = None,
                     with gzip.open(p, "rt", errors="replace") as fh:
                         blobs.append(fh.read(max_bytes))
                 else:
-                    with open(p, "r", errors="replace") as fh:
+                    with open(p, errors="replace") as fh:
                         blobs.append(fh.read(max_bytes))
         except OSError:
             pass

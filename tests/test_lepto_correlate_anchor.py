@@ -10,7 +10,8 @@ from pathlib import Path
 
 import pytest
 
-from vaxforge import correlate, lepto_validation as lv, mhc_motif
+from vaxforge import correlate, mhc_motif
+from vaxforge import lepto_validation as lv
 
 AA20 = set("ACDEFGHIKLMNPQRSTVWY")
 

@@ -106,8 +106,8 @@ def main() -> int:
           f"{N_BACKGROUND} arka plan) · profil=bacteria · konak=human · taxon={TAXON}")
     t0 = time.time()
     result = None
-    n_discovery = n_funnel = None
-    survivors_after = {}  # phase -> set(acc) — hangi proteinler o adımı geçti
+    _n_discovery = _n_funnel = None
+    _survivors_after = {}  # phase -> set(acc) — hangi proteinler o adımı geçti
     for ev in pipeline.run(str(TESTSET), det, cfg, "bacteria",
                            host_names=["human"], has_gpu=False,
                            outdir=str(OUTDIR.parent), host_registry=hosts,
@@ -213,7 +213,7 @@ def main() -> int:
         json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8")
     # rapor paketini yayın klasörüne kopyala
     import shutil
-    for k, v in result["paths"].items():
+    for _k, v in result["paths"].items():
         try:
             shutil.copy(v, OUTDIR / Path(v).name)
         except Exception:
@@ -227,7 +227,7 @@ def main() -> int:
           f"{summary['n_candidate_proteins']}  ·  süre: {summary['runtime_s']}s")
     print(f"\nRecall@antijen: {summary['recall_at_antigen']}  ·  "
           f"aday-üreten protein: {len(cand_accs)}")
-    print(f"\nBilinen koruyucu antijenlerin izi (pipeline onları buldu mu?):")
+    print("\nBilinen koruyucu antijenlerin izi (pipeline onları buldu mu?):")
     for r in prot_rows:
         mark = "✅" if r["produced_candidate"] else "❌"
         vf = {True: "VFDB+", False: "VFDB−", None: "VFDB?"}[r["vfdb_hit"]]
@@ -241,7 +241,7 @@ def main() -> int:
           f"{summary['fold_enrichment']}")
     print(f"  koruyucu aday üreten : {len(prot_in_cand)}/{len(protective_accs)}")
     print(f"  arka plan aday üreten: {len(bg_in_cand)}/{len(bg_accs)}")
-    print(f"  [bağlam — yayınlanmış tam-proteom fold'ları, birebir kıyas DEĞİL]:")
+    print("  [bağlam — yayınlanmış tam-proteom fold'ları, birebir kıyas DEĞİL]:")
     for name, val in REFERENCE_FOLD_ENRICHMENT.items():
         print(f"     {name}: {val}")
     print(f"IEDB (taxon {TAXON}) eşleşen aday: {summary['iedb_matched_candidates']}")

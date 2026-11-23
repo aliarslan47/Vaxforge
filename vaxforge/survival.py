@@ -11,8 +11,8 @@ Buradakiler HEURİSTİK vekillerdir ve 'method' ile etiketlenir.
 from __future__ import annotations
 
 from . import allergen, toxinpred
-from .i18n import t
 from .config_loader import ResolvedTool
+from .i18n import t
 from .models import Peptide
 from .sequtils import KD, sanitize
 

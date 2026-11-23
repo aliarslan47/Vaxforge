@@ -271,7 +271,7 @@ def _download(urls: list[str], dest_dir: Path, w: Wanted) -> None:
         except urllib.error.URLError as e:
             w.status, w.detail = "ag_yok", str(e.reason)
             continue
-        except (TimeoutError, socket.timeout):
+        except TimeoutError:
             w.status, w.detail = "erisilemez", "zaman aşımı"
             continue
 

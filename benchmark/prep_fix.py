@@ -9,7 +9,6 @@ new_virus_groundtruth.json güncellenir. Bkz [[vaxforge-literature-rule]].
 from __future__ import annotations
 
 import json
-import time
 from pathlib import Path
 
 from Bio import Entrez, SeqIO

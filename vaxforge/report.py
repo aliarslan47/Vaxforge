@@ -1001,9 +1001,9 @@ def _protein_label_set_section(meta: dict) -> str:
         rows += (f"<tr><td>{h}</td><td>{d.get('denominator')}</td>"
                  f"<td>{d.get('recovered')}</td><td>{d.get('recall_percent')}</td>"
                  f"<td>{d.get('unmeasured_in_host')}</td>{extra}</tr>")
-    hdr = ((("Konak", "Payda", "Yakalanan", "Recall %", "O konakta ölçülmemiş")
+    hdr = (("Konak", "Payda", "Yakalanan", "Recall %", "O konakta ölçülmemiş")
             if tr else ("Host", "Denominator", "Recovered", "Recall %",
-                        "Not measured in host")))
+                        "Not measured in host"))
     hdr2 = ((("Girdide", "Elemeden geçen", "%") if tr else
              ("In input", "Kept by filters", "%"))
             if any(d.get("in_input") is not None

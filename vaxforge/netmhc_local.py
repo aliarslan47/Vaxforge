@@ -351,7 +351,7 @@ def predict(peptides: list[str], alleles: list[str], mhc_class: str,
             n_chunks=len(chunks), panel=n_panel, chunk=CHUNK, failures=failures)
     if not agg:
         return None
-    for pep, d in agg.items():
+    for _pep, d in agg.items():
         d["coverage_frac"] = d["n_alleles"] / max(1, len(alleles_n))
         d["panel_size"] = len(alleles_n)
         d["bound_alleles"] = sorted({key2orig.get(k, k) for k in d.pop("_bound_keys", set())})

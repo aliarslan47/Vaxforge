@@ -120,7 +120,7 @@ def load() -> tuple[Target, ...]:
         if not header:
             header = parts
             continue
-        row = dict(zip(header, parts + [""] * (len(header) - len(parts))))
+        row = dict(zip(header, parts + [""] * (len(header) - len(parts)), strict=False))
         out.append(Target(
             orf=row["orf"].strip(),
             product=row.get("product", ""),

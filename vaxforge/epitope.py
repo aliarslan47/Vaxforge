@@ -11,8 +11,16 @@ yoksa IEDB API, o da yoksa proxy (dürüst etiketli).
 
 from __future__ import annotations
 
-from . import (bepipred, bepipred3, complexity, ifngamma, immunogenicity,
-               mhc_motif, predictors, processing)
+from . import (
+    bepipred,
+    bepipred3,
+    complexity,
+    ifngamma,
+    immunogenicity,
+    mhc_motif,
+    predictors,
+    processing,
+)
 from .config_loader import ResolvedTool
 from .hosts import Host
 from .models import Peptide, ProteinRecord

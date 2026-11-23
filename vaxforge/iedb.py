@@ -46,7 +46,7 @@ def _parse(text: str | None) -> list[dict] | None:
     for ln in lines[1:]:
         parts = ln.split("\t")
         if len(parts) == len(header):
-            rows.append(dict(zip(header, parts)))
+            rows.append(dict(zip(header, parts, strict=True)))
     return rows or None
 
 
@@ -151,7 +151,7 @@ def predict(peptides: list[str], alleles: list[str], mhc_class: str,
                 d["n_alleles"] += 1
                 if r.get("allele"):
                     d["_bound"].add(r.get("allele"))
-    for pep, d in agg.items():
+    for _pep, d in agg.items():
         d["coverage_frac"] = d["n_alleles"] / max(1, d["panel_size"])
         d["bound_alleles"] = sorted(d.pop("_bound", set()))
     return agg

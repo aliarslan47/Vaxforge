@@ -27,9 +27,11 @@ jobs:
       - name: Hafif bağımlılıklar
         # Birim testleri yalnız bunlara ihtiyaç duyar; torch/fair-esm (BepiPred-3,
         # DeepLoc) modül içinde TEMBEL import edildiği için CI'da gerekmez.
+        # reportlab + pypdf ŞART: rapor testleri PDF'i gerçekten üretip metnini
+        # okuyor (PDF↔HTML bölüm eşitliği). Bunlar ağ/lisans istemez.
         run: |
           python -m pip install --upgrade pip
-          pip install pytest biopython pandas pyyaml
+          pip install pytest biopython pandas pyyaml reportlab pypdf
       - name: Derleme kontrolü (söz dizimi)
         run: python -m compileall -q vaxforge scripts benchmark
       - name: pytest (smoke hariç)

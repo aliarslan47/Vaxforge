@@ -54,7 +54,7 @@ def _from_iedb(peptides, alleles, mhc_class, rank_weak, host, rank_strong=None):
     if not raw:
         return None
     tool = "NetMHCpan" if mhc_class == "mhc_i" else "NetMHCIIpan"
-    for pep, d in raw.items():
+    for _pep, d in raw.items():
         d["method"] = f"GERÇEK ({tool}, IEDB API, {host.label} {mhc_class.upper()})"
     return raw
 

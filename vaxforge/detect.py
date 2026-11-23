@@ -57,7 +57,7 @@ def _open_text(path: Path) -> tuple[io.TextIOBase, bool]:
     gz = magic == b"\x1f\x8b"
     if gz:
         return gzip.open(path, "rt", encoding="utf-8", errors="replace"), True
-    return open(path, "rt", encoding="utf-8", errors="replace"), False
+    return open(path, encoding="utf-8", errors="replace"), False
 
 
 def _classify_seq_type(seq: str) -> str:

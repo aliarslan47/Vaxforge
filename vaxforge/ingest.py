@@ -45,7 +45,7 @@ def _parse_locus(desc: str) -> dict:
 def _open(path: Path):
     with open(path, "rb") as fh:
         gz = fh.read(2) == b"\x1f\x8b"
-    return gzip.open(path, "rt") if gz else open(path, "rt")
+    return gzip.open(path, "rt") if gz else open(path)
 
 
 def _fmt(det: Detection) -> str:

@@ -134,7 +134,7 @@ def _run_diamond(proteins: list[ProteinRecord], evalue: float, min_id: float,
         p = line.split("\t")
         if len(p) < 6:
             continue
-        qid, sid, pident, length, ev, stitle = p[0], p[1], float(p[2]), int(p[3]), float(p[4]), p[5]
+        qid, sid, pident, length, _ev, stitle = p[0], p[1], float(p[2]), int(p[3]), float(p[4]), p[5]
         cov = 100 * length / max(1, lengths.get(qid, length))
         if qid in best and best[qid]["pident"] >= pident:
             continue
@@ -162,7 +162,7 @@ def _mini_ref_identity(seq: str, refs, aligner) -> tuple[float, str]:
         except Exception:
             continue
         a, b = aln[0], aln[1]
-        matches = sum(1 for x, y in zip(a, b) if x == y and x != "-")
+        matches = sum(1 for x, y in zip(a, b, strict=True) if x == y and x != "-")
         pct = 100 * matches / max(1, min(len(s), len(rseq)))
         if pct > best_pct:
             best_pct, best_ref = pct, rid

@@ -16,6 +16,7 @@ import json
 from pathlib import Path
 
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
@@ -54,7 +55,7 @@ def fig1_recovery(h204):
             else:
                 ye.append(j + offs[t])
         ax.scatter(xr, yr, s=95, color=COL[t], label=t, zorder=3)
-        for xx, yy in zip(xr, yr):
+        for xx, yy in zip(xr, yr, strict=False):
             ax.annotate(str(int(xx)), (xx, yy), textcoords="offset points",
                         xytext=(0, 7), ha="center", fontsize=7.5, color=COL[t])
         ax.scatter([elim_x] * len(ye), ye, s=95, marker="x", color=COL[t], zorder=3)
@@ -81,7 +82,7 @@ def fig2_recall(h204):
     ax.set_ylabel("Recall over known antigens (of 4)")
     ax.set_xlabel("Reverse vaccinology tool")
     ax.set_xticks(x); ax.set_xticklabels(TOOLS)
-    for b, r, a in zip(bars, recalls, aucs):
+    for b, r, a in zip(bars, recalls, aucs, strict=False):
         txt = f"{r}/4" + (f"\nAUC {a}" if a is not None else "")
         ax.text(b.get_x() + b.get_width() / 2, r + 0.08, txt, ha="center", va="bottom", fontsize=9)
     ax.grid(axis="y", alpha=0.3)
@@ -104,7 +105,7 @@ def fig3_fold_recall(h204, full):
     x = np.arange(len(labels))
     fig, ax = plt.subplots(figsize=(7.2, 4.4))
     bars = ax.bar(x, folds, color=colors, width=0.62)
-    for b, rec in zip(bars, recalls):
+    for b, rec in zip(bars, recalls, strict=False):
         ax.text(b.get_x() + b.get_width() / 2, b.get_height() + 1.0, f"recall {rec}",
                 ha="center", va="bottom", fontsize=8.5, fontweight="bold")
     ax.axhline(16.57, ls="--", c="gray", lw=1)
@@ -143,7 +144,7 @@ def fig4_bacteria_panel():
             num, den = (int(v) for v in data[key][t]["recall"].split("/"))
             fracs.append(num / den); labels.append(f"{num}/{den}")
         bars = ax.bar(x + (k - 1) * w, fracs, width=w, color=COL[t], label=t)
-        for b, lab in zip(bars, labels):
+        for b, lab in zip(bars, labels, strict=False):
             ax.text(b.get_x() + b.get_width() / 2, b.get_height() + 0.015, lab,
                     ha="center", va="bottom", fontsize=7)
     xticklabels = [NAME[k] + ("*" if k in NEW else "") for k in bugs]
@@ -326,7 +327,7 @@ def figS1_brucella_vaccine():
             else:
                 ye.append(j + offs[si])
         ax.scatter(xr, yr, s=80, color=colL[si], label=f"{label}  (n={ncand})", zorder=3)
-        for xx, yy in zip(xr, yr):
+        for xx, yy in zip(xr, yr, strict=False):
             ax.annotate(str(int(xx)), (xx, yy), textcoords="offset points",
                         xytext=(0, 6), ha="center", fontsize=7, color=colL[si])
         ax.scatter([elim_x] * len(ye), ye, s=80, marker="x", color=colL[si], zorder=3)

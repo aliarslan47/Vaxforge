@@ -10,6 +10,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from reportlab.lib import colors
@@ -18,8 +19,15 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import cm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.platypus import (Image, PageBreak, Paragraph,
-                                SimpleDocTemplate, Spacer, Table, TableStyle)
+from reportlab.platypus import (
+    Image,
+    PageBreak,
+    Paragraph,
+    SimpleDocTemplate,
+    Spacer,
+    Table,
+    TableStyle,
+)
 
 from . import citations, correlate, mhc_motif
 from .i18n import t
@@ -183,7 +191,7 @@ def _fit_widths(data, widths, header: bool, fsize: float, hsize: float) -> list[
     cap = _FRAME_W * _MAX_COL_FRACTION
     w = [float(x) for x in (widths or [])][:nc]
     w += [_FRAME_W / nc] * (nc - len(w))
-    w = [max(wi, min(mi, cap)) for wi, mi in zip(w, mins)]
+    w = [max(wi, min(mi, cap)) for wi, mi in zip(w, mins, strict=True)]
     tot = sum(w) or 1.0
     return [wi * _FRAME_W / tot for wi in w]
 

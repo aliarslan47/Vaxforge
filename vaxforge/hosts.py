@@ -49,8 +49,8 @@ class HostRegistry:
         self.default_hosts: list[str] = raw.get("default_hosts", list(self.hosts)[:1])
 
     @classmethod
-    def load(cls, path: Path | str = DEFAULT_HOSTS_PATH) -> "HostRegistry":
-        with open(path, "r", encoding="utf-8") as fh:
+    def load(cls, path: Path | str = DEFAULT_HOSTS_PATH) -> HostRegistry:
+        with open(path, encoding="utf-8") as fh:
             raw = yaml.safe_load(fh)
         return cls(raw, Path(path))
 

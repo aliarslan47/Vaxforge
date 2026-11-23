@@ -121,7 +121,7 @@ def collect() -> dict[str, dict]:
                         entry["fail_kind"] = "missing"
                     else:
                         entry["note"] = (
-                            f"dosya var ama doğrulama koşusu düştü"
+                            "dosya var ama doğrulama koşusu düştü"
                             + (f" ({err})" if err else "")
                             + " — geçici yük hatası olabilir")
                         entry["fail_kind"] = "verify_failed"

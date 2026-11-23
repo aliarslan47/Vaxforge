@@ -113,16 +113,16 @@ def main() -> int:
           f"{summary['n_funnel']}  ·  aday: {summary['n_candidates']}  ·  "
           f"süre: {summary['runtime_s']}s")
     if bm.get("recall") is not None:
-        print(f"\nBenchmark (IEDB ground truth):")
+        print("\nBenchmark (IEDB ground truth):")
         print(f"  Bilinen benzersiz epitop : {bm['n_known']}")
         print(f"  Yakalanan (recall)       : {bm['n_known_hit']} ({round(bm['recall']*100,2)}%)")
         print(f"  Aday sayısı              : {bm['n_pred']}")
         print(f"  Bilinene eşleşen aday    : {bm['n_pred_matched']} "
               f"(precision-benzeri {round((bm['precision_like'] or 0)*100,1)}%)")
-    print(f"\nLandmark (immünodominant) epitop kurtarma:")
+    print("\nLandmark (immünodominant) epitop kurtarma:")
     for r in landmark_rows:
         print(f"  {'✅' if r['recovered'] else '❌'} {r['epitope']:14s} {r['desc']}")
-    print(f"\nBilinen epitopla eşleşen ilk adaylar:")
+    print("\nBilinen epitopla eşleşen ilk adaylar:")
     for m in matched[:12]:
         pm = ", ".join(m["pmids"][:2]) or "—"
         print(f"  #{m['rank']:<3d} {m['peptide']:16s} {m['kind']:6s} "

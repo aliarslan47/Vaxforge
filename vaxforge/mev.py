@@ -20,8 +20,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from . import (allergen, antigen_acc, disorder, iapred, secstruct, sequtils,
-               solubility, toxinpred)
+from . import allergen, antigen_acc, disorder, iapred, secstruct, sequtils, solubility, toxinpred
 from .models import Peptide, ProteinRecord
 
 # ── Adjuvan kütüphanesi (N-ucuna EAAAK ile eklenir) ────────────────────────

@@ -218,7 +218,7 @@ def predict(seqs: list[str], host: str,
     proba = clf.predict_proba(X)[:, -1]
     blast = _blast_scores(uniq, host)
     out: dict[str, dict] = {}
-    for s, ml in zip(uniq, proba):
+    for s, ml in zip(uniq, proba, strict=True):
         b = blast.get(s, 0.0)
         total = float(ml) + b
         out[s] = {

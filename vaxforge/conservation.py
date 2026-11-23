@@ -154,7 +154,7 @@ def _aligned_pairs(cand: str, ortholog: str, aligner):
     pairs: list[tuple[int, str]] = []
     try:
         idx = aln.indices                    # 2×N: satır0 = aday indeksi (-1 boşluk)
-        for qi, ti in zip(idx[0], idx[1]):
+        for qi, ti in zip(idx[0], idx[1], strict=True):
             qi, ti = int(qi), int(ti)
             if qi >= 0:
                 pairs.append((qi, ortholog[ti] if ti >= 0 else "-"))
@@ -165,7 +165,7 @@ def _aligned_pairs(cand: str, ortholog: str, aligner):
         qblocks, tblocks = aln.aligned        # [[(q0,q1)…], [(t0,t1)…]]
     except Exception:
         return None
-    for (q0, q1), (t0, t1) in zip(qblocks, tblocks):
+    for (q0, q1), (t0, _t1) in zip(qblocks, tblocks, strict=True):
         for k in range(int(q1) - int(q0)):
             qi, ti = int(q0) + k, int(t0) + k
             pairs.append((qi, ortholog[ti] if ti < len(ortholog) else "-"))

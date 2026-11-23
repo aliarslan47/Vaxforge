@@ -19,8 +19,8 @@ import signal
 import threading
 import time
 import uuid
+from collections.abc import Iterator
 from dataclasses import dataclass, field
-from typing import Any, Iterator, Optional
 
 # Bitmiş job'ları reconnect için bir süre bellekte tut (sonra temizle).
 _RETAIN_SECONDS = 900  # 15 dk
@@ -33,12 +33,12 @@ class Job:
     profile: str
     status: str = "running"          # running | done | error | cancelled
     events: list[dict] = field(default_factory=list)   # tüm event'ler (replay için)
-    run_id: Optional[str] = None     # bitince pipeline'ın ürettiği çıktı dizini
-    error: Optional[str] = None
+    run_id: str | None = None     # bitince pipeline'ın ürettiği çıktı dizini
+    error: str | None = None
     started: float = field(default_factory=time.time)
-    finished: Optional[float] = None
-    tmp_path: Optional[str] = None   # bitince silinecek geçici girdi dosyası
-    _proc: Optional[mp.Process] = field(default=None, repr=False)  # pipeline işlemi
+    finished: float | None = None
+    tmp_path: str | None = None   # bitince silinecek geçici girdi dosyası
+    _proc: mp.Process | None = field(default=None, repr=False)  # pipeline işlemi
     _cond: threading.Condition = field(default_factory=threading.Condition, repr=False)
     _cancel: threading.Event = field(default_factory=threading.Event, repr=False)
 
@@ -47,8 +47,8 @@ class Job:
             self.events.append(ev)
             self._cond.notify_all()
 
-    def finish(self, status: str, run_id: Optional[str] = None,
-               error: Optional[str] = None) -> None:
+    def finish(self, status: str, run_id: str | None = None,
+               error: str | None = None) -> None:
         with self._cond:
             self.status = status
             if run_id:
@@ -89,7 +89,7 @@ def create_job(filename: str, profile: str, tmp_path: str | None = None) -> Job:
     return job
 
 
-def get_job(job_id: str) -> Optional[Job]:
+def get_job(job_id: str) -> Job | None:
     with _LOCK:
         return _JOBS.get(job_id)
 
@@ -116,7 +116,7 @@ def active_jobs() -> list[dict]:
         return [_summary(j) for j in _JOBS.values() if j.status == "running"]
 
 
-def job_status(job_id: str) -> Optional[dict]:
+def job_status(job_id: str) -> dict | None:
     j = get_job(job_id)
     return _summary(j) if j else None
 
@@ -157,7 +157,7 @@ def cancel_job(job_id: str) -> bool:
 # ara event vermez. Thread olsaydı iptal ancak sıradaki event'te işlerdi (yavaş).
 # Bu yüzden pipeline ayrı bir İŞLEMDE çalışır: iptal = process-grubunu SIGKILL —
 # çalışan netMHC dahil her şey anında durur.
-def _pipeline_child(q: "mp.Queue", kwargs: dict) -> None:
+def _pipeline_child(q: mp.Queue, kwargs: dict) -> None:
     """Çocuk işlem: kendi oturumunu açar, run_pipeline event'lerini kuyruğa yazar."""
     try:
         os.setsid()   # kendi process-grubu → topluca öldürülebilir
@@ -186,7 +186,7 @@ _MP = mp.get_context("fork")
 def start_job(job: Job, kwargs: dict) -> None:
     """Pipeline'ı ayrı bir işlemde başlatır; event'leri okuyan bir daemon thread
     job tamponuna yazar, bitiş/hata/iptal'i işaretler, tmp'yi siler."""
-    q: "mp.Queue" = _MP.Queue()
+    q: mp.Queue = _MP.Queue()
     proc = _MP.Process(target=_pipeline_child, args=(q, kwargs),
                        name=f"vfpipe-{job.id}", daemon=True)
     proc.start()
@@ -255,8 +255,7 @@ def stream_job(job: Job, cursor: int = 0) -> Iterator[dict]:
             batch = job.events[idx:]
             idx += len(batch)
             status = job.status
-        for ev in batch:
-            yield ev
+        yield from batch
         if status != "running" and idx >= len(job.events):
             return
         if not batch and status == "running":

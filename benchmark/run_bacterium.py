@@ -187,7 +187,7 @@ def main() -> int:
     (RESULTS / "vaxforge_summary.json").write_text(
         json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8")
     import shutil
-    for k, v in result["paths"].items():
+    for _k, v in result["paths"].items():
         try:
             shutil.copy(v, OUTDIR / Path(v).name)
         except Exception:

@@ -22,6 +22,7 @@ from pathlib import Path
 
 from vaxforge import bepipred, netmhc_local
 
+
 def _resolve_immforge_path() -> str:
     """ImmForge kurulumunun yolunu bulur.
 

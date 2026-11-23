@@ -1,8 +1,12 @@
 """Yeni 6 bakterinin UniProt referans proteomunu indir + genom boyutunu NCBI'dan al.
 Hepsi doğrulanmış aksesyon (uydurma yok). Çıktı: data/validation/<slug>_proteome.faa
 """
-import urllib.request, urllib.parse, json, time
+import json
+import time
+import urllib.parse
+import urllib.request
 from pathlib import Path
+
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "data" / "validation"
 
@@ -47,5 +51,5 @@ for slug, upid, org, ts, tsp, asm, gram in BUGS:
     time.sleep(0.5)
 
 print("\n===== GENOM KÜÇÜKTEN BÜYÜĞE SIRA =====")
-for i,(k,slug,org,upid,n,res,mb,gram,ts,tsp,asm) in enumerate(sorted(rows),1):
+for i,(_k,slug,org,_upid,n,_res,mb,gram,_ts,_tsp,_asm) in enumerate(sorted(rows),1):
     print(f"  {i}. {slug:11s} {mb} Mb · {n} protein · {gram} · {org}")

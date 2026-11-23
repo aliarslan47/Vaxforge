@@ -1,4 +1,7 @@
-import urllib.request, urllib.parse, time
+import time
+import urllib.parse
+import urllib.request
+
 TARGETS = [
     ("coxiella",   "Coxiella burnetii",      "RSA 493"),
     ("ssuis",      "Streptococcus suis",     "P1/7"),

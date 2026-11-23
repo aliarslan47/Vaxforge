@@ -61,7 +61,6 @@ def test_iki_ortologla_olculur_ve_kendisi_sayilmaz(monkeypatch):
     İki ortolog da ilk kalıntıda farklıysa o pozisyonun konservasyonu 0.0
     olmalı — eskiden aday kendisini saydığı için 1/3 = 0.33 çıkıyordu.
     """
-    seq = "MKVLAAGIVLLLSHKEPEAVY"
     alt = "AKVLAAGIVLLLSHKEPEAVY"      # yalnız 1. kalıntı farklı
     prots, summary = _run_cons(monkeypatch, [alt, alt], 2)
     a = prots[0].annotations
@@ -237,3 +236,45 @@ def test_hizalama_kaymasi_yok():
     v2 = conservation._identity_vector(cand2, orth2, al)
     assert sum(v2[:7]) == 0, "hizalanmayan N-ucu korunmuş sayılmamalı"
     assert all(x == 1 for x in v2[7:]), "hizalanan kuyruk tam korunmuş"
+
+
+# ── aln.aligned YEDEK YOLU — 2026-11-24'te test kör noktası olduğu ölçüldü ──
+def test_aligned_yedek_yolu_ayni_profili_uretir():
+    """`_aligned_pairs` iki yoldan çalışır: önce `aln.indices`, o düşerse
+    `aln.aligned` blokları. İkinci yolu HİÇBİR test çalıştırmıyordu — bu yüzden
+    oraya sokulan bir isim hatası (t0 → _t0) 129 testin hepsi yeşilken fark
+    edilmeden geçti. Burada `indices`'i kapatıp yedek yolu zorluyoruz ve iki
+    yolun AYNI sonucu vermesini istiyoruz."""
+    from vaxforge import conservation
+
+    cand = "MKVLAAGIVLLLSHKEPEAVY"
+    orth = "AKVLAAGIVLLLSHKEPEAVY"      # yalnız 1. kalıntı farklı
+    aligner = conservation._aligner()
+
+    birincil = conservation._aligned_pairs(cand, orth, aligner)
+
+    class _NoIndices:
+        """`indices` erişimini patlatan ince sarmalayıcı — yedek yola zorlar."""
+
+        def __init__(self, inner):
+            self._inner = inner
+
+        @property
+        def indices(self):
+            # AttributeError KULLANMA: property AttributeError atarsa Python
+            # __getattr__'a düşer ve içteki gerçek `indices` döner — test sahte
+            # olarak geçer (2026-11-24'te tam olarak bu oldu).
+            raise RuntimeError("indices yok (eski Biopython)")
+
+        def __getattr__(self, name):
+            return getattr(self._inner, name)
+
+    class _Aligner:
+        def align(self, a, b):
+            return [_NoIndices(aligner.align(a, b)[0])]
+
+    yedek = conservation._aligned_pairs(cand, orth, _Aligner())
+    assert yedek is not None and yedek, "yedek yol boş döndü"
+    assert yedek == birincil, (
+        "aln.aligned yedeği, aln.indices yolundan FARKLI profil üretti "
+        f"({len(yedek)} vs {len(birincil or [])} çift)")

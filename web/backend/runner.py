@@ -9,15 +9,17 @@ from __future__ import annotations
 
 import json
 import math
+import sys
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
 
 # Repo kökü: web/backend/runner.py -> ../../  (vaxforge paketi ve outputs/ burada)
 REPO_ROOT = Path(__file__).resolve().parents[2]
 OUTPUTS = REPO_ROOT / "outputs"
 
 # vaxforge paketi repo kökünde; import edilebilmesi için sys.path'e eklenir.
-import sys
+# (`import sys` dosya başında; bu satır yalnız yolu ekler.)
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 

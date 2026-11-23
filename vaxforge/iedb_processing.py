@@ -99,7 +99,7 @@ def _post(fasta_or_seq: str) -> list[dict]:
     for ln in lines[1:]:
         parts = ln.split("\t")
         if len(parts) == len(header):
-            rows.append(dict(zip(header, parts)))
+            rows.append(dict(zip(header, parts, strict=True)))
     return rows
 
 

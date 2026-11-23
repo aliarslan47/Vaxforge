@@ -150,7 +150,7 @@ def main() -> int:
     (OUTDIR / f"{VIRUS_NAME.lower()}_summary.json").write_text(
         json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8")
     import shutil
-    for k, v in result["paths"].items():
+    for _k, v in result["paths"].items():
         try:
             shutil.copy(v, OUTDIR / Path(v).name)
         except Exception:
@@ -181,7 +181,7 @@ def main() -> int:
         print(f"   G rank permütasyon p={perm['p_value']:.4g} ({perm['caveat'] or 'n=1 betimsel'})")
     print(f"\nHost başına bağlanan epitop (tüm proteom): {host_binder_counts}")
     print(f"Host başına bağlanan epitop (yalnız G):     {host_binder_counts_G}")
-    print(f"\nHost-çifti Jaccard örtüşmesi (G epitopları):")
+    print("\nHost-çifti Jaccard örtüşmesi (G epitopları):")
     for k, v in jacc_G.items():
         print(f"   {k:18s} J={v['statistic']}  (ortak {v['detail']['intersection']}/{v['detail']['union']})")
     print(f"\nÇıktılar: {OUTDIR}/")

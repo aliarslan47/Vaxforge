@@ -15,9 +15,25 @@ from __future__ import annotations
 from datetime import datetime
 from pathlib import Path
 
-from . import (citations, cluster, conservation, correlate, diagnostics,
-               discovery, epitope, funnel, iedb_match, ingest, mev, mimicry,
-               population, report, scoring, survival, tool_status)
+from . import (
+    citations,
+    cluster,
+    conservation,
+    correlate,
+    diagnostics,
+    discovery,
+    epitope,
+    funnel,
+    iedb_match,
+    ingest,
+    mev,
+    mimicry,
+    population,
+    report,
+    scoring,
+    survival,
+    tool_status,
+)
 from .config_loader import ThresholdConfig, flatten_for_report
 from .detect import Detection
 from .hosts import HostRegistry
@@ -414,7 +430,8 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
         yield _ev("structure", "running",
                   "Yapısal doğrulama (ESMFold · ESMAtlas → pLDDT / RSA / konformasyonel B)…")
         try:
-            from . import bcell_conf, rsa as rsa_mod, structure
+            from . import bcell_conf, structure
+            from . import rsa as rsa_mod
             st = None
             note = ""
             if not structure.available():

@@ -95,7 +95,7 @@ def _open_text(path: Path):
     """FASTA'yı aç — .gz olsun olmasın (eski hâli yalnız gzip açıyordu)."""
     if str(path).endswith(".gz"):
         return gzip.open(path, "rt", encoding="latin-1")
-    return open(path, "rt", encoding="latin-1")
+    return open(path, encoding="latin-1")
 
 
 def _iter_seqs(path: Path, limit: int, min_len: int = 50):

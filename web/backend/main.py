@@ -20,12 +20,11 @@ import os
 import tempfile
 from pathlib import Path
 
+import jobs
 from fastapi import FastAPI, File, Form, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
-
-import jobs
-from runner import (delete_run, get_config, get_run, get_run_file, list_runs)
+from runner import delete_run, get_config, get_run, get_run_file, list_runs
 
 
 def _sse(ev: dict) -> str:

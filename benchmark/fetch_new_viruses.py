@@ -50,7 +50,7 @@ def find_refseq_accessions(taxid: int) -> list[str]:
 def extract_proteins(accs: list, polyprotein: bool):
     """RefSeq genom(lar)dan protein sekanslarını çıkar."""
     prots = []  # (id, name, seq)
-    for acc, title, _ln in accs:
+    for acc, _title, _ln in accs:
         h = Entrez.efetch(db="nuccore", id=acc, rettype="gb", retmode="text")
         gb = SeqIO.read(h, "genbank"); h.close()
         mats = [f for f in gb.features if f.type == "mat_peptide"]
@@ -96,7 +96,7 @@ def main():
     rows.sort(key=lambda r: r[4])  # residüye göre en küçük -> büyük
     print("\n=== SIRALI (en küçük proteom -> en büyük) ===")
     print(f"{'#':<3}{'slug':<10}{'virüs':<42}{'protein':>8}{'residü':>9}")
-    for i, (slug, name, fam, np_, res, acc) in enumerate(rows, 1):
+    for i, (slug, name, _fam, np_, res, _acc) in enumerate(rows, 1):
         print(f"{i:<3}{slug:<10}{name[:40]:<42}{np_:>8}{res:>9}")
 
 

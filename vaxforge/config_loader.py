@@ -59,7 +59,7 @@ class ThresholdConfig:
 
     # -- yükleme -------------------------------------------------------------
     @classmethod
-    def load(cls, path: Path | str = DEFAULT_CONFIG_PATH) -> "ThresholdConfig":
+    def load(cls, path: Path | str = DEFAULT_CONFIG_PATH) -> ThresholdConfig:
         path = Path(path)
         with path.open("r", encoding="utf-8") as fh:
             raw = yaml.safe_load(fh)

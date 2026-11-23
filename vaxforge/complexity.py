@@ -90,7 +90,7 @@ def max_run(pep: str) -> int:
     if not s:
         return 0
     best = run = 1
-    for a, b in zip(s, s[1:]):
+    for a, b in zip(s, s[1:], strict=False):
         run = run + 1 if a == b else 1
         best = max(best, run)
     return best

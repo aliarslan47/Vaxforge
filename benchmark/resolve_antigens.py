@@ -1,7 +1,10 @@
 """Her bakteri için koruyucu antijen UniProt aksesyonlarını proteom İÇİNDEN çöz (uydurma yok).
 gene araması -> protein-adı araması fallback. Çıktı: aksesyon + gen + ad + proteomda-var mı.
 """
-import urllib.request, urllib.parse, json, time
+import time
+import urllib.parse
+import urllib.request
+
 # slug, upid, {etiket: [gen adayları / protein-adı anahtarları]}
 ANTIGENS = {
  "coxiella":  ("UP000002671", {

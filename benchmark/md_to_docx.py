@@ -5,12 +5,13 @@ Biçim kuralı (kullanıcı): collapsible/Word-Heading stili YOK; bölüm etiket
 paragrafta bold + bir punto büyük (gövde 12pt, etiket 13pt, başlık 14pt). Markdown tabloları
 gerçek docx tablosuna, ![](figures/..) resimleri gömülü görsele çevrilir. Em-dash zaten yok.
 """
-import re
 import os
+import re
 import sys
+
 from docx import Document
-from docx.shared import Pt, Inches
 from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.shared import Inches, Pt
 
 SRC = sys.argv[1] if len(sys.argv) > 1 else "MANUSCRIPT.md"
 OUT = sys.argv[2] if len(sys.argv) > 2 else "MANUSCRIPT.docx"
@@ -96,7 +97,7 @@ while i < n:
             doc.paragraphs[-1].alignment = WD_ALIGN_PARAGRAPH.CENTER
         except Exception as e:
             p = doc.add_paragraph()
-            add_runs(p, "[figür yüklenemedi: %s (%s)]" % (path, e))
+            add_runs(p, f"[figür yüklenemedi: {path} ({e})]")
         i += 1
         continue
 

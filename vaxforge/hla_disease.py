@@ -27,7 +27,7 @@ CATEGORY_TONE = {"risk": "warn", "adverse": "warn", "protective": "good"}
 def _load() -> dict[str, list[dict]]:
     if not _PATH.exists():
         return {}
-    with open(_PATH, "r", encoding="utf-8") as fh:
+    with open(_PATH, encoding="utf-8") as fh:
         raw = yaml.safe_load(fh) or {}
     return raw.get("associations", {}) or {}
 

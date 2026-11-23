@@ -1,7 +1,8 @@
 """ebola.gb (Zaire ebolavirus) — virüs profili, insan konağı. Küçük genom → hızlı.
 profil=virus, host=human, gram=None, taxon=NCBITaxon:186538 (hızlı IEDB).
 """
-import sys, time
+import sys
+import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))

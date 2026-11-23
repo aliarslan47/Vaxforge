@@ -16,10 +16,10 @@ import pandas as pd
 import streamlit as st
 
 from vaxforge import correlate, netmhc_local
-from vaxforge.i18n import t
 from vaxforge.config_loader import ThresholdConfig
 from vaxforge.detect import detect
 from vaxforge.hosts import HostRegistry
+from vaxforge.i18n import t
 from vaxforge.plan import build_plan, plan_table
 
 st.set_page_config(page_title="VaxForge — Reverse Vaccinology", page_icon="🧬",
@@ -694,7 +694,7 @@ if st.button(t(lang,"run_start"), type="primary"):
         labels = {"csv": "Adaylar (CSV)", "xlsx": "Tam liste (Excel)",
                   "fasta": "Peptitler (FASTA)", "json": "Tam koşum (JSON)",
                   "html": "Rapor (HTML)", "pdf": "Rapor (PDF)"}
-        for col, (kind, path) in zip(cols, paths.items()):
+        for col, (kind, path) in zip(cols, paths.items(), strict=False):
             data = Path(path).read_bytes()
             col.download_button(labels.get(kind, kind), data=data,
                                 file_name=Path(path).name, key=f"dl_{kind}")

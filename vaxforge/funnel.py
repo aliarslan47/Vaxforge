@@ -16,12 +16,17 @@ import tempfile
 from pathlib import Path
 
 from . import antigen_acc, host_db, iapred, psortb, signalp, tmhmm_local, vaxijen
-from .i18n import t
 from .config_loader import ResolvedTool
 from .hosts import Host
+from .i18n import t
 from .models import ProteinRecord
-from .sequtils import (antigenicity_proxy, count_tm_helices,
-                       predict_localization, sanitize, signal_peptide_prob)
+from .sequtils import (
+    antigenicity_proxy,
+    count_tm_helices,
+    predict_localization,
+    sanitize,
+    signal_peptide_prob,
+)
 
 _TOOLS = Path(__file__).resolve().parent.parent / "tools"
 _DIAMOND = _TOOLS / "diamond"
