@@ -657,6 +657,15 @@ def _conservation_section(meta: dict) -> str:
         (("Strains" if is_en else "Suş sayısı"), c.get("n_strains", "—")),
         (("Conserved candidates" if is_en else "Korunmuş aday"), c.get("n_conserved", "—")),
         (("Threshold" if is_en else "Eşik"), f"≥%{c.get('min_percent', '—')}"),
+        # 2026-11-23: bu üç alan csum içinde VARDI ama hiçbir raporda
+        # görünmüyordu — yani "kaç adayda ölçüm YAPILAMADI" gizli kalıyordu.
+        (("Not measurable (fewer than min. orthologs)" if is_en
+          else "Ölçülemedi (en az ortolog sayısının altında)"),
+         c.get("n_unmeasured", "—")),
+        (("Min. orthologs required" if is_en else "Gereken en az ortolog"),
+         c.get("min_orthologs", "—")),
+        (("Strains identical to input (excluded)" if is_en
+          else "Girdiyle aynı suş (sayılmadı)"), c.get("n_identical_strains", "—")),
         (("Method" if is_en else "Yöntem"), c.get("method", "—")),
     ]
     if c.get("auto_fetched"):

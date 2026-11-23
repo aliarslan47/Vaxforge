@@ -40,6 +40,11 @@ _AA = "ACDEFGHIKLMNPQRSTVWY"
 #: geniş koruma iddiasını taşımaz. Altında kalırsa değer DÜRÜSTÇE None.
 MIN_ORTHOLOGS = 2
 
+#: Özet düzeyinde yöntem etiketi (repo deseni: her ölçümün yanında ne ile
+#: ölçüldüğü yazar). Protein başına ayrıntılı etiket — kaç suşta ortolog
+#: bulunduğu dahil — annotations['method_conservation'] içindedir.
+METHOD = "GERÇEK (diamond ortolog + BLOSUM62 hizalama, kütüphane koordinatları)"
+
 
 def _diamond_bin() -> str | None:
     local = _TOOLS / "diamond"
@@ -312,6 +317,10 @@ def run(proteins: list[ProteinRecord], strain_paths: list[str] | None,
         "n_unmeasured": n_unmeasured, "min_orthologs": MIN_ORTHOLOGS,
         "n_identical_strains": len(identical_strains),
         "identical_strains": identical_strains,
+        # Özet düzeyinde yöntem etiketi: protein başına etiket
+        # annotations['method_conservation'] içinde, ama rapor özet tablosunda
+        # 'Yöntem: —' basıyordu (2026-11-23'te PDF'te görüldü).
+        "method": METHOD,
     }
 
 

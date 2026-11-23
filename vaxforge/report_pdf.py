@@ -801,6 +801,106 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
                                   + (lv if is_en else lvl_tr.get(lv, lv))])
                 el.append(tbl(prows, widths=[1.8*cm, 1.4*cm, 4.4*cm, 1.6*cm, 1.6*cm, 3.0*cm]))
 
+    # -- Suşlar-arası konservasyon (HTML'de TAM bölüm, PDF'te yalnız tek satır
+    # 'sınırlamalar' içinde duruyordu). Konservasyon adaylık puanını besliyor ve
+    # 2026-11'de iki kusuru düzeltildi (tek-suş %100 yanılgısı + profil kayması);
+    # yeni dürüst değerler ("ölçülemedi", ortolog sayısı) PDF'e geçmiyordu.
+    cons_ = meta.get("conservation") or {}
+    if cons_:
+        is_en = lang == "en"
+        sect("Cross-strain conservation" if is_en else "Suşlar-arası konservasyon")
+        if not cons_.get("computed"):
+            auto = meta.get("conservation_auto_strains") or {}
+            note = auto.get("note") or ("no strain data" if is_en else "suş verisi yok")
+            el.append(Paragraph(
+                ("<b>Not computed</b> — " if is_en else "<b>Hesaplanmadı</b> — ")
+                + P(note), small))
+            el.append(Spacer(1, 3))
+            el.append(Paragraph(
+                ("A conservation value is reported only when at least two orthologs "
+                 "were actually compared. Where it could not be measured the field is "
+                 "empty, never 100%." if is_en else
+                 "Konservasyon değeri ancak EN AZ İKİ ortolog gerçekten "
+                 "karşılaştırıldığında raporlanır. Ölçülemediği yerde alan boştur, "
+                 "asla %100 değildir."), small))
+        else:
+            crows2 = [[("Property" if is_en else "Özellik"), ("Value" if is_en else "Değer")],
+                      [("Strains" if is_en else "Suş sayısı"), str(cons_.get("n_strains", "—"))],
+                      [("Conserved candidates" if is_en else "Korunmuş aday"),
+                       str(cons_.get("n_conserved", "—"))],
+                      [("Threshold" if is_en else "Eşik"),
+                       f"≥%{cons_.get('min_percent', '—')}"],
+                      # Ölçüm YAPILAMAYAN aday sayısı: yüzdesi olmayan aday
+                      # "korunmamış" değildir, ÖLÇÜLEMEMİŞTİR.
+                      [("Not measurable (fewer than min. orthologs)" if is_en
+                        else "Ölçülemedi (en az ortolog sayısının altında)"),
+                       str(cons_.get("n_unmeasured", "—"))],
+                      [("Min. orthologs required" if is_en else "Gereken en az ortolog"),
+                       str(cons_.get("min_orthologs", "—"))],
+                      [("Strains identical to input (excluded)" if is_en
+                        else "Girdiyle aynı suş (sayılmadı)"),
+                       str(cons_.get("n_identical_strains", "—"))],
+                      [("Method" if is_en else "Yöntem"),
+                       P(cons_.get("method") or "—")]]
+            if cons_.get("auto_fetched"):
+                crows2.append([("Auto-fetched" if is_en else "Otomatik çekilen"),
+                               P(str(cons_.get("auto_note", "—")))])
+            el.append(tbl(crows2, widths=[5.5*cm, 8.7*cm]))
+
+    # -- Moleküler mimikri (HTML'de TAM bölüm, PDF'te yalnız bir sayı satırı).
+    # Bu bölüm OTOİMMÜNİTE riskidir: PDF'i okuyan kişi kaç adayın konak
+    # proteiniyle tam k-mer eşleştiğini tablo olarak göremiyordu.
+    mim_ = meta.get("mimicry") or {}
+    if mim_.get("available"):
+        is_en = lang == "en"
+        sect("Molecular mimicry — host self-match" if is_en
+             else "Moleküler mimikri — konak self-eşleşme")
+        el.append(Paragraph(
+            ("⚠ Exact k-mer match = strong autoimmunity risk; BLOSUM62 Hamming-1 "
+             "(single conservative substitution) = partial cross-reactivity risk. "
+             "SOFT — this flags candidates, it does not filter them." if is_en else
+             "⚠ Tam k-mer eşleşme = güçlü otoimmünite riski; BLOSUM62 Hamming-1 "
+             "(tek konservatif ikame) = kısmi çapraz-reaktivite riski. YUMUŞAK — "
+             "bu ölçüt adayı işaretler, ELEMEZ."), small))
+        el.append(Spacer(1, 4))
+        mrows2 = [[("Property" if is_en else "Özellik"), ("Value" if is_en else "Değer")],
+                  [("k-mer length" if is_en else "k-mer uzunluğu"), str(mim_.get("k", "—"))],
+                  [("Candidates" if is_en else "Aday"), str(mim_.get("n_candidates", "—"))],
+                  [("Exact mimics (hard)" if is_en else "Tam mimik (sert)"),
+                   str(mim_.get("n_exact", "—"))],
+                  [("Partial mimics (BLOSUM Hamming-1)" if is_en
+                    else "Kısmi mimik (BLOSUM Hamming-1)"), str(mim_.get("n_near", "—"))],
+                  [("Hosts" if is_en else "Konaklar"),
+                   P(", ".join(mim_.get("hosts", [])) or "—")]]
+        el.append(tbl(mrows2, widths=[5.5*cm, 8.7*cm]))
+
+    # -- Glikozilasyon (HTML'de vardı, PDF'te HİÇ YOKTU)
+    gly_ = meta.get("glycosylation") or {}
+    if gly_.get("available"):
+        is_en = lang == "en"
+        sect("Glycosylation — glycan-masked epitopes" if is_en
+             else "Glikozilasyon — glikan-maskeli epitoplar")
+        el.append(Paragraph(
+            ("⚠ N-X-S/T is an exact sequon motif, but actual glycan occupancy needs "
+             "experimental proof; the O-glyco figure here is a Ser/Thr-rich HEURISTIC. "
+             "PREDICTION — masked B-cell epitopes may be antibody-inaccessible in vivo "
+             "(soft flag, nothing filtered)." if is_en else
+             "⚠ N-X-S/T kesin bir sequon motifidir, ama gerçek glikan işgali deneysel "
+             "olarak doğrulanmalıdır; buradaki O-gliko sayısı Ser/Thr-yoğun bir "
+             "HEURİSTİKTİR. ÖNGÖRÜ — maskeli B-epitopları in vivo antikora "
+             "erişilemeyebilir (yumuşak uyarı; aday elenmedi)."), small))
+        el.append(Spacer(1, 4))
+        grows = [[("Property" if is_en else "Özellik"), ("Value" if is_en else "Değer")],
+                 [("Candidates scanned" if is_en else "Taranan aday"),
+                  str(gly_.get("n_candidates", "—"))],
+                 [("B-cell epitopes" if is_en else "B-hücre epitobu"),
+                  str(gly_.get("n_bcell", "—"))],
+                 [("B-cell glycan-masked" if is_en else "B-hücre glikan-maskeli"),
+                  str(gly_.get("n_bcell_masked", "—"))],
+                 [("All masked (N-sequon)" if is_en else "Tüm maskeli (N-sequon)"),
+                  str(gly_.get("n_masked", "—"))]]
+        el.append(tbl(grows, widths=[5.5*cm, 8.7*cm]))
+
     # -- In-siliko klonlama (HTML'de vardı, PDF'te yoktu)
     cl_ = meta.get("cloning")
     if cl_ and cl_.get("available"):
@@ -867,6 +967,35 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
 
 
 
+
+    # -- Tanılama: yakalanan istisnalar (HTML'de vardı, PDF'te HİÇ YOKTU).
+    # Hat aşamaları try/except ile sarılı; bir araç çökünce koşu DEVAM eder.
+    # Bu bölüm olmadan "araç kurulu değil" ile "araç koşarken çöktü" PDF'te
+    # ayırt edilemiyordu — araç durumu bölümünün tamamlayıcısı.
+    _diag_items = meta.get("diagnostics") or []
+    _diag_summ = meta.get("diagnostics_summary") or {}
+    if _diag_items or _diag_summ:
+        is_en = lang == "en"
+        sect("Diagnostics — caught exceptions" if is_en else "Tanılama — yakalanan istisnalar")
+        _n_unexp = int(_diag_summ.get("unexpected") or 0)
+        if not _n_unexp:
+            el.append(Paragraph("✓ " + t(lang, "diag_clean"), small))
+        else:
+            _stages = ", ".join(_diag_summ.get("stages") or [])
+            el.append(Paragraph(f"⚠ <b>{t(lang, 'diag_unexpected')}</b>: "
+                                f"{_n_unexp} ({_stages})", small))
+            el.append(Spacer(1, 4))
+            _dh = (("Stage", "Error", "Message", "Where") if is_en
+                   else ("Aşama", "Hata", "Mesaj", "Yer"))
+            drows = [[_dh[0], _dh[1], _dh[2], _dh[3]]]
+            for d in _diag_items:
+                if d.get("expected"):
+                    continue
+                drows.append([P(d.get("stage", "—")), P(d.get("error", "—")),
+                              P((d.get("message") or "—")[:160]),
+                              P(d.get("where") or "—")])
+            if len(drows) > 1:
+                el.append(tbl(drows, widths=[3.0*cm, 3.0*cm, 6.2*cm, 2.0*cm]))
 
     # -- Popülasyon kapsamı (IEDB)
     popcov = meta.get("population_coverage") or {}
