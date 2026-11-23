@@ -3,17 +3,67 @@
 > Forge ailesi konvansiyonu: bu dosya **ilk okunacak** dosyadır. Kod tarihçesi git'te,
 > bilimsel ayrıntı `benchmark/` altında, faz günlüğü `ROADMAP.md`'de.
 
-**Son güncelleme:** 2026-11-22
-**Son commit:** `c756f48` — konservasyon + alerjenite atfı + pLDDT + tool_status
-**Bu turda (beşinci):** PDF rapor düzeni (her başlık kendi sayfasında, iç içe
-girmiş tablo başlıkları, satır ortasından bölünen allel/PMID), IFN-γ'nın
-"ölçülmedi"yi "✗" sayması, PDF'te hiç olmayan üç bölüm, raporu koşu
-tekrarlanmadan yeniden üretme — aşağıda.
+**Son güncelleme:** 2026-11-23
+**Son commit:** `e3d0393` — PDF↔HTML bölüm eşitliği + gizli konservasyon alanları
+**Bu turda (yedinci):** dal master'a birleştirildi ve push edildi, README benchmark
+satırı "geçici" işaretlendi, PDF'te hâlâ eksik olan dört bölüm eklendi, raporda hiç
+görünmeyen konservasyon alanları açıldı — aşağıda. **Koşu yapılmadı.**
+**Önceki tur (altıncı):** allele özgü MHC anchor ölçümü + Leptospira korelat/
+doğrulama katmanı (`78c8253`).
 **Faz:** makale yazımı / son rötuş. Pipeline tamam, benchmark tamam, taslak hazır.
 **Araç durumu:** 21 araçtan 20'si kurulu. DeepLoc-2.1 ve NetCTL-1.2 **akıştan
 tamamen çıkarıldı** (kullanıcı kararı 2026-11-22): ikisi de hiç koşmuyordu, adları
 hiçbir katmanda geçmiyor. Lokalizasyon = PSORTb (bakteri) / etiketli heuristik;
 antijen işleme = IEDB processing API (tek omurga).
+
+## 2026-11-23 (yedinci tur) — kapanan açık işler + PDF↔HTML eşitliği
+
+Ali: "her şeyi yap, en son run yaparız, run için emir bekle." Koşu YAPILMADI.
+
+**1. Dal master'a birleştirildi.** `fix/arac-dürüstlüğü-2026-11-13` → `master`
+fast-forward (`00ae234` → `78c8253`), push edildi. Birleştirmeden önce 110 test
+koşuldu, hepsi geçti.
+
+**2. README benchmark satırı (`README.md` / `README.tr.md`).** 37/48 sayısı
+2026-10 koşusundan; o koşu Gram-pozitif lokalizasyon düzeltmesinden, araç-düzeyi
+kusurlardan (TMHMM/IApred/ToxinPred2) ve aday PUANLAMA yolundaki dört kusurdan
+(MHC-II sessiz düşüşü, %rank ölçeği, tek-suş konservasyonu, hizalama kaynaklı
+profil kayması) önce. Sayı **elle düzeltilmedi** — bilerek: güncellemenin tek
+dürüst yolu benchmark'ı yeniden koşmak. Satır "geçici" etiketlendi, tablonun
+hemen ALTINA eski olduğu yazıldı (eskiden uyarı yalnız paragraflarda, tablodan
+sonra geliyordu) ve puanlama kusurlarını anlatan üçüncü uyarı eklendi.
+
+**3. PDF ↔ HTML bölüm eşitliği denetimi.** Beşinci turda üç bölüm eklenmişti; bu
+turda denetlendiğinde **dört bölüm hâlâ yalnız HTML'deydi**:
+
+| Bölüm | Eski PDF | Şimdi |
+|---|---|---|
+| Glikozilasyon | hiç yok | tam bölüm (O-gliko "heuristik" uyarısıyla) |
+| Tanılama (yakalanan istisnalar) | hiç yok | tam bölüm |
+| Suşlar-arası konservasyon | "sınırlamalar" içinde 1 satır | tam bölüm + tablo |
+| Moleküler mimikri | yalnız bir sayı satırı | tam bölüm + tablo |
+
+Mimikri otoimmünite riskidir (tam k-mer eşleşme), konservasyon ise adaylık
+puanını besler. İkisinin tablosunun PDF'te olmaması, bir ÖLÇÜMÜN PDF okuruna
+görünmemesi demekti. Gerçek koşu üzerinde doğrulandı (hat çağrılmadan,
+`scripts/rebuild_report.py` + `peptides.json`): **15 bölüm / 18 sayfa → 20 bölüm
+/ 23 sayfa**.
+
+**4. Aynı denetimde bulunan ikinci kusur: konservasyonun gizli alanları.**
+`run.json`'daki `conservation` özetinde `n_unmeasured`, `min_orthologs` ve
+`n_identical_strains` VARDI ama hiçbir rapor basmıyordu. Yani yüzdesi olmayan
+aday, raporu okuyana "korunmamış" gibi görünüyordu — oysa **ÖLÇÜLEMEMİŞTİ**
+(2026-11-22 koşusunda 4 aday). Üçü de HTML ve PDF'e eklendi. Ayrıca özet dict'te
+`method` anahtarı yoktu, rapor "Yöntem: —" basıyordu → `conservation.METHOD`
+eklendi. Eski koşuların raporu yine "—" gösterir; geçmişe yöntem etiketi
+UYDURULMAZ.
+
+**Testler:** `tests/test_rapor_pdf_html_esitligi.py`, 9 test. Boş test olmadığı
+ölçüldü: düzeltme `git stash` ile geri alındığında 6'sı düşüyor. Paket
+**110 → 119** test, hepsi geçiyor.
+
+**Kalan tek açık iş: BoHV-1 yeniden koşusu** — Ali'nin açık emrini bekliyor.
+Rapor tarafında artık koşuyu bekleyen bir düzeltme yok.
 
 ## 2026-11-22 (beşinci tur) — rapor kusurları (Ali'nin PDF incelemesi)
 
