@@ -4,7 +4,7 @@
 > bilimsel ayrıntı `benchmark/` altında, faz günlüğü `ROADMAP.md`'de.
 
 **Son güncelleme:** 2026-11-23
-**Son commit:** Leptospira protein etiket seti + BoHV-1 yeniden koşusu
+**Son commit:** CI onarımı (testler CI'da hiç koşamıyormuş) + test kör noktası
 **Bu turda (yedinci):** dal master'a birleştirildi ve push edildi, README benchmark
 satırı "geçici" işaretlendi, PDF'te hâlâ eksik olan dört bölüm eklendi, raporda hiç
 görünmeyen konservasyon alanları açıldı — aşağıda. **Koşu yapılmadı.**
@@ -15,6 +15,55 @@ doğrulama katmanı (`78c8253`).
 tamamen çıkarıldı** (kullanıcı kararı 2026-11-22): ikisi de hiç koşmuyordu, adları
 hiçbir katmanda geçmiyor. Lokalizasyon = PSORTb (bakteri) / etiketli heuristik;
 antijen işleme = IEDB processing API (tek omurga).
+
+## 2026-11-24 (sekizinci tur) — CI onarımı ve bulunan test kör noktası
+
+CI, Temmuz'dan beri ilk kez koştu: master'a aylardır push edilmiyordu (her şey
+`fix/arac-dürüstlüğü-2026-11-13` dalındaydı), CI ise yalnız `main`/`master`
+push'unda ve PR'da tetikleniyor. Birleştirme CI'yı uyandırdı ve **üç işten
+ikisi kırmızı** çıktı. Hiçbiri o gün yazılan koddan değil; birikmiş sorunlar.
+
+**1. Testler CI'da HİÇ koşamıyormuş.** `python -m pytest` CWD'yi `sys.path`'e
+ekler, çıplak `pytest` eklemez. CI çıplak koşuyor → 7 test modülü
+`No module named 'vaxforge'` ile toplanamıyordu. Yerelde görünmedi çünkü biz
+hep `-m` ile koşuyoruz. Çözüm: `pyproject.toml` → `pythonpath = ["."]`.
+**Ders: CI'nın yeşil olmaması değil, testin orada hiç KOŞMAMIŞ olması asıl
+risktir; "CI yeşildi" demeden önce testin gerçekten toplandığını gör.**
+
+**2. CI bağımlılıkları eksikti** — reportlab, pypdf, matplotlib. Rapor testleri
+PDF'i gerçekten üretip metnini okuyor; bu üçü olmadan import bile edilemiyordu.
+Üçü de ağ/lisans istemiyor, CI'ya eklendi.
+
+**3. ruff 183 hata.** 65'i otomatik; kalanlar elle. `zip()` çağrılarına AÇIK
+`strict=` eklendi — hizalama/eşleştirme yollarında `strict=True` (uzunluk
+eşitsizliği orada GERÇEK bir hatadır), kasıtlı kısa kesmelerde `strict=False`.
+E701/E702/E703 kapatıldı: salt biçim kuralları (81 uyarının 45'i tek bir çizim
+scriptinde), pyproject'teki "önce gerçek hata sınıfları" politikasıyla tutarlı.
+E7'nin değerli kuralları (E711/E712/E713/E714/E721/E722/E731) açık kaldı.
+
+### Asıl bulgu: `aln.aligned` yedek yolu TEST EDİLMİYORMUŞ
+
+Lint temizliği sırasında `_aligned_pairs` içinde bir değişkeni yanlış
+yeniden adlandırdım (`t0` → `_t0`); 170. satır hâlâ `t0` kullanıyordu, yani
+**NameError**. Buna rağmen **129 testin hepsi yeşil kaldı.** Sebep: o yol
+yalnız Biopython `aln.indices` VERMEDİĞİNDE devreye giren yedek; hiçbir test
+oraya girmiyordu. Yani bazı Biopython sürümlerinde sessizce patlayacak bir
+mayın vardı ve testler bunu göremezdi.
+
+Eklenen test iki yolun AYNI profili üretmesini şart koşuyor. Doğrulandı: hata
+geri konduğunda test düşüyor.
+
+**Testin ilk hâli de sahteydi** — ayrı bir ders. Yedek yolu zorlamak için
+sarmalayıcı `indices` özelliğinden `AttributeError` atıyordu; Python'da bir
+property `AttributeError` atarsa `__getattr__`'a düşülür, o da içteki GERÇEK
+`indices`'i döndürdü → yedek yol yine koşmadı, test boş yere geçti.
+`RuntimeError`'a çevrildi. **Ders: bir testin sahte olmadığını, hatayı geri
+koyup DÜŞTÜĞÜNÜ görerek kanıtla.**
+
+Not: aynı turda bir kez de `__pycache__` tuzağına düşüldü — düzeltme bayt
+sayısını değiştirmediği için (`t0, _t1` ↔ `_t0, t1`) eski `.pyc` geçerli
+sayıldı ve düzeltilmiş kod yerine eski kod koştu. Kafa karıştıran bir
+"düzelttim ama hâlâ düşüyor" turu. `__pycache__` silinince geçti.
 
 ## 2026-11-23 (yedinci tur) — kapanan açık işler + PDF↔HTML eşitliği
 
