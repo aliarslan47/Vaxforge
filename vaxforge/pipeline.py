@@ -135,6 +135,13 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
         yield _ev("__error__", "error", "İşlenecek protein yok.")
         return
 
+    # Eleme ÖNCESİNDE girdideki etiketli proteinleri not et (yalnız Leptospira):
+    # "girdide hiç yoktu" ile "elemede düştü" aynı düşük recall'a karışmasın.
+    _lepto_input_tags: set[str] | None = None
+    if meta.get("organism") == "leptospira":
+        from . import lepto_targets as _ltg_pre
+        _lepto_input_tags = _ltg_pre.tags_of(proteins)
+
     # 3) Funnel
     yield _ev("funnel", "running", "Antijen eleme hunisi (melez)…")
     proteins, fsum = funnel.run(proteins, resolved, profile=profile,
@@ -363,6 +370,14 @@ def run(path, det: Detection, cfg: ThresholdConfig, profile: str,
             "n_matched": len({h["candidate"] for h in _hits}),
             "hits": _hits,
         }
+
+        # 6d-iii) PROTEİN düzeyi etiket seti (Wunder 2021 bağışıklık korelatları).
+        # Yukarıdaki set PEPTİT düzeyindedir (19 kayıt); hattın asıl çıktısı ise
+        # protein sıralamasıdır. Payda KONAĞA göre ayrı ve etiket KORUMA DEĞİL,
+        # korelattır — ayrıntı lepto_targets modül başlığında.
+        from . import lepto_targets as _ltg
+        meta["protein_label_set"] = _ltg.match(
+            proteins, input_tags=_lepto_input_tags)
     if im_summary.get("available"):
         bm = im_summary.get("benchmark") or {}
         rec = f" · recall={bm['recall']}" if bm.get("recall") is not None else ""

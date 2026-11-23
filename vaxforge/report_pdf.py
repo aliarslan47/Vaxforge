@@ -573,6 +573,70 @@ def build(outdir: Path, peptides, meta: dict) -> Path:
                 el.append(Paragraph(f"&nbsp;&nbsp;• {_v}", small))
         el.append(Paragraph(f"PMID: {', '.join(_cv.get('pmids', []))}", small))
 
+    # -- PROTEİN düzeyi etiket seti (Wunder 2021 bağışıklık korelatları).
+    # Yukarıdaki küratörlü set PEPTİT düzeyinde; hattın asıl çıktısı protein
+    # sıralaması. Ölçüp basmamak bu repoda bilinen bir kusur (on ikinci
+    # varyant), bu yüzden HTML ile AYNI turda PDF'e de eklendi.
+    _ps = meta.get("protein_label_set") or {}
+    if _ps:
+        is_en = lang == "en"
+        sect("Protein-level label set (correlates of immunity)" if is_en
+             else "Protein düzeyi etiket seti (bağışıklık korelatları)")
+        el.append(Paragraph(
+            ("⚠ <b>Readout:</b> " if is_en else "⚠ <b>Etiketin okuması:</b> ")
+            + P(_ps.get("readout", "")), small))
+        el.append(Spacer(1, 3))
+        el.append(Paragraph(P(_ps.get("citation", "")), small))
+        el.append(Spacer(1, 4))
+        el.append(Paragraph(
+            (f"Set: <b>{_ps.get('n_features','—')}</b> array features / "
+             f"<b>{_ps.get('n_proteins','—')}</b> unique proteins · locus tags "
+             f"found in this run: {_ps.get('n_run_locus_tags', 0)}" if is_en else
+             f"Set: <b>{_ps.get('n_features','—')}</b> array özelliği / "
+             f"<b>{_ps.get('n_proteins','—')}</b> benzersiz protein · bu koşuda "
+             f"bulunan locus_tag: {_ps.get('n_run_locus_tags', 0)}"), small))
+        if _ps.get("note"):
+            el.append(Spacer(1, 4))
+            el.append(Paragraph("<i>" + P(_ps["note"]) + "</i>", small))
+        else:
+            el.append(Spacer(1, 4))
+            el.append(Paragraph(
+                ("The denominator is HOST-SPECIFIC: missing a hamster-significant "
+                 "target in a mouse scan is not a failure. 'In input' separates "
+                 "'was never in the input' from 'dropped by the filters'." if is_en else
+                 "Payda KONAĞA GÖRE ayrıdır: hamsterda anlamlı bir hedefi fare "
+                 "taramasında kaçırmak başarısızlık değildir. 'Girdide' sütunu, "
+                 "'girdide hiç yoktu' durumunu 'elemede düştü' durumundan ayırır."),
+                small))
+            _with_input = any(d.get("in_input") is not None
+                              for d in (_ps.get("hosts") or {}).values())
+            _ph = [("Host" if is_en else "Konak"),
+                   ("Denominator" if is_en else "Payda"),
+                   ("Recovered" if is_en else "Yakalanan"),
+                   ("Recall %" if is_en else "Recall %"),
+                   ("Not meas." if is_en else "Ölçülmemiş")]
+            if _with_input:
+                _ph += [("In input" if is_en else "Girdide"),
+                        ("Kept" if is_en else "Geçen"), "%"]
+            prows3 = [_ph]
+            for _h, _d in (_ps.get("hosts") or {}).items():
+                _row = [_h, str(_d.get("denominator", "—")),
+                        str(_d.get("recovered", "—")),
+                        "—" if _d.get("recall_percent") is None
+                        else str(_d["recall_percent"]),
+                        str(_d.get("unmeasured_in_host", "—"))]
+                if _with_input:
+                    _row += [str(_d.get("in_input", "—")),
+                             str(_d.get("kept_of_in_input", "—")),
+                             "—" if _d.get("kept_percent_of_in_input") is None
+                             else str(_d["kept_percent_of_in_input"])]
+                prows3.append(_row)
+            el.append(Spacer(1, 4))
+            el.append(tbl(prows3))
+            if _ps.get("specificity_note"):
+                el.append(Spacer(1, 3))
+                el.append(Paragraph("<i>" + P(_ps["specificity_note"]) + "</i>", small))
+
     # -- Aşı Konstruktu (MEV)
     mv = meta.get("mev")
     if mv:

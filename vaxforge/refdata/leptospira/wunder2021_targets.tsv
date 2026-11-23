@@ -1,0 +1,160 @@
+# Kaynak: Wunder EA Jr, Adhikarla H, Hamond C, et al. A live attenuated-vaccine model confers cross-protective immunity against different species of the Leptospira genus. eLife. 2021;10:e64166. doi:10.7554/eLife.64166 (Supplementary file 4; CC-BY 4.0)
+# Etiket: zayıflatılmış aşı modelinde BAĞIŞIKLIĞIN KORELATI olarak proteome array ile saptanan hedef. KORUMA ÖLÇÜMÜ DEĞİLDİR.
+# sig_* sütunları konağa göre ayrıdır; BOŞ hücre = o konakta ÖLÇÜM YOK ('anlamsız' demek değil).
+# 154 satır (array özelliği), 152 benzersiz ORF. LIC10464 (ligB) üç ayrı parça olarak basılmıştır.
+# Üretildi: scripts/extract_wunder2021_targets.py (kaynak dosya repoda İZLENMEZ: elife-64166-supp4-v1.xlsx)
+orf	product	gene	psortb	t_rank_hamster	bhp_hamster	sig_hamster	t_rank_mouse	bhp_mouse	sig_mouse	t_rank_mouse_all	bhp_mouse_all	sig_mouse_all
+LIC10215	Hypothetical protein		Cytoplasmic Membrane	67	0.005075758	1	2	0.00030303	1	6	0.000909091	1
+LIC10405	Hypothetical protein		Outer Membrane	39	0.002954545	1	50	0.007575758	1	9	0.001363636	1
+LIC10465	Partial Ig-like repeat-containing protein	ligA 7-13	Unknown	4	0.00030303	1	25	0.003787879	1	12	0.001818182	1
+LIC11845	Hypothetical protein		Unknown	132	0.010151515	1	13	0.001969697	1	5	0.000757576	1
+LIC12180	Methyltransferase		Unknown	42	0.003181818	1	41	0.006212121	1	3	0.000454545	1
+LIC20118	Hypothetical protein		Unknown	6	0.000454545	1	51	0.007727273	1	7	0.001060606	1
+LIC20250	Peptidoglycan-associated cytoplasmic membrane protein		Outer Membrane	3	0.000227273	1	1	0.000151515	1	2	0.00030303	1
+LIC10017	Hypothetical protein		Outer Membrane	71	0.005378788	1	21	0.003181818	1	42	0.006363636	0
+LIC10053	Hypothetical protein		Unknown	87	0.006590909	1	61	0.009393939	1	318	0.024545455	0
+LIC10115	Hypothetical protein		Cytoplasmic Membrane	27	0.002045455	1	28	0.004242424	1	17	0.002575758	0
+LIC10192	Hypothetical protein		Cytoplasmic	81	0.006136364	1	23	0.003484848	1	25	0.003787879	0
+LIC10464	Partial Ig-like repeat-containing protein	ligB 7-12	Unknown	8	0.000606061	1	5	0.000757576	1	77	0.011969697	0
+LIC10486	Hypothetical protein		Unknown	80	0.006060606	1	54	0.008333333	1	81	0.012878788	0
+LIC10502	Cytoplasmic membrane protein		Unknown	63	0.004772727	1	18	0.002727273	1	57	0.008636364	0
+LIC10623	Flagellar motor protein MotB	motB	Unknown	66	0.005	1	26	0.003939394	1	62	0.009393939	0
+LIC10624	Flagellar protein	fliL	Unknown	5	0.000378788	1	32	0.004848485	1	14	0.002121212	0
+LIC10892	Biopolymer transport exbB-like protein		Cytoplasmic Membrane	47	0.003560606	1	39	0.005909091	1	83	0.013333333	0
+LIC11352	LipL32	lipL32	Unknown	30	0.002272727	1	6	0.000909091	1	56	0.008484848	0
+LIC11389	Flagellar protein B	flbB	Unknown	9	0.000681818	1	22	0.003333333	1	49	0.007424242	0
+LIC11392	Flagellar MS-ring protein	fliF	Unknown	84	0.006363636	1	44	0.006666667	1	117	0.018787879	0
+LIC11436	Hypothetical protein		Outer Membrane	69	0.005227273	1	52	0.007878788	1	16	0.002424242	0
+LIC11456	LipL31	lipL31	Unknown	21	0.001590909	1	31	0.00469697	1	37	0.005606061	0
+LIC11570	General secretory pathway protein D	gspD	Outer Membrane	7	0.000530303	1	48	0.007272727	1	314	0.026969697	0
+LIC11653	Hypothetical protein		Unknown	29	0.00219697	1	47	0.007121212	1	21	0.003181818	0
+LIC11955	Hypothetical protein		Cytoplasmic	83	0.006287879	1	58	0.008939394	1	33	0.005	0
+LIC11966	Hypothetical protein		Unknown	46	0.003484848	1	36	0.005454545	1	158	0.026212121	0
+LIC11980	Sec-independent protein translocase protein TatA	tatA	Unknown	74	0.005606061	1	17	0.002575758	1	100	0.015909091	0
+LIC12015	Hypothetical protein		Unknown	128	0.009772727	1	20	0.003030303	1	41	0.006212121	0
+LIC12277	Hypothetical protein		Unknown	28	0.002121212	1	46	0.006969697	1	32	0.004848485	0
+LIC12538	Preprotein translocase subunit SecD	secD	Cytoplasmic Membrane	32	0.002424242	1	57	0.008787879	1	34	0.005151515	0
+LIC12544	DNA binding protein		Unknown	18	0.001363636	1	4	0.000606061	1	53	0.008030303	0
+LIC12966	LipL41	lipL41	Unknown	95	0.00719697	1	59	0.009090909	1	26	0.003939394	0
+LIC13313	Hypothetical protein		Unknown	56	0.004242424	1	29	0.004393939	1	97	0.015454545	0
+LIC13392	Polysaccharide deacetylase		Unknown	101	0.007651515	1	43	0.006515152	1	111	0.017727273	0
+LIC20172	Lipoprotein		Outer Membrane	68	0.005151515	1	35	0.00530303	1	118	0.019090909	0
+LIC20218	Hypothetical protein		Unknown	38	0.002878788	1	55	0.008484848	1	23	0.003484848	0
+LIC10464	Partial Ig-like repeat-containing protein	ligB C-Terminal	Unknown	12	0.000909091	1	8	0.001212121	1	91	0.014545455	0
+LIC10464	Partial Ig-like repeat-containing protein	ligB 1-6	Unknown	1	7.57576e-05	1	3	0.000454545	1	73	0.011363636	0
+LIC10845	Hypothetical protein		Unknown	53	0.004015152	1	63	0.00969697	0	13	0.001969697	1
+LIC10870	Hypothetical protein		Unknown	480	0.044318182	0	14	0.002121212	1	1	0.000151515	1
+LIC11886	Putative Lipoprotein		Unknown	186	0.015606061	0	42	0.006363636	1	4	0.000606061	1
+LIC10171	Hypothetical protein		Unknown	502	0.042121212	0	72	0.011212121	0	10	0.001515152	1
+LIC11206	Hypothetical protein		Cytoplasmic Membrane	324	0.031818182	0	67	0.010454545	0	11	0.001666667	1
+LIC20109	Hypothetical protein		Cytoplasmic Membrane	575	0.029469697	0	75	0.011666667	0	8	0.001212121	1
+LIC10210	Cytochrome/quinol oxidase subunit 3	cyoC	Cytoplasmic Membrane	344	0.034545455	0	24	0.003636364	1	72	0.011060606	0
+LIC10544	Outer membrane protein		Unknown	439	0.048409091	0	49	0.007424242	1	44	0.006666667	0
+LIC10598	Hypothetical protein		Cytoplasmic Membrane	546	0.034469697	0	37	0.005606061	1	150	0.025	0
+LIC10945	Hypothetical protein		Unknown	351	0.035606061	0	53	0.008030303	1	18	0.002727273	0
+LIC11271	Hypothetical protein		Unknown	645	0.014090909	0	19	0.002878788	1	136	0.022121212	0
+LIC11712	Magnesium transporter	mgtE	Cytoplasmic Membrane	151	0.011742424	0	40	0.006060606	1	48	0.007272727	0
+LIC11939	Hypothetical protein		Unknown	597	0.025530303	0	60	0.009242424	1	54	0.008181818	0
+LIC12001	Succinate dehydrogenase cytochrome subunit B	sdhC	Cytoplasmic Membrane	328	0.032348485	0	56	0.008636364	1	133	0.021666667	0
+LIC12242	Hypothetical protein		Unknown	349	0.035227273	0	34	0.005151515	1	92	0.01469697	0
+LIC12493	Putative Lipoprotein		Unknown	236	0.020984848	0	27	0.004090909	1	20	0.003030303	0
+LIC12537	Preprotein translocase subunit SecF	secF	Cytoplasmic Membrane	364	0.037045455	0	16	0.002424242	1	27	0.004090909	0
+LIC12814	Thymidylate kinase	tmk	Cytoplasmic	286	0.026439394	0	33	0.005	1	109	0.017272727	0
+LIC13012	Hypothetical protein		Cytoplasmic Membrane	514	0.040075758	0	10	0.001515152	1	43	0.006515152	0
+LIC13479	Peptidoglycan-associated cytoplasmic membrane protein		Outer Membrane	195	0.016439394	0	62	0.009545455	1	61	0.009242424	0
+LIC20073	Hypothetical protein		Cytoplasmic Membrane	412	0.045	0	45	0.006818182	1	15	0.002272727	0
+LIC20214	Hypothetical protein		Outer Membrane	154	0.012045455	0	38	0.005757576	1	68	0.010454545	0
+LIC10009	Putative Lipoprotein		Unknown	135	0.010378788	1	300	0.025757576	0	299	0.035454545	0
+LIC10050	Peptidoglycan-associated cytoplasmic membrane protein		Outer Membrane	19	0.001439394	1	248	0.042121212	0	253	0.044393939	0
+LIC10054	Putative Lipoprotein	rlpA	Unknown	49	0.003712121	1	327	0.013030303	0	313	0.027121212	0
+LIC10125	Hypothetical protein		Unknown	23	0.001742424	1	91	0.014848485	0	135	0.021969697	0
+LIC10191	Peptidoglycan associated Cytoplasmic membrane protein		Unknown	40	0.003030303	1	176	0.042121212	0	254	0.044393939	0
+LIC10231	Hypothetical protein		Unknown	127	0.00969697	1						
+LIC10314	Hypothetical protein		Cytoplasmic Membrane	116	0.008787879	1	322	0.015757576	0	205	0.035909091	0
+LIC10325	Hemolysin	hlyX	Outer Membrane	62	0.00469697	1	167	0.042121212	0	238	0.044393939	0
+LIC10402	Hypothetical protein		Cytoplasmic	82	0.006212121	1	234	0.042121212	0	144	0.023484848	0
+LIC10421	Hypothetical protein		Unknown	102	0.007727273	1	307	0.023333333	0	291	0.038181818	0
+LIC10483	Hypothetical protein		Unknown	41	0.003106061	1	151	0.029090909	0	171	0.028636364	0
+LIC10562	Putative Lipoprotein		Unknown	52	0.003939394	1	127	0.022575758	0	76	0.011818182	0
+LIC10589	Ammonium transporter	amt3	Cytoplasmic Membrane	24	0.001818182	1						
+LIC10628	Putative Lipoprotein		Unknown	93	0.007045455	1	311	0.021515152	0	175	0.029242424	0
+LIC10711	Cytoplasmic membrane protein		Outer Membrane	33	0.0025	1	73	0.011363636	0	67	0.01030303	0
+LIC10754	DNA-directed RNA polymerase subunit beta	rpoC	Cytoplasmic	96	0.007272727	1	150	0.028787879	0	140	0.022878788	0
+LIC10788	Flagellar filament sheath protein	flaA-1	Unknown	31	0.002348485	1	255	0.042121212	0	304	0.033636364	0
+LIC10812	Cytochrome c-type biogenesis precursor	ccmH	Unknown	105	0.007954545	1	132	0.023939394	0	60	0.009090909	0
+LIC10844	Hypothetical protein		Cytoplasmic Membrane	51	0.003863636	1	320	0.016666667	0	178	0.02969697	0
+LIC10891	Hypothetical protein		Unknown	77	0.005833333	1	156	0.029848485	0	88	0.014090909	0
+LIC10902	Hypothetical protein		Unknown	111	0.008409091	1	313	0.02	0	122	0.01969697	0
+LIC11003	LipL71	lipL71	Outer Membrane	89	0.006742424	1	210	0.042121212	0	215	0.044393939	0
+LIC11009	Hypothetical protein		Unknown	136	0.010454545	1						
+LIC11060	Hypothetical protein		Cytoplasmic Membrane	109	0.008257576	1						
+LIC11073	Putative Lipoprotein		Unknown	73	0.005530303	1	175	0.042121212	0	229	0.044393939	0
+LIC11149	Membrane metalloendopeptidase		Unknown	55	0.004166667	1	219	0.042121212	0	170	0.028484848	0
+LIC11186	Putative Flagellar protein	flbC	Outer Membrane	36	0.002727273	1	144	0.026818182	0	307	0.032272727	0
+LIC11227	Hypothetical protein		Unknown	64	0.004848485	1						
+LIC11245	Hypothetical protein		Cytoplasmic	94	0.007121212	1	181	0.042121212	0	246	0.044393939	0
+LIC11296	dolichyl-phosphate mannose synthase	dpm	Cytoplasmic Membrane	134	0.01030303	1						
+LIC11299	Putative Lipoprotein		Cytoplasmic	75	0.005681818	1	228	0.042121212	0	185	0.031060606	0
+LIC11324	Flagellar basal body rod protein FlgG	flgG	Unknown	125	0.009545455	1	279	0.032272727	0	297	0.036666667	0
+LIC11370	Flagellar motor switch protein	fliN	Unknown	45	0.003409091	1	154	0.029545455	0	110	0.017424242	0
+LIC11396	Cytoplasmic membrane protein		Cytoplasmic Membrane	106	0.008030303	1						
+LIC11486	Hypothetical protein		Unknown	120	0.009090909	1						
+LIC11498	Hypothetical protein		Unknown	124	0.009469697	1	161	0.032121212	0	209	0.037272727	0
+LIC11569	Hypothetical protein		Unknown	57	0.004318182	1	319	0.017424242	0	129	0.021060606	0
+LIC11573	General secretory pathway protein G	gspG	Unknown	22	0.001666667	1	68	0.010606061	0	128	0.020909091	0
+LIC11612	Hypothetical protein		Outer Membrane	35	0.002651515	1	85	0.013484848	0	104	0.016515152	0
+LIC11623	Outer membrane protein		Outer Membrane	44	0.003333333	1	217	0.042121212	0	164	0.027575758	0
+LIC11686	Hypothetical protein		Unknown	119	0.009015152	1						
+LIC11694	TonB-dependent outer membrane receptor		Outer Membrane	122	0.009242424	1	95	0.015606061	0	94	0.015	0
+LIC11713	Motility protein B		Unknown	37	0.00280303	1	116	0.02030303	0	114	0.018181818	0
+LIC11753	ExoPolysaccharide production protein		Cytoplasmic Membrane	100	0.007575758	1	285	0.030909091	0	305	0.032878788	0
+LIC11833	Hypothetical protein		Cytoplasmic Membrane	657	0.009318182	1	103	0.017272727	0	75	0.011666667	0
+LIC11846	Flagellar motor switch protein		Unknown	114	0.008636364	1	305	0.023636364	0	213	0.038484848	0
+LIC11940	Heavy metal efflux pump		Unknown	88	0.006666667	1	121	0.021060606	0	189	0.031969697	0
+LIC11941	Heavy metal efflux pump	czcC	Outer Membrane	85	0.006439394	1	232	0.042121212	0	252	0.044393939	0
+LIC11959	Hypothetical protein		Outer Membrane	130	0.009924242	1	109	0.018787879	0	108	0.017121212	0
+LIC11972	Hypothetical protein		Unknown	50	0.003787879	1	259	0.042121212	0	270	0.044393939	0
+LIC11988	Hypothetical protein		Unknown	91	0.006893939	1	178	0.042121212	0	221	0.044393939	0
+LIC11990	Cytoplasmic membrane protein		Outer Membrane	26	0.001969697	1	102	0.017121212	0	172	0.028787879	0
+LIC12075	Hypothetical protein		Unknown	117	0.008863636	1	99	0.016515152	0	137	0.022272727	0
+LIC12084	Hypothetical protein		Unknown	72	0.005454545	1						
+LIC12183	Hypothetical protein		Unknown	129	0.009848485	1						
+LIC12219	Hypothetical protein		Unknown	65	0.004924242	1	215	0.042121212	0	259	0.044393939	0
+LIC12263	Hypothetical protein		Unknown	11	0.000833333	1	297	0.027272727	0	198	0.034242424	0
+LIC12281	Hypothetical protein		Unknown	61	0.004621212	1	202	0.042121212	0	157	0.026060606	0
+LIC12307	TolC superfamily outer membrane protein		Unknown	98	0.007424242	1						
+LIC12310	Hypothetical protein		Cytoplasmic Membrane	133	0.010227273	1	177	0.042121212	0	168	0.028181818	0
+LIC12340	Hypothetical protein		Unknown	86	0.006515152	1	292	0.028181818	0	143	0.023333333	0
+LIC12349	Hypothetical protein		Cytoplasmic Membrane	99	0.0075	1						
+LIC12364	CagA	cagA	Outer Membrane	79	0.005984848	1	293	0.028030303	0	161	0.026818182	0
+LIC12476	Dihydrolipoamide succinyltransferase sucB	sucB	Cytoplasmic	20	0.001515152	1	197	0.042121212	0	278	0.044393939	0
+LIC12479	Cytoplasmic membrane protein		Cytoplasmic Membrane	70	0.00530303	1	239	0.042121212	0	176	0.029393939	0
+LIC12500	Chemoreceptor (methyl-accepting chemotaxis) transmembrane protein	mcpB	Cytoplasmic Membrane	113	0.008560606	1	316	0.018030303	0	145	0.023636364	0
+LIC12540	Hypothetical protein	yajC	Unknown	112	0.008484848	1	179	0.042121212	0	226	0.044393939	0
+LIC12631	Hemolysin		Unknown	76	0.005757576	1	119	0.020757576	0	174	0.029090909	0
+LIC12632	Sphingomyelinase C 1	sph1	Outer Membrane	13	0.000984848	1	86	0.013636364	0	40	0.006060606	0
+LIC12673	Hypothetical protein		Cytoplasmic Membrane	123	0.009393939	1						
+LIC12769	Hypothetical protein		Unknown	118	0.008939394	1	258	0.042121212	0	274	0.044393939	0
+LIC12854	50S ribosomal protein L15	rplO	Unknown	58	0.004393939	1	82	0.012878788	0	50	0.007575758	0
+LIC12921	Methyl-accepting chemotaxis protein	mcpA	Cytoplasmic Membrane	104	0.007878788	1	98	0.016363636	0	84	0.013484848	0
+LIC12952	S-layer-like protein		Cytoplasmic Membrane	110	0.008333333	1	329	0.010151515	0	301	0.035151515	0
+LIC12993	Hypothetical protein		Unknown	90	0.006818182	1	267	0.042121212	0	282	0.044393939	0
+LIC13019	Hypothetical protein		Unknown	54	0.004090909	1	89	0.014545455	0	51	0.007727273	0
+LIC13050	Hypothetical protein		Unknown	78	0.005909091	1	74	0.011515152	0	58	0.008787879	0
+LIC13084	Hypothetical protein		Unknown	16	0.001212121	1	207	0.042121212	0	280	0.044393939	0
+LIC13200	Hypothetical protein		Cytoplasmic Membrane	10	0.000757576	1	204	0.042121212	0	264	0.044393939	0
+LIC13203	Hypothetical protein		Cytoplasmic Membrane	121	0.009166667	1	245	0.042121212	0	232	0.044393939	0
+LIC13214	Putative cytochrome oxidase subunit		Cytoplasmic Membrane	97	0.007348485	1						
+LIC13314	Hypothetical protein		Cytoplasmic Membrane	92	0.006969697	1	113	0.01969697	0	101	0.016060606	0
+LIC13410	Hypothetical protein		Unknown	103	0.00780303	1	278	0.032424242	0	19	0.002878788	0
+LIC13427	Response regulator		Unknown	131	0.01	1	105	0.018181818	0	82	0.013181818	0
+LIC13451	Flagellar hook-associated protein FlgK	flgK	Unknown	59	0.004469697	1	243	0.042121212	0	201	0.034848485	0
+LIC13469	UDP-3-O-[3-hydroxymyristoyl] glucosamine N-acyltransferase	lpxD	Cytoplasmic	656	0.010075758	1	147	0.027727273	0	309	0.031818182	0
+LIC13488	Hypothetical protein	parB	Cytoplasmic	138	0.010606061	1	97	0.016212121	0	321	0.020606061	0
+LIC20016	Hypothetical protein		Cytoplasmic Membrane	107	0.008106061	1	211	0.042121212	0	237	0.044393939	0
+LIC20060	Hypothetical protein		Cytoplasmic	60	0.004545455	1	224	0.042121212	0	231	0.044393939	0
+LIC20077	Polysaccharide deacetylase		Unknown	108	0.008181818	1	76	0.011818182	0	120	0.019393939	0
+LIC20105	DNA binding protein		Cytoplasmic Membrane	126	0.009621212	1						
+LIC20141	Protease HtpX homolog	htpX	Cytoplasmic Membrane	115	0.008712121	1						
+LIC20203	Bile acid Na+ symporter	yocS	Cytoplasmic Membrane	137	0.010530303	1						
+LEPIC0277	Hypothetical protein		Cytoplasmic	15	0.001136364	1	193	0.042121212	0	224	0.044393939	0

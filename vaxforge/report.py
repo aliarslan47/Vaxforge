@@ -968,6 +968,59 @@ def _curated_validation_section(meta: dict) -> str:
 <p class="mono">PMID: {', '.join(cv.get('pmids', []))}</p>"""
 
 
+def _protein_label_set_section(meta: dict) -> str:
+    """PROTEİN düzeyi etiket seti — Wunder 2021 bağışıklık korelatları.
+
+    Peptit düzeyi küratörlü setin (yukarıda) protein düzeyi karşılığı. Payda
+    KONAĞA göre ayrı verilir; etiketin koruma OLMADIĞI açıkça yazılır.
+    """
+    ps = meta.get("protein_label_set") or {}
+    if not ps:
+        return ""
+    tr = meta.get("lang", "tr") != "en"
+    ttl = ("Protein düzeyi etiket seti (bağışıklık korelatları)" if tr
+           else "Protein-level label set (correlates of immunity)")
+    head = (f"<h2>🧷 {ttl}</h2>"
+            f"<div class='warn'><b>{'Etiketin okuması' if tr else 'Readout'}:</b> "
+            f"{ps.get('readout', '')}</div>"
+            f"<p class='mono'>{ps.get('citation', '')}</p>"
+            f"<p>{'Set' if tr else 'Set'}: <b>{ps.get('n_features', '—')}</b> "
+            f"{'array özelliği' if tr else 'array features'} / "
+            f"<b>{ps.get('n_proteins', '—')}</b> "
+            f"{'benzersiz protein' if tr else 'unique proteins'} · "
+            f"{'koşuda bulunan locus_tag' if tr else 'locus tags in run'}: "
+            f"{ps.get('n_run_locus_tags', 0)} · "
+            f"{'yöntem' if tr else 'method'}: <code>{ps.get('method', '')}</code></p>")
+    if ps.get("note"):
+        return head + f"<p class='warn'><i>{ps['note']}</i></p>"
+    rows = ""
+    for h, d in (ps.get("hosts") or {}).items():
+        extra = ("" if d.get("in_input") is None else
+                 f"<td>{d.get('in_input')}</td><td>{d.get('kept_of_in_input')}</td>"
+                 f"<td>{d.get('kept_percent_of_in_input')}</td>")
+        rows += (f"<tr><td>{h}</td><td>{d.get('denominator')}</td>"
+                 f"<td>{d.get('recovered')}</td><td>{d.get('recall_percent')}</td>"
+                 f"<td>{d.get('unmeasured_in_host')}</td>{extra}</tr>")
+    hdr = ((("Konak", "Payda", "Yakalanan", "Recall %", "O konakta ölçülmemiş")
+            if tr else ("Host", "Denominator", "Recovered", "Recall %",
+                        "Not measured in host")))
+    hdr2 = ((("Girdide", "Elemeden geçen", "%") if tr else
+             ("In input", "Kept by filters", "%"))
+            if any(d.get("in_input") is not None
+                   for d in (ps.get("hosts") or {}).values()) else ())
+    ths = "".join(f"<th>{c}</th>" for c in (*hdr, *hdr2))
+    note = ("Payda konağa göre AYRIDIR: hamsterda anlamlı bir hedefi fare "
+            "taramasında kaçırmak başarısızlık değildir. 'Girdide' sütunu, "
+            "'girdide hiç yoktu' durumunu 'elemede düştü' durumundan ayırır."
+            if tr else
+            "The denominator is host-specific: missing a hamster-significant "
+            "target in a mouse scan is not a failure. The 'in input' column "
+            "separates 'was never in the input' from 'dropped by the filters'.")
+    return (head + f"<p>{note}</p><table><tr>{ths}</tr>{rows}</table>"
+            + (f"<p><i>{ps.get('specificity_note', '')}</i></p>"
+               if ps.get("specificity_note") else ""))
+
+
 def _html(df: pd.DataFrame, meta: dict, peptides=None) -> str:
     lang = meta.get("lang", "tr")
     thr_rows = "".join(
@@ -994,6 +1047,7 @@ def _html(df: pd.DataFrame, meta: dict, peptides=None) -> str:
     )
     correlate_html = _correlate_section(meta)
     curated_html = _curated_validation_section(meta)
+    prot_label_html = _protein_label_set_section(meta)
     iedb_html = _iedb_section(meta, peptides)
     mev_html = _mev_section(meta)
     immuno_html = _immuno_section(meta)
@@ -1070,6 +1124,7 @@ summary{{cursor:pointer;font-size:.95rem}}</style></head><body>
 
 {iedb_html}
 {curated_html}
+{prot_label_html}
 
 {mev_html}
 {structure_html}
