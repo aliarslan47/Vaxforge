@@ -90,8 +90,14 @@ Ten bacteria, full proteomes, 48 protective antigens recovered:
 | Tool | Recall | Share |
 |---|---|---|
 | Vaxign-ML | 47/48 | 98% |
-| VaxForge | 37/48 | 77% |
+| VaxForge | 37/48 (provisional, Oct 2026 run) | 77% |
 | NERVE 2.0 | 14/48 | 29% |
+
+> **The VaxForge row is stale and has not been corrected yet.** It is the output of
+> the October 2026 run, which predates every fix listed in the three caveats below.
+> It is reproduced here unchanged rather than adjusted, because the only honest way
+> to update it is to re-run the benchmark; no number in this table has been
+> recomputed by hand. The competitor rows are unaffected.
 
 On the MenB exemplar, where the ground truth is the four licensed 4CMenB antigens,
 VaxForge recovers 4/4 and NERVE 2.0 recovers 1/4.
@@ -110,6 +116,17 @@ the benchmark summaries of the time did not record which tools actually ran. The
 now, so this question is answerable for every future run. The VaxForge figure should
 therefore be treated as provisional until the benchmark is re-run; the competitors run
 in their own containers and are unaffected either way.
+
+**Third caveat, added 23 November 2026.** A further set of defects was found in the
+candidate-scoring path itself, all after the October run: MHC class II prediction fell
+back silently, a `%rank` scale error let poly-alanine stretches score as epitopes,
+conservation was computed against a single strain (the input itself) and so could read
+100% when nothing had been compared, and — found only by a unit test — the residue-wise
+conservation profile was **offset** whenever the local alignment did not start at the
+candidate's first residue (12 of 74 real alignments, shift 23–100 residues). The last
+one feeds `epitope_conservation`, which feeds the candidacy score, so it perturbed
+ranking silently while protein averages still looked correct. Direction and size of the
+effect on the 48-antigen recall are unknown until the benchmark is re-run.
 
 All eleven VaxForge misses are mechanistically attributed in
 `benchmark/MISS_ATTRIBUTION.md`. Six are cytoplasmic moonlighting antigens removed by

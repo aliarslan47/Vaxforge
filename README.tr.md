@@ -91,8 +91,14 @@ On bakteri, tam proteom, 48 koruyucu antijen üzerinden recall:
 | Araç | Recall | Oran |
 |---|---|---|
 | Vaxign-ML | 47/48 | %98 |
-| VaxForge | 37/48 | %77 |
+| VaxForge | 37/48 (geçici, 2026-10 koşusu) | %77 |
 | NERVE 2.0 | 14/48 | %29 |
+
+> **VaxForge satırı eskidir ve HENÜZ DÜZELTİLMEDİ.** Aşağıdaki üç uyarıda sayılan
+> düzeltmelerin tamamından ÖNCEye, 2026-10 koşusuna aittir. Elle düzeltilmek yerine
+> olduğu gibi bırakıldı: bu sayıyı güncellemenin tek dürüst yolu benchmark'ı yeniden
+> koşmaktır, tablodaki hiçbir sayı elle yeniden hesaplanmamıştır. Rakip satırları
+> etkilenmez.
 
 Ground-truth'un ruhsatlı dört 4CMenB antijeni olduğu MenB exemplar'ında VaxForge 4/4,
 NERVE 2.0 ise 1/4 yakalar.
@@ -111,6 +117,18 @@ araçların gerçekten koştuğunu kaydetmiyordu. Artık kaydediyor, yani bu sor
 sonraki her koşu için yanıtlanabilir. Bu yüzden VaxForge sayısı, benchmark yeniden
 koşulana kadar GEÇİCİ sayılmalı; rakipler kendi konteynerlerinde koştuğu için her
 hâlükârda etkilenmez.
+
+**Üçüncü uyarı, 2026-11-23'te eklendi.** Aday PUANLAMA yolunun kendisinde de, hepsi
+2026-10 koşusundan sonra bulunan bir dizi kusur çıktı: MHC sınıf II tahmini sessizce
+yedeğe düşüyordu, bir `%rank` ölçek hatası poli-alanin dizilerinin epitop gibi
+puanlanmasına izin veriyordu, konservasyon tek suşa (girdinin kendisine) karşı
+hesaplanıyordu — yani hiçbir karşılaştırma yapılmamışken %100 okunabiliyordu — ve
+yalnızca bir birim testiyle bulunan sonuncusu: kalıntı-başı konservasyon profili,
+yerel hizalama adayın 1. kalıntısından başlamadığı her durumda **KAYIYORDU** (74
+gerçek hizalamanın 12'si, 23-100 kalıntı kayma). Bu son kusur `epitope_conservation`'ı,
+o da adaylık puanını besliyor; yani protein ortalamaları doğru görünürken sıralamayı
+sessizce bozuyordu. 48 antijenlik recall üzerindeki etkinin yönü ve büyüklüğü,
+benchmark yeniden koşulana kadar BİLİNMİYOR.
 
 VaxForge'un kaçırdığı on bir antijenin tamamı `benchmark/MISS_ATTRIBUTION.md` içinde
 mekanistik olarak atfedilmiştir. Altısı, konakçı homolojisi ve lokalizasyon kapılarının
