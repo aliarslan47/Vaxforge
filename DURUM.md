@@ -4,7 +4,7 @@
 > bilimsel ayrıntı `benchmark/` altında, faz günlüğü `ROADMAP.md`'de.
 
 **Son güncelleme:** 2026-11-23
-**Son commit:** `e3d0393` — PDF↔HTML bölüm eşitliği + gizli konservasyon alanları
+**Son commit:** Leptospira protein etiket seti + BoHV-1 yeniden koşusu
 **Bu turda (yedinci):** dal master'a birleştirildi ve push edildi, README benchmark
 satırı "geçici" işaretlendi, PDF'te hâlâ eksik olan dört bölüm eklendi, raporda hiç
 görünmeyen konservasyon alanları açıldı — aşağıda. **Koşu yapılmadı.**
@@ -62,8 +62,33 @@ UYDURULMAZ.
 ölçüldü: düzeltme `git stash` ile geri alındığında 6'sı düşüyor. Paket
 **110 → 119** test, hepsi geçiyor.
 
-**Kalan tek açık iş: BoHV-1 yeniden koşusu** — Ali'nin açık emrini bekliyor.
-Rapor tarafında artık koşuyu bekleyen bir düzeltme yok.
+**5. BoHV-1 YENİDEN KOŞUSU YAPILDI** (Ali'nin açık emriyle, 2026-11-23 22:27).
+`scripts/run_bohv1.py`, 59.5 dk, çıkış kodu 0 → `outputs/run_2026-11-23T22-27-16`.
+
+**Sonuç: koşu 2026-11-22 koşusunu SAYI SAYI tekrarladı.** İki koşunun
+`candidates.csv` dosyaları 693 satırda karşılaştırıldı; farklı olan **yalnız üç
+sütun**: `anchor_residues`, `allele_anchor_motif`, `anchor_match` — yani
+`78c8253`'te eklenen allele özgü anchor ölçümü. O ölçümün başlığı zaten
+"yorum — sıralamayı etkilemez" diyor ve ölçüm bunu DOĞRULADI: `candidacy`,
+`rank`, `conservation_percent`, `iedb_*`, `allergen`, `toxicity` sütunlarının
+hiçbirinde tek satır fark yok.
+
+| ölçüt | 22 Kas | 23 Kas |
+|---|---|---|
+| n_funnel / n_epitope / n_scored / n_survivors | 74 / 1258 / 1114 / 693 | aynı |
+| konservasyon | 69/74 (5 suş, 4 ölçülemedi) | aynı |
+| MEV antijenitesi | 0.625 (IApred) | aynı |
+| pLDDT | 47.7 (çok düşük — kimera, BEKLENEN) | aynı |
+| IEDB | 5/693, recall 0.1053 | aynı |
+| araç durumu | 21/21 (4 derin, 17 sığ) | aynı |
+| anchor ölçülen | — | 564/693 (tüm MHC adayları; 129 B adayında yarık yok) |
+
+Bu, hattın **determinist** olduğunun ilk doğrudan kanıtıdır: aynı girdi + aynı
+kod → aynı sayılar. Rapor tarafında eklenen beş bölüm artık GERÇEK veriyle
+dolu; konservasyonun "Yöntem" satırı da ilk kez dolu geliyor (eski koşunun
+raporunda "—" kalır, geçmişe etiket uydurulmaz).
+
+**Kalan açık iş yok.** Sırada Leptospira.
 
 ## 2026-11-22 (beşinci tur) — rapor kusurları (Ali'nin PDF incelemesi)
 
