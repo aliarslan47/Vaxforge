@@ -3,9 +3,13 @@
 > Forge ailesi konvansiyonu: bu dosya **ilk okunacak** dosyadır. Kod tarihçesi git'te,
 > bilimsel ayrıntı `benchmark/` altında, faz günlüğü `ROADMAP.md`'de.
 
-**Son güncelleme:** 2026-11-23
+**Son güncelleme:** 2026-11-24
 **Son commit:** CI onarımı (testler CI'da hiç koşamıyormuş) + test kör noktası
-**Bu turda (yedinci):** dal master'a birleştirildi ve push edildi, README benchmark
+**CI durumu:** master'da **YEŞİL** — Lint (ruff), Birim testleri (ağsız),
+Frontend tip kontrolü. Testler ilk kez CI'da gerçekten koştu.
+**Bu turda (sekizinci):** CI onarıldı (üç kök neden), `aln.aligned` yedek
+yolundaki test kör noktası bulundu ve kapatıldı — aşağıda.
+**Önceki tur (yedinci):** dal master'a birleştirildi ve push edildi, README benchmark
 satırı "geçici" işaretlendi, PDF'te hâlâ eksik olan dört bölüm eklendi, raporda hiç
 görünmeyen konservasyon alanları açıldı — aşağıda. **Koşu yapılmadı.**
 **Önceki tur (altıncı):** allele özgü MHC anchor ölçümü + Leptospira korelat/
@@ -64,6 +68,11 @@ Not: aynı turda bir kez de `__pycache__` tuzağına düşüldü — düzeltme b
 sayısını değiştirmediği için (`t0, _t1` ↔ `_t0, t1`) eski `.pyc` geçerli
 sayıldı ve düzeltilmiş kod yerine eski kod koştu. Kafa karıştıran bir
 "düzelttim ama hâlâ düşüyor" turu. `__pycache__` silinince geçti.
+
+**Kapanış:** üç onarım commit'inden (`d5afe5b`, `b549e45`, `97d3a7a`) sonra CI
+master'da **tam yeşil**: Lint (ruff) `success`, Birim testleri (ağsız)
+`success`, Frontend tip kontrolü `success`. Yalnız DURUM.md'yi değiştiren son
+push'ta da yeşil kaldı.
 
 ## 2026-11-23 (yedinci tur) — kapanan açık işler + PDF↔HTML eşitliği
 
